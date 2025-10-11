@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+body {
+  background-color: #fff;
+}
+
+/* Global text selection style */
+::selection {
+  background-color: #a96a5a; /* Selection highlight color */
+  color: #ffffff; /* Text color when selected */
+}
+
+/* For Firefox */
+::-moz-selection {
+  background-color: #a96a5a;
+  color: #ffffff;
+}
