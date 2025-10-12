@@ -18,7 +18,7 @@ const Slider = ({ slides }) => {
     // Set initial slide visible
     gsap.set(slidesEls, { x: "100%", opacity: 0 });
     gsap.set(slidesEls[0], { x: "0%", opacity: 1 });
-    gsap.set(progressRefs.current, { scaleY: 0, transformOrigin: "bottom" });
+    gsap.set(progressRefs.current, { scaleX: 0, transformOrigin: "left" });
 
     startAutoplay();
 
@@ -28,7 +28,7 @@ const Slider = ({ slides }) => {
 
   const resetProgressBars = () => {
     progressRefs.current.forEach((bar) => gsap.killTweensOf(bar));
-    gsap.set(progressRefs.current, { scaleY: 0, transformOrigin: "bottom" });
+    gsap.set(progressRefs.current, { scaleX: 0, transformOrigin: "left" });
   };
 
   const animateProgress = (index) => {
@@ -38,12 +38,12 @@ const Slider = ({ slides }) => {
     gsap.killTweensOf(bar);
 
     // Reset to 0
-    gsap.set(bar, { scaleY: 0, transformOrigin: "bottom" });
+    gsap.set(bar, { scaleX: 0, transformOrigin: "left" });
 
     // Animate
     gsap.to(bar, {
-      scaleY: 1,
-      transformOrigin: "bottom",
+      scaleX: 1,
+      transformOrigin: "left",
       ease: "linear",
       duration: SLIDE_DURATION / 1000,
     });
@@ -100,7 +100,7 @@ const Slider = ({ slides }) => {
   };
 
   return (
-    <div className="overflow-hidden w-[90vw] h-[85vh] relative rounded-[4vw] flex justify-center items-center">
+    <div className="overflow-hidden w-[95vw] h-[85vh] relative rounded-[2vw] flex justify-center items-center">
       {/* SLIDER */}
       <div
         ref={sliderRef}
@@ -111,12 +111,12 @@ const Slider = ({ slides }) => {
             key={idx}
             className="absolute top-0 left-0 w-full h-full overflow-hidden"
           >
-            <div className="w-full h-full flex items-center justify-center rounded-[4vw] overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center rounded-[2vw] overflow-hidden">
               <img
                 ref={(el) => (imageRefs.current[idx] = el)}
                 src={slide}
                 alt={`slide-${idx}`}
-                className="w-full h-full object-cover rounded-[4vw]"
+                className="w-full h-full object-cover rounded-[2vw]"
               />
             </div>
           </div>
@@ -124,18 +124,23 @@ const Slider = ({ slides }) => {
       </div>
 
       {/* DOTS */}
-      <div className="absolute bottom-0 h-[100%] w-full bg-linear-to-t from-black/70 to-black/10 flex items-end justify-center pb-2">
+      <div className="absolute bottom-0 h-[100%] w-full bg-gradient-to-t from-black/70 to-black/10 flex items-end justify-center pb-2">
         <div className="flex gap-[0.6vw]">
           {slides.map((_, idx) => (
             <div
               key={idx}
               onClick={() => handleDotClick(idx)}
-              className={`relative box-content w-[0.5vw] h-[0.5vw] rounded-full cursor-pointer overflow-hidden border-2 border-transparent transition-border hover:border-[#e3b49f]`}
+              className={`relative cursor-pointer overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+          ${
+            active === idx
+              ? "w-[1.7vw] h-[0.6vw] rounded-full bg-[#A96A5A]" // capsule for active
+              : "w-[0.6vw] h-[0.6vw] rounded-full bg-gray-300" // dot for inactive
+          }`}
             >
               <div className="absolute top-0 left-0 w-full h-full bg-gray-300"></div>
               <div
                 ref={(el) => (progressRefs.current[idx] = el)}
-                className="absolute top-0 left-0 w-full h-full bg-[#A96A5A] origin-bottom scale-y-0"
+                className="absolute top-0 left-0 w-full h-full bg-[#A96A5A] origin-left scale-x-0"
               ></div>
             </div>
           ))}

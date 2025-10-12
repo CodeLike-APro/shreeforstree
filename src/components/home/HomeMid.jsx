@@ -1,6 +1,32 @@
 import React from "react";
+import Cards from "../common/Cards";
 
 const HomeMid = () => {
+  const cards = [
+    {
+      img: "/NewArrivals/img1.jpg",
+      title: "Ivory Silk Gown",
+      sale: "30% OFF",
+      wishlist: false,
+      category: "Evening Wear",
+      originalPrice: "₹8,999",
+      currentPrice: "₹6,299",
+      sizes: ["S", "M", "L"],
+      ratings: 4.8,
+    },
+    {
+      img: "/NewArrivals/img2.jpg",
+      title: "Blush Pink Lehenga",
+      sale: "New Arrival",
+      wishlist: true,
+      category: "Bridal",
+      originalPrice: "₹12,999",
+      currentPrice: "₹12,999",
+      sizes: ["S", "M"],
+      ratings: 5,
+    },
+  ];
+
   return (
     <div>
       <div className="flex flex-col gap-5 my-5">
@@ -35,6 +61,14 @@ const HomeMid = () => {
             shreeforstree
           </a>
         </h3>
+      </div>
+      <div className="w-full flex items-center justify-center">
+        <h1 className="h-full text-6xl uppercase text-[#AC6B5C] tracking-[0.5vw] font-light my-4">
+          new arrivals
+        </h1>
+      </div>
+      <div>
+        <Cards cards={cards} />
       </div>
     </div>
   );
