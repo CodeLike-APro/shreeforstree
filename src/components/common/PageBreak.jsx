@@ -20,10 +20,6 @@ const PageBreak = () => {
         // markers: true,
       },
     });
-    return () => {
-      tween.kill();
-      ScrollTrigger.kill();
-    };
   }, []);
 
   const handleMouseMove = (e) => {
@@ -51,7 +47,7 @@ const PageBreak = () => {
   };
 
   return (
-    <div className="stringContainer flex items-center justify-center -mt-[7vh]">
+    <div className="stringContainer flex items-center justify-center">
       <div className="string h-[30vh] w-[70vw]">
         <svg
           onMouseMove={handleMouseMove}
@@ -64,7 +60,7 @@ const PageBreak = () => {
           <path
             ref={stringRefs}
             d="M 50 100 Q 750 100 1450 100"
-            stroke="black"
+            stroke="#AC6B5C"
             strokeWidth="7"
             strokeLinecap="round"
             fill="none"

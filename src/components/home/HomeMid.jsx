@@ -97,18 +97,20 @@ const HomeMid = () => {
       <div className="my-2 py-2">
         <Cards cards={cards} />
       </div>
-      <div className="view my-2 py-2 flex items-center justify-center">
+      <div className="view w-full my-2 py-2 flex items-center justify-center z-[9999]">
         <h2
           className="relative text-xl uppercase font-light text-center text-[#AC6B5C] tracking-[0.25vw] border border-[#AC6B5C] p-2.5 cursor-pointer overflow-hidden
-             transition-all duration-200 ease-in-out group rounded-[0.5vw]"
+             transition-all duration-200 ease-in-out group rounded-[0.5vw] z-20"
         >
-          <span className="relative z-10 group-hover:text-white transition-colors duration-200">
+          <span className="relative z-[9999] group-hover:text-white transition-colors duration-200">
             view all
           </span>
-          <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100"></span>
+          <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100 z-10"></span>
         </h2>
       </div>
-      <PageBreak />
+      <div className="-mt-[7vh] -z-10">
+        <PageBreak />
+      </div>
       <div className="h-screen w-screen"></div>
     </div>
   );
