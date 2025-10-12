@@ -17,7 +17,7 @@ const PageBreak = () => {
         trigger: ".stringContainer",
         start: "top 70%",
         end: "bottom 60%",
-        markers: true,
+        // markers: true,
       },
     });
     return () => {
