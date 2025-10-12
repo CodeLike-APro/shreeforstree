@@ -1,28 +1,55 @@
 import React from "react";
 import Cards from "../common/Cards";
+import PageBreak from "../common/PageBreak";
 
 const HomeMid = () => {
   const cards = [
     {
       img: "/NewArrivals/img1.jpg",
       title: "Ivory Silk Gown",
-      sale: "30% OFF",
+      sale: false,
+      discount: "30% OFF",
       wishlist: false,
       category: "Evening Wear",
       originalPrice: "₹8,999",
       currentPrice: "₹6,299",
-      sizes: ["S", "M", "L"],
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       ratings: 4.8,
     },
     {
       img: "/NewArrivals/img2.jpg",
-      title: "Blush Pink Lehenga",
-      sale: "New Arrival",
+      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      sale: true,
+      discount: "30% OFF",
       wishlist: true,
       category: "Bridal",
       originalPrice: "₹12,999",
-      currentPrice: "₹12,999",
-      sizes: ["S", "M"],
+      currentPrice: "₹22,999",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      ratings: 5,
+    },
+    {
+      img: "/NewArrivals/img2.jpg",
+      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      sale: true,
+      discount: "30% OFF",
+      wishlist: true,
+      category: "Bridal",
+      originalPrice: "₹12,999",
+      currentPrice: "₹22,999",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      ratings: 5,
+    },
+    {
+      img: "/NewArrivals/img2.jpg",
+      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      sale: true,
+      discount: "30% OFF",
+      wishlist: true,
+      category: "Bridal",
+      originalPrice: "₹12,999",
+      currentPrice: "₹22,999",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       ratings: 5,
     },
   ];
@@ -62,14 +89,27 @@ const HomeMid = () => {
           </a>
         </h3>
       </div>
-      <div className="w-full flex items-center justify-center">
-        <h1 className="h-full text-6xl uppercase text-[#AC6B5C] tracking-[0.5vw] font-light my-4">
+      <div className="w-full flex items-center justify-center mt-[5vw]">
+        <h1 className="h-full text-4xl uppercase text-[#AC6B5C] tracking-[0.5vw] font-light">
           new arrivals
         </h1>
       </div>
-      <div>
+      <div className="my-2 py-2">
         <Cards cards={cards} />
       </div>
+      <div className="view my-2 py-2 flex items-center justify-center">
+        <h2
+          className="relative text-xl uppercase font-light text-center text-[#AC6B5C] tracking-[0.25vw] border border-[#AC6B5C] p-2.5 cursor-pointer overflow-hidden
+             transition-all duration-200 ease-in-out group rounded-[0.5vw]"
+        >
+          <span className="relative z-10 group-hover:text-white transition-colors duration-200">
+            view all
+          </span>
+          <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100"></span>
+        </h2>
+      </div>
+      <PageBreak />
+      <div className="h-screen w-screen"></div>
     </div>
   );
 };
