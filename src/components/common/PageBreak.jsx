@@ -4,32 +4,33 @@ import { ScrollTrigger } from "gsap/all";
 import React, { useRef } from "react";
 
 const PageBreak = () => {
+  const stringContainerRef = useRef(null);
   const stringRefs = useRef(null);
 
   useGSAP(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(".stringContainer", {
+    // Animate only THIS PageBreak’s container
+    gsap.from(stringContainerRef.current, {
       scaleX: 0,
+      opacity: 0,
       transformOrigin: "center",
+      duration: 1.3,
       ease: "power2.out",
       scrollTrigger: {
-        trigger: ".stringContainer",
-        start: "top 70%",
+        trigger: stringContainerRef.current,
+        start: "top 80%",
         end: "bottom 60%",
-        // markers: true,
       },
     });
   }, []);
 
   const handleMouseMove = (e) => {
     const bounds = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - bounds.left; // X within SVG
-    const y = e.clientY - bounds.top; // Y within SVG
+    const x = e.clientX - bounds.left;
+    const y = e.clientY - bounds.top;
 
-    // Animate the curve dynamically based on mouse position
     const newPath = `M 0 20 Q ${x} ${y} 2500 20`;
-
     gsap.to(stringRefs.current, {
       attr: { d: newPath },
       duration: 0.3,
@@ -38,7 +39,6 @@ const PageBreak = () => {
   };
 
   const handleMouseLeave = () => {
-    // Return to original straight line
     gsap.to(stringRefs.current, {
       attr: { d: "M 0 20 Q 1250 20 2500 20" },
       duration: 1.5,
@@ -47,7 +47,10 @@ const PageBreak = () => {
   };
 
   return (
-    <div className="stringContainer flex items-center justify-center">
+    <div
+      ref={stringContainerRef}
+      className="stringContainer flex items-center justify-center"
+    >
       <div className="string h-[20vh] w-[100vw]">
         <svg
           onMouseMove={handleMouseMove}

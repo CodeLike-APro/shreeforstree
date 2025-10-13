@@ -26,7 +26,16 @@ const Cards = ({ cards }) => {
             <div className="title text-xl font-semibold uppercase tracking-[0.2vw]">
               {card.title}
             </div>
-            <div className="category text-xs italic ">{card.category}</div>
+            <div className="sizes flex flex-wrap gap-1 mt-1">
+              {card.sizes.map((size, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-0.5 text-[0.7rem] border border-[#AC6B5C] text-[#AC6B5C] rounded-[0.25rem] uppercase font-light hover:bg-[#AC6B5C] hover:text-white transition-all duration-200 cursor-pointer"
+                >
+                  {size}
+                </span>
+              ))}
+            </div>
 
             <div className="flex justify-start items-center gap-2 my-1">
               <div
