@@ -97,6 +97,28 @@ const HomeMid = () => {
       <div className="my-2 py-2">
         <Cards cards={cards} />
       </div>
+      <div className="shop w-full my-2 py-2 flex items-center justify-center z-[9999]">
+        <h2
+          className="relative text-xl uppercase font-light text-center text-[#AC6B5C] tracking-[0.25vw] border border-[#AC6B5C] py-2.5 px-3 cursor-pointer overflow-hidden
+             transition-all duration-200 ease-in-out group rounded-[0.5vw] z-20"
+        >
+          <span className="relative z-[9999] group-hover:text-white transition-colors duration-200">
+            shop now
+          </span>
+          <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100 z-10"></span>
+        </h2>
+      </div>
+      <div className="-z-10">
+        <PageBreak />
+      </div>
+      <div className="w-full flex items-center justify-center">
+        <h1 className="h-full text-4xl uppercase text-[#AC6B5C] tracking-[0.7vw] font-light">
+          festive
+        </h1>
+      </div>
+      <div className="my-2 py-2">
+        <Cards cards={cards} />
+      </div>
       <div className="view w-full my-2 py-2 flex items-center justify-center z-[9999]">
         <h2
           className="relative text-xl uppercase font-light text-center text-[#AC6B5C] tracking-[0.25vw] border border-[#AC6B5C] p-2.5 cursor-pointer overflow-hidden
@@ -108,10 +130,6 @@ const HomeMid = () => {
           <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100 z-10"></span>
         </h2>
       </div>
-      <div className="-z-10">
-        <PageBreak />
-      </div>
-      <div className="h-screen w-screen"></div>
     </div>
   );
 };
