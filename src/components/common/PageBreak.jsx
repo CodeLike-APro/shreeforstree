@@ -28,7 +28,7 @@ const PageBreak = () => {
     const y = e.clientY - bounds.top; // Y within SVG
 
     // Animate the curve dynamically based on mouse position
-    const newPath = `M 50 100 Q ${x} ${y} 1450 100`;
+    const newPath = `M 0 20 Q ${x} ${y} 2500 20`;
 
     gsap.to(stringRefs.current, {
       attr: { d: newPath },
@@ -40,26 +40,26 @@ const PageBreak = () => {
   const handleMouseLeave = () => {
     // Return to original straight line
     gsap.to(stringRefs.current, {
-      attr: { d: "M 50 100 Q 750 100 1450 100" },
-      duration: 0.6,
+      attr: { d: "M 0 20 Q 1250 20 2500 20" },
+      duration: 1.5,
       ease: "elastic.out(2, 0.1)",
     });
   };
 
   return (
     <div className="stringContainer flex items-center justify-center">
-      <div className="string h-[30vh] w-[70vw]">
+      <div className="string h-[20vh] w-[100vw]">
         <svg
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           className="bg-transparent"
-          height="30vh"
-          width="70vw"
-          viewBox="0 0 1500 200"
+          height="20vh"
+          width="100vw"
+          viewBox="0 0 2500 100"
         >
           <path
             ref={stringRefs}
-            d="M 50 100 Q 750 100 1450 100"
+            d="M 0 20 Q 1250 20 2500 20"
             stroke="#AC6B5C"
             strokeWidth="7"
             strokeLinecap="round"

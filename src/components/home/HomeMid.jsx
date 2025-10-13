@@ -108,7 +108,7 @@ const HomeMid = () => {
           <span className="absolute inset-0 bg-[#AC6B5C] scale-x-0 origin-center transition-transform duration-200 ease-out group-hover:scale-x-100 z-10"></span>
         </h2>
       </div>
-      <div className="-mt-[7vh] -z-10">
+      <div className="-z-10">
         <PageBreak />
       </div>
       <div className="h-screen w-screen"></div>
