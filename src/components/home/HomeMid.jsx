@@ -18,7 +18,7 @@ const HomeMid = () => {
     },
     {
       img: "/NewArrivals/img2.jpg",
-      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      title: "Blush Pink Lehenga",
       sale: true,
       discount: "30% OFF",
       wishlist: true,
@@ -30,7 +30,7 @@ const HomeMid = () => {
     },
     {
       img: "/NewArrivals/img2.jpg",
-      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      title: "Blush Pink Lehenga",
       sale: true,
       discount: "30% OFF",
       wishlist: true,
@@ -42,7 +42,7 @@ const HomeMid = () => {
     },
     {
       img: "/NewArrivals/img2.jpg",
-      title: "Blush Pink Lehenga with chunni in red color with pink hairbelt",
+      title: "Blush Pink Lehenga ",
       sale: true,
       discount: "30% OFF",
       wishlist: true,
