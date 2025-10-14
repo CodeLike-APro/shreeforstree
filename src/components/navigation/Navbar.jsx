@@ -132,7 +132,7 @@ const Navbar = () => {
             </div>
           </div>
 
-          <div className="search h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
+          <div className="cart h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
             <svg
               className="h-full w-full"
               viewBox="0 0 24 24"
@@ -146,7 +146,7 @@ const Navbar = () => {
             </svg>
           </div>
 
-          <div className="search h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
+          <div className="userAcc h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
             <svg
               className="h-full w-full"
               xmlns="http://www.w3.org/2000/svg"
