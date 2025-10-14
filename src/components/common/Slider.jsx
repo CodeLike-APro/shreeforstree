@@ -16,8 +16,8 @@ const Slider = ({ slides }) => {
     const slidesEls = sliderRef.current.children;
 
     // Set initial slide visible
-    gsap.set(slidesEls, { x: "100%", opacity: 0 });
-    gsap.set(slidesEls[0], { x: "0%", opacity: 1 });
+    gsap.set(slidesEls, { x: "100%" });
+    gsap.set(slidesEls[0], { x: "0%" });
     gsap.set(progressRefs.current, { scaleX: 0, transformOrigin: "left" });
 
     startAutoplay();
@@ -72,9 +72,9 @@ const Slider = ({ slides }) => {
       defaults: { ease: "power2.inOut", duration: TRANSITION_DURATION },
     });
 
-    tl.to(prevSlide, { x: "-100%", opacity: 0 }, 0)
+    tl.to(prevSlide, { x: "-100%" }, 0)
       .to(prevImg, { scale: 1.3 }, 0)
-      .fromTo(nextSlide, { x: "100%" }, { x: "0%", opacity: 1 }, "<")
+      .fromTo(nextSlide, { x: "100%" }, { x: "0%" }, "<")
       .fromTo(nextImg, { scale: 1.3 }, { scale: 1 }, "<");
 
     // Update both refs + state

@@ -65,6 +65,7 @@ const HomeMid = () => {
             customize with us on Instagram
           </h3>
           <h3 className="w-full flex items-center justify-center text-[#A96A5A] uppercase tracking-[0.5vw] text-[1.2vw] font-ligh gap-4">
+            {/* Instagram Icon */}
             <a
               href="https://www.instagram.com/shreeforstree?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
               target="_blank"
@@ -77,6 +78,7 @@ const HomeMid = () => {
                 ></path>
               </svg>
             </a>
+            {/* Instagram wordmark */}
             <a
               className="relative after:absolute after:left-1/2 after:-bottom-1 after:h-[2px] after:bg-[#A96A5A] 
                  after:w-0 hover:after:w-full after:translate-x-[-50%] after:transition-all after:duration-200"
@@ -142,9 +144,6 @@ const HomeMid = () => {
           </h2>
         </div>
       </section>
-      <div className="pageBreak">
-        <PageBreak />
-      </div>
     </div>
   );
 };
