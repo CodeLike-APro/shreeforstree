@@ -3,7 +3,7 @@ import React from "react";
 const Cards = ({ cards }) => {
   return (
     <section className="relative w-full h-auto my-[5vh] px-[5vh] scrollbar-hide">
-      <div className="flex gap-[2vw] px-1 py-[1vh] overflow-x-scroll items-start scrollbar-hide snap-x snap-mandatory">
+      <div className="flex gap-[1vw] px-1 py-[1vh] overflow-x-scroll items-start scrollbar-hide snap-x snap-mandatory">
         {cards.map((card, idx) => (
           <div
             key={idx}
