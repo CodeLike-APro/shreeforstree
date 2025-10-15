@@ -3,16 +3,16 @@ import React from "react";
 const Cards = ({ cards }) => {
   return (
     <section className="relative w-full h-auto my-[5vh] px-[5vh] scrollbar-hide">
-      <div className="flex gap-[1vw] px-1 py-[1vh] overflow-x-scroll items-start scrollbar-hide snap-x snap-mandatory">
+      <div className="flex gap-[1vw] px-1 py-[1vh] overflow-x-scroll items-start scrollbar-hide">
         {cards.map((card, idx) => (
           <div
             key={idx}
-            className="snap-start w-[25vw] min-w-[25vw] flex-shrink-0 flex flex-col bg-white shadow-md transition-transform duration-300 scroll-smooth h-auto"
+            className="w-[22.5vw] flex-shrink-0 flex flex-col bg-white scroll-smooth h-auto"
           >
             {/* Image */}
             <div className="imageContainer w-full h-[50vh] overflow-hidden">
               <img
-                className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                className="object-cover w-full h-full"
                 src={card.img}
                 alt={card.title}
               />
