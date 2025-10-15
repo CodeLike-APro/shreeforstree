@@ -2,13 +2,15 @@ import React from "react";
 
 const Cards = ({ cards, layout = "row" }) => {
   // Determine layout classes dynamically
-  const containerClass =
-    layout === "grid"
-      ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 justify-items-center"
-      : "flex flex-wrap gap-4 justify-center";
 
   return (
-    <div className={containerClass}>
+    <div
+      className={`${
+        layout === "grid"
+          ? "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 justify-items-center"
+          : "flex flex-wrap gap-4 justify-center"
+      }`}
+    >
       {cards.map((card, idx) => (
         <div
           key={idx}
