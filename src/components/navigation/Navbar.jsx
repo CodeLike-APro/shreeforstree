@@ -23,7 +23,7 @@ const Navbar = () => {
         <div className="quickLinks flex gap-7 uppercase text-[0.9vw] tracking-[2.7px] ">
           <div className="flex gap-7">
             {[
-              { name: "all products", path: "/all-products" },
+              { name: "all products", path: "/AllProducts" },
               { name: "new arrivals", path: "/new-arrivals" },
               { name: "festive", path: "/festive" },
               { name: "kurtis", path: "/kurtis" },

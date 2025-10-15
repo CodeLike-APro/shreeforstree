@@ -105,9 +105,10 @@ const HomeMid = () => {
             new arrivals
           </h1>
         </div>
-        <div className="my-2 py-2">
-          <Cards cards={cards} />
+        <div className="mt-[10vh] mb-[7vh]">
+          <Cards cards={cards} layout="flex" />
         </div>
+
         <div className="shop w-full my-2 py-2 flex items-center justify-center z-[9999]">
           <h2
             className="relative text-xl uppercase font-light text-center text-[#AC6B5C] tracking-[0.25vw] border border-[#AC6B5C] py-2.5 px-3 cursor-pointer overflow-hidden
@@ -129,8 +130,8 @@ const HomeMid = () => {
             festive
           </h1>
         </div>
-        <div className="my-2 py-2">
-          <Cards cards={cards} />
+        <div className="mt-[10vh] mb-[7vh]">
+          <Cards cards={cards} layout="flex" />
         </div>
         <div className="view w-full my-2 py-2 flex items-center justify-center z-[9999]">
           <h2
