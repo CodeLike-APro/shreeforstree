@@ -14,7 +14,7 @@ const Cards = ({ cards, layout = "row" }) => {
       {cards.map((card, idx) => (
         <div
           key={idx}
-          className="min-w-[22.5vw] flex flex-col bg-white transition-all duration-300 overflow-hidden"
+          className="min-w-[22.5vw] max-w-[22.5vw] flex flex-col bg-white transition-all duration-300 overflow-hidden"
         >
           {/* Image */}
           <div className="imageContainer w-full h-[50vh] overflow-hidden">
