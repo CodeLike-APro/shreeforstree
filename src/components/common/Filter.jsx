@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CustomCheckbox from "./CustomCheckbox";
+import Icons from "../../assets/Icons/Icons";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -147,8 +148,18 @@ const Filter = ({ products = [], onFilter }) => {
   return (
     <div
       ref={filterRef}
-      className="absolute left-0 h-[80vh] w-[24vw] flex flex-col gap-6 bg-[#AC6B5C] text-[#F5D3C3] px-5 py-10 overflow-y-auto transition-colors duration-500 ease-in-out"
+      className="absolute rounded-r-[0.5vw] left-0 h-[80vh] w-[24vw] flex flex-col gap-6 bg-[#AC6B5C] text-[#F5D3C3] px-5 py-10 overflow-y-auto transition-colors duration-500 ease-in-out"
     >
+      <div className="flex gap-3 items-center mb-8">
+        <div>
+          <Icons.FilterIcon size="24" />
+        </div>
+
+        <h3 className="text-4xl uppercase font-bold tracking-[0.4vw]">
+          Filters
+        </h3>
+      </div>
+
       {/* CATEGORY FILTER */}
       <FilterSection
         title="Category"
@@ -241,7 +252,7 @@ const FilterSection = ({
       className={`overflow-hidden py-[1vh] pl-[2vw] transition-all duration-300 ${
         expanded ? "pointer-events-auto" : "pointer-events-none"
       }`}
-      style={{ height: 0 }}
+      style={{ height: 0, opacity: 0 }}
     >
       {options.map((opt) => {
         const key = isRange ? opt.id : opt;

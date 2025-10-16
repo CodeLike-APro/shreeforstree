@@ -3,10 +3,11 @@ import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/navigation/Navbar";
 import Home from "./pages/Home";
 import Footer from "./components/navigation/Footer";
-import AllProducts from "./pages/All-Products.jsx";
-// import NewArrivals from "./pages/NewArrivals";
-// import FestiveCollection from "./pages/FestiveCollection";
-// import Kurtis from "./pages/Kurtis";
+import AllProducts from "./pages/All-Products";
+import NewArrivals from "./pages/New-Arrivals";
+import FestiveCollection from "./pages/FestiveCollection";
+import Kurtis from "./pages/Kurtis";
+import Dresses from "./pages/Dresses";
 // import Categories from "./pages/Categories";
 // import Contact from "./pages/Contact";
 
@@ -24,10 +25,11 @@ const App = () => {
         <Routes key={location.pathname}>
           <Route path="/" element={<Home />} />
           <Route path="/AllProducts" element={<AllProducts />} />
-          {/* <Route path="/new-arrivals" element={<NewArrivals />} />
-          <Route path="/festive" element={<FestiveCollection />} />
+          <Route path="/NewArrivals" element={<NewArrivals />} />
+          <Route path="/Festive" element={<FestiveCollection />} />
           <Route path="/kurtis" element={<Kurtis />} />
-          <Route path="/categories" element={<Categories />} />
+          <Route path="/dresses" element={<Dresses />} />
+          {/*  <Route path="/categories" element={<Categories />} />
           <Route path="/contact" element={<Contact />} /> */}
         </Routes>
       </div>
