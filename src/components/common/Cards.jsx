@@ -17,7 +17,7 @@ const Cards = ({ cards, layout = "row" }) => {
           className="min-w-[22.5vw] max-w-[22.5vw] flex flex-col bg-white transition-all duration-300 overflow-hidden"
         >
           {/* Image */}
-          <div className="imageContainer w-full h-[50vh] overflow-hidden">
+          <div className="imageContainer w-full h-[60vh] overflow-hidden">
             <img
               className="object-cover w-full h-full"
               src={card.img}

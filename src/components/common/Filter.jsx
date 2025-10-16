@@ -2,34 +2,57 @@ import React, { useState, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CustomCheckbox from "./CustomCheckbox";
+
 gsap.registerPlugin(ScrollTrigger);
+
+const PRICE_RANGES = [
+  { id: "below-1k", label: "Below ₹1,000", min: 0, max: 1000 },
+  { id: "1k-2k", label: "₹1,000 – ₹2,000", min: 1000, max: 2000 },
+  { id: "2k-3k", label: "₹2,000 – ₹3,000", min: 2000, max: 3000 },
+  { id: "3k-4k", label: "₹3,000 – ₹4,000", min: 3000, max: 4000 },
+  { id: "4k-5k", label: "₹4,000 – ₹5,000", min: 4000, max: 5000 },
+  { id: "above-5k", label: "Above ₹5,000", min: 5000, max: Infinity },
+];
 
 const Filter = ({ products = [], onFilter }) => {
   const filterRef = useRef(null);
 
-  // Multiple selections as arrays
+  // Multiple selections
   const [selectedPrices, setSelectedPrices] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // Unique options (memoize with static products)
+  // Expand/collapse states
+  const [expandedCategory, setExpandedCategory] = useState(false);
+  const [expandedSize, setExpandedSize] = useState(false);
+  const [expandedColor, setExpandedColor] = useState(false);
+  const [expandedPriceRange, setExpandedPriceRange] = useState(false);
+
+  // Refs for sections
+  const categoryRef = useRef(null);
+  const sizeRef = useRef(null);
+  const colorRef = useRef(null);
+  const priceRef = useRef(null);
+
+  // Unique options
   const categories = [...new Set(products.map((p) => p.category))];
   const sizes = [...new Set(products.flatMap((p) => p.sizes || []))];
   const colors = [
     ...new Set(products.flatMap((p) => (p.color ? [p.color] : []))),
   ];
 
-  // ✅ Pin filter while scrolling (GSAP)
+  // 🧠 Pin filter sidebar with GSAP
   useEffect(() => {
     const el = filterRef.current;
+
     const st = ScrollTrigger.create({
       trigger: el,
-      start: "top 15%",
+      start: "top 18%",
       endTrigger: "footer",
-      end: "top 90%",
+      end: "top bottom",
       pin: true,
-      pinSpacing: false,
+      pinSpacing: true, // ✅ keeps layout natural
       markers: false,
     });
 
@@ -39,136 +62,206 @@ const Filter = ({ products = [], onFilter }) => {
     };
   }, []);
 
-  // ✅ Toggle helper
+  // 🌀 Toggle helper (works for primitives + ranges)
   const toggleSelection = (value, setFn) => {
-    setFn((prev) =>
-      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
-    );
+    setFn((prev) => {
+      if (typeof value === "object" && ("min" in value || "id" in value)) {
+        const exists = prev.some(
+          (p) =>
+            p.id === value.id || (p.min === value.min && p.max === value.max)
+        );
+        return exists
+          ? prev.filter(
+              (p) =>
+                !(
+                  p.id === value.id ||
+                  (p.min === value.min && p.max === value.max)
+                )
+            )
+          : [...prev, value];
+      } else {
+        return prev.includes(value)
+          ? prev.filter((v) => v !== value)
+          : [...prev, value];
+      }
+    });
   };
 
-  // ✅ MAIN FILTER LOGIC
+  // 💡 Animate smooth expand/collapse per section
+  const animateHeight = (ref, isExpanded) => {
+    const el = ref.current;
+    if (!el) return;
+    gsap.to(el, {
+      height: isExpanded ? el.scrollHeight : 0,
+      opacity: isExpanded ? 1 : 0,
+      duration: 0.1,
+      ease: "power1.inOut",
+    });
+  };
+
+  useEffect(() => {
+    animateHeight(categoryRef, expandedCategory);
+    animateHeight(sizeRef, expandedSize);
+    animateHeight(colorRef, expandedColor);
+    animateHeight(priceRef, expandedPriceRange);
+  }, [expandedCategory, expandedSize, expandedColor, expandedPriceRange]);
+
+  // ✅ Main filtering logic
   useEffect(() => {
     let filtered = [...products];
 
-    // Category filter
     if (selectedCategories.length > 0)
       filtered = filtered.filter((p) =>
         selectedCategories.includes(p.category)
       );
 
-    // Size filter
     if (selectedSizes.length > 0)
       filtered = filtered.filter((p) =>
         p.sizes?.some((s) => selectedSizes.includes(s))
       );
 
-    // Color filter
     if (selectedColors.length > 0)
       filtered = filtered.filter((p) => selectedColors.includes(p.color));
 
-    // Price sorting
-    if (selectedPrices.includes("low-high")) {
-      filtered.sort(
-        (a, b) =>
-          parseInt(a.currentPrice.replace(/\D/g, "")) -
-          parseInt(b.currentPrice.replace(/\D/g, ""))
-      );
-    } else if (selectedPrices.includes("high-low")) {
-      filtered.sort(
-        (a, b) =>
-          parseInt(b.currentPrice.replace(/\D/g, "")) -
-          parseInt(a.currentPrice.replace(/\D/g, ""))
-      );
+    if (selectedPrices.length > 0) {
+      filtered = filtered.filter((p) => {
+        const price = parseInt(
+          String(p.currentPrice || "").replace(/\D/g, ""),
+          10
+        );
+        return selectedPrices.some(
+          (range) => price >= range.min && price <= range.max
+        );
+      });
     }
 
-    // 🧠 IMPORTANT — Only trigger filter when filters actually change
     onFilter(filtered);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    JSON.stringify(selectedCategories),
-    JSON.stringify(selectedSizes),
-    JSON.stringify(selectedColors),
-    JSON.stringify(selectedPrices),
+    selectedCategories,
+    selectedSizes,
+    selectedColors,
+    selectedPrices,
+    onFilter,
   ]);
 
   return (
     <div
       ref={filterRef}
-      className="absolute left-0 max-h-[70vh] w-[24vw] flex flex-col gap-6 bg-[#AC6B5C] text-[#F5D3C3] p-5 overflow-y-auto"
+      className="absolute left-0 h-[80vh] w-[24vw] flex flex-col gap-6 bg-[#AC6B5C] text-[#F5D3C3] px-5 py-10 overflow-y-auto transition-colors duration-500 ease-in-out"
     >
       {/* CATEGORY FILTER */}
-      <div className="flex flex-col">
-        <h4 className="font-light mb-2 text-base tracking-[0.2vw] uppercase">
-          Category
-        </h4>
-        {categories.map((cat) => (
-          <CustomCheckbox
-            key={cat}
-            label={cat}
-            checked={selectedCategories.includes(cat)}
-            onChange={() => toggleSelection(cat, setSelectedCategories)}
-          />
-        ))}
-      </div>
+      <FilterSection
+        title="Category"
+        expanded={expandedCategory}
+        onToggle={() => setExpandedCategory((prev) => !prev)}
+        innerRef={categoryRef}
+        options={categories}
+        selected={selectedCategories}
+        setSelected={setSelectedCategories}
+        toggleSelection={toggleSelection}
+      />
 
       {/* SIZE FILTER */}
-      <div className="flex flex-col">
-        <h3 className="font-semibold mb-2 text-lg">Sizes</h3>
-        {sizes.map((size) => (
-          <label
-            key={size}
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
-            <input
-              type="checkbox"
-              checked={selectedSizes.includes(size)}
-              onChange={() => toggleSelection(size, setSelectedSizes)}
-              className="accent-[#A96A5A] cursor-pointer"
-            />
-            {size}
-          </label>
-        ))}
-      </div>
+      <FilterSection
+        title="Size"
+        expanded={expandedSize}
+        onToggle={() => setExpandedSize((prev) => !prev)}
+        innerRef={sizeRef}
+        options={sizes}
+        selected={selectedSizes}
+        setSelected={setSelectedSizes}
+        toggleSelection={toggleSelection}
+      />
 
       {/* COLOR FILTER */}
-      <div className="flex flex-col">
-        <h3 className="font-semibold mb-2 text-lg">Colors</h3>
-        {colors.map((color) => (
-          <label
-            key={color}
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
-            <input
-              type="checkbox"
-              checked={selectedColors.includes(color)}
-              onChange={() => toggleSelection(color, setSelectedColors)}
-              className="accent-[#A96A5A] cursor-pointer"
-            />
-            {color}
-          </label>
-        ))}
-      </div>
+      <FilterSection
+        title="Colors"
+        expanded={expandedColor}
+        onToggle={() => setExpandedColor((prev) => !prev)}
+        innerRef={colorRef}
+        options={colors}
+        selected={selectedColors}
+        setSelected={setSelectedColors}
+        toggleSelection={toggleSelection}
+      />
 
-      {/* PRICE SORT */}
-      <div className="flex flex-col">
-        <h3 className="font-semibold mb-2 text-lg">Sort by Price</h3>
-        {["low-high", "high-low"].map((price) => (
-          <label
-            key={price}
-            className="flex items-center gap-2 cursor-pointer select-none"
-          >
-            <input
-              type="checkbox"
-              checked={selectedPrices.includes(price)}
-              onChange={() => toggleSelection(price, setSelectedPrices)}
-              className="accent-[#A96A5A] cursor-pointer"
-            />
-            {price === "low-high" ? "Low to High" : "High to Low"}
-          </label>
-        ))}
-      </div>
+      {/* PRICE RANGE FILTER */}
+      <FilterSection
+        title="Price Range"
+        expanded={expandedPriceRange}
+        onToggle={() => setExpandedPriceRange((prev) => !prev)}
+        innerRef={priceRef}
+        options={PRICE_RANGES}
+        selected={selectedPrices}
+        setSelected={setSelectedPrices}
+        toggleSelection={toggleSelection}
+        isRange
+      />
     </div>
   );
 };
+
+// 🔹 Reusable collapsible filter section component
+const FilterSection = ({
+  title,
+  expanded,
+  onToggle,
+  innerRef,
+  options,
+  selected,
+  setSelected,
+  toggleSelection,
+  isRange = false,
+}) => (
+  <div className="flex flex-col transition-all duration-300 ease-in-out">
+    {/* Header */}
+    <div
+      className={`flex justify-between items-center cursor-pointer select-none transition-all duration-300 ${
+        expanded ? "text-base" : "text-xl"
+      }`}
+      onClick={onToggle}
+    >
+      <h4
+        className={`${
+          expanded
+            ? "font-light tracking-[0.2vw]"
+            : "font-semibold tracking-[0.4vw]"
+        } uppercase transition-all duration-300`}
+      >
+        {title}
+      </h4>
+      <span className="text-lg transition-all duration-300">
+        {expanded ? "−" : "+"}
+      </span>
+    </div>
+
+    {/* Options */}
+    <div
+      ref={innerRef}
+      className={`overflow-hidden py-[1vh] pl-[2vw] transition-all duration-300 ${
+        expanded ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+      style={{ height: 0 }}
+    >
+      {options.map((opt) => {
+        const key = isRange ? opt.id : opt;
+        const label = isRange ? opt.label : opt;
+        const checked = isRange
+          ? selected.some((p) => p.id === opt.id)
+          : selected.includes(opt);
+
+        return (
+          <div key={key}>
+            <CustomCheckbox
+              label={label}
+              checked={checked}
+              onChange={() => toggleSelection(opt, setSelected)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
 
 export default Filter;
