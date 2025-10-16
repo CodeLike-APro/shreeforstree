@@ -36,7 +36,7 @@ const Footer = () => {
         <div className="flex gap-4 mt-5 items-center">
           {/* Instagram Icon */}
           <a
-            href="https://www.instagram.com/shreeforstree?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            href="https://www.instagram.com/shreeforstree"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -49,7 +49,7 @@ const Footer = () => {
           </a>
           {/* Instagram Wordmark */}
           <a
-            href="https://www.instagram.com/shreeforstree?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            href="https://www.instagram.com/shreeforstree"
             target="_blank"
             rel="noopener noreferrer"
           >

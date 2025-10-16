@@ -9,7 +9,7 @@ import FestiveCollection from "./pages/FestiveCollection";
 import Kurtis from "./pages/Kurtis";
 import Dresses from "./pages/Dresses";
 // import Categories from "./pages/Categories";
-// import Contact from "./pages/Contact";
+import Contact from "./pages/Contact";
 
 const App = () => {
   const location = useLocation(); // ✅ this is the missing piece
@@ -29,8 +29,8 @@ const App = () => {
           <Route path="/Festive" element={<FestiveCollection />} />
           <Route path="/kurtis" element={<Kurtis />} />
           <Route path="/dresses" element={<Dresses />} />
-          {/*  <Route path="/categories" element={<Categories />} />
-          <Route path="/contact" element={<Contact />} /> */}
+          {/*  <Route path="/categories" element={<Categories />} />*/}
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </div>
       <Footer />
