@@ -40,7 +40,7 @@ const Login = () => {
   const sendLink = async () => {
     if (!email) return setMessage("Please enter an email address");
     const actionCodeSettings = {
-      url: "https://shreeforstree.vercel.app/login", // important!
+      url: "https://shreeforstree-nine.vercel.app/login",
       handleCodeInApp: true,
     };
     try {
