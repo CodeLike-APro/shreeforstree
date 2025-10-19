@@ -1,40 +1,52 @@
 import React, { useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import allProducts from "../../data/products.json"; // your updated JSON import
+import { useCartStore } from "../../store/useCartStore";
 
 const Product = () => {
-  const images = [
-    "/products/img1.jpg",
-    "/products/img2.jpg",
-    "/products/img3.jpg",
-    "/products/img4.jpg",
-  ];
+  const { id } = useParams();
+  const product = allProducts.find((item) => item.id === id);
+  const { addToCart } = useCartStore();
 
-  const [mainImage, setMainImage] = useState(images[0]);
+  if (!product) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[#A96A5A] text-2xl">
+        Product not found.
+      </div>
+    );
+  }
+
+  const [mainImage, setMainImage] = useState(product.img);
+  const [isZooming, setIsZooming] = useState(false);
+  const [selectedSize, setSelectedSize] = useState(null);
+  const [quantity, setQuantity] = useState(1); // ✅ NEW
   const zoomRef = useRef(null);
 
-  // 🧲 Zoom on hover logic
   const handleMouseMove = (e) => {
-    const { left, top, width, height } = e.target.getBoundingClientRect();
-    const x = ((e.pageX - left) / width) * 100;
-    const y = ((e.pageY - top) / height) * 100;
-    zoomRef.current.style.backgroundPosition = `${x}% ${y}%`;
+    if (!zoomRef.current) return;
+
+    const { left, top, width, height } =
+      zoomRef.current.getBoundingClientRect();
+    const x = ((e.pageX - left - window.scrollX) / width) * 100;
+    const y = ((e.pageY - top - window.scrollY) / height) * 100;
+
+    zoomRef.current.style.transformOrigin = `${x}% ${y}%`;
   };
 
-  const handleMouseEnter = (img) => {
-    zoomRef.current.style.backgroundImage = `url(${img})`;
-    zoomRef.current.style.display = "block";
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      alert("Please select a size before adding to cart!");
+      return;
+    }
+    addToCart({ ...product, quantity }, selectedSize); // ✅ pass quantity
+    alert(`${product.title} (${selectedSize}) added to cart 🛒`);
   };
-
-  const handleMouseLeave = () => {
-    zoomRef.current.style.display = "none";
-  };
-
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row justify-center items-start p-[4vw] gap-[3vw] bg-[#fffaf8]">
-      {/* 🔹 LEFT SECTION — Gallery + Main Image */}
+      {/* LEFT SIDE — Gallery */}
       <div className="flex flex-col md:flex-row gap-[2vw] w-full md:w-[60%] justify-center items-start">
-        {/* Thumbnail Gallery */}
         <div className="flex md:flex-col gap-[1vw] w-full md:w-[10vw] justify-center">
-          {images.map((img, i) => (
+          {product.gallery?.map((img, i) => (
             <div
               key={i}
               className={`cursor-pointer border-[1.5px] rounded-md overflow-hidden transition-all duration-300 ${
@@ -53,45 +65,51 @@ const Product = () => {
           ))}
         </div>
 
-        {/* Main Image */}
+        {/* ZOOMABLE MAIN IMAGE */}
         <div
           className="relative w-full md:w-[40vw] h-[50vh] md:h-[70vh] overflow-hidden rounded-md border border-[#e6d3cb] cursor-zoom-in"
+          onMouseEnter={() => setIsZooming(true)}
+          onMouseLeave={() => setIsZooming(false)}
           onMouseMove={handleMouseMove}
-          onMouseEnter={() => handleMouseEnter(mainImage)}
-          onMouseLeave={handleMouseLeave}
         >
           <img
-            src={mainImage}
-            alt="Main product"
-            className="w-full h-full object-cover"
-          />
-          {/* Zoom Lens */}
-          <div
             ref={zoomRef}
-            className="absolute top-0 left-0 w-full h-full bg-no-repeat bg-cover scale-150 z-10 pointer-events-none hidden"
-            style={{
-              backgroundImage: `url(${mainImage})`,
-            }}
-          ></div>
+            src={mainImage}
+            alt={product.title}
+            className={`w-full h-full object-cover transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isZooming ? "scale-250" : "scale-100"
+            }`}
+          />
         </div>
       </div>
 
-      {/* 🔹 RIGHT SECTION — Product Info */}
+      {/* RIGHT SIDE — Info */}
       <div className="flex flex-col w-full md:w-[35%] text-[#A96A5A]">
-        <h3 className="text-sm uppercase tracking-[0.3vw] font-light mb-2">
-          Evening Wear
-        </h3>
+        {/* ✅ Changed category → tags */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {product.tags?.map((tag, i) => (
+            <span
+              key={i}
+              className="text-xs uppercase tracking-[0.15vw] font-light bg-[#f5d3c3] text-[#A96A5A] px-2 py-1 rounded-md"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
         <h1 className="text-3xl md:text-4xl font-semibold tracking-wide mb-4">
-          Ivory Silk Gown
+          {product.title}
         </h1>
+
         <p className="text-lg font-light text-[#8b5447] mb-4">
-          ₹6,299 <span className="text-gray-400 line-through ml-2">₹8,999</span>
+          {product.currentPrice}
+          <span className="text-gray-400 line-through ml-2">
+            {product.originalPrice}
+          </span>
         </p>
 
         <p className="text-sm text-[#9c7e73] mb-6 leading-relaxed">
-          Elevate your evening with this graceful ivory silk gown featuring
-          premium fabric, intricate handwork, and a tailored silhouette designed
-          for timeless elegance.
+          {product.description}
         </p>
 
         {/* Sizes */}
@@ -100,10 +118,15 @@ const Product = () => {
             Select Size
           </h4>
           <div className="flex flex-wrap gap-3">
-            {["XS", "S", "M", "L", "XL"].map((size) => (
+            {product.sizes.map((size) => (
               <button
                 key={size}
-                className="border border-[#A96A5A] px-4 py-2 text-sm rounded-md hover:bg-[#A96A5A] hover:text-white transition-all duration-300"
+                onClick={() => setSelectedSize(size)}
+                className={`border px-4 py-2 text-sm rounded-md transition-all duration-300 ${
+                  selectedSize === size
+                    ? "bg-[#A96A5A] text-white border-[#A96A5A]"
+                    : "border-[#A96A5A] text-[#A96A5A] hover:bg-[#A96A5A] hover:text-white"
+                }`}
               >
                 {size}
               </button>
@@ -111,19 +134,42 @@ const Product = () => {
           </div>
         </div>
 
-        {/* Add to Cart & Buy Now */}
+        {/* Quantity Selector */}
+        <div className="mb-6 mt-4">
+          <h4 className="text-sm uppercase tracking-[0.2vw] mb-2 font-medium">
+            Quantity
+          </h4>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+              className="w-8 h-8 flex items-center justify-center border border-[#A96A5A] text-[#A96A5A] rounded-md hover:bg-[#A96A5A] hover:text-white transition-all duration-200"
+            >
+              −
+            </button>
+            <span className="text-lg font-medium w-6 text-center">
+              {quantity}
+            </span>
+            <button
+              onClick={() => setQuantity((prev) => prev + 1)}
+              className="w-8 h-8 flex items-center justify-center border border-[#A96A5A] text-[#A96A5A] rounded-md hover:bg-[#A96A5A] hover:text-white transition-all duration-200"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Buttons */}
         <div className="flex gap-4 mt-4">
-          <button className="w-1/2 py-3 uppercase tracking-[0.2vw] border border-[#A96A5A] text-[#A96A5A] hover:bg-[#A96A5A] hover:text-white transition-all duration-300 rounded-md">
+          <button
+            onClick={handleAddToCart}
+            className="w-1/2 py-3 uppercase tracking-[0.2vw] border border-[#A96A5A] text-[#A96A5A] hover:bg-[#A96A5A] hover:text-white transition-all duration-300 rounded-md"
+          >
             Add to Cart
           </button>
+
           <button className="w-1/2 py-3 uppercase tracking-[0.2vw] bg-[#A96A5A] text-white hover:bg-[#8b5447] transition-all duration-300 rounded-md">
             Buy Now
           </button>
-        </div>
-
-        {/* Guarantee line */}
-        <div className="text-xs italic mt-6 text-gray-500 tracking-wide">
-          Free shipping · Easy returns within 7 days
         </div>
       </div>
     </div>

@@ -1,89 +1,40 @@
-import React, { useCallback, useState } from "react";
+// src/pages/FestiveCollection.jsx
+import React, { useCallback, useState, useMemo } from "react";
 import Filter from "../components/common/Filter";
 import Cards from "../components/common/Cards";
+import allProducts from "../data/products.json"; // ✅ use centralized product data
 
-const Festive = () => {
-  const festive = [
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Evening Wear",
-      color: "Red",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Evening Wear",
-      color: "Red",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Party Wear",
-      color: "Pink",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Night Wear",
-      color: "Violet",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Bridal",
-      color: "Blue",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-  ];
+const FestiveCollection = () => {
+  // 🧠 Memoize the festive products — only runs once
+  const festiveProducts = useMemo(() => {
+    return allProducts.filter((p) =>
+      p.tags?.some((tag) => tag.toLowerCase() === "festive")
+    );
+  }, []);
 
-  const [filteredProducts, setFilteredProducts] = useState(festive);
+  // 🧩 State for filtered festive products
+  const [filteredProducts, setFilteredProducts] = useState(festiveProducts);
 
-  // ✅ Prevent re-creation on each render (main cause of infinite loop)
+  // ✅ Avoid re-renders with useCallback
   const handleFilter = useCallback((filtered) => {
     setFilteredProducts(filtered);
   }, []);
 
   return (
     <div className="min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
-      <Filter products={festive} onFilter={handleFilter} />
-      <Cards cards={filteredProducts} layout="grid" />
+      <Filter products={festiveProducts} onFilter={handleFilter} />
+      <div className="flex justify-center items-center text-6xl uppercase tracking-[.7vw] text-[#A96A5A] mb-[1.5vw]">
+        Festive
+      </div>
+      {filteredProducts.length > 0 ? (
+        <Cards cards={filteredProducts} layout="grid" />
+      ) : (
+        <p className="text-[#A96A5A] text-lg italic mt-[5vh]">
+          No Festives found at the moment.
+        </p>
+      )}
     </div>
   );
 };
 
-export default Festive;
+export default FestiveCollection;

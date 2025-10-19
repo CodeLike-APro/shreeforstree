@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import CustomCheckbox from "./CustomCheckbox";
 import Icons from "../../assets/Icons/Icons";
+import { useLocation } from "react-router-dom";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -17,119 +18,116 @@ const PRICE_RANGES = [
 
 const Filter = ({ products = [], onFilter }) => {
   const filterRef = useRef(null);
+  const location = useLocation();
 
-  // Multiple selections
-  const [selectedPrices, setSelectedPrices] = useState([]);
+  // Selection states
+  const [selectedTags, setSelectedTags] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedColors, setSelectedColors] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedPrices, setSelectedPrices] = useState([]);
 
-  // Expand/collapse states
-  const [expandedCategory, setExpandedCategory] = useState(false);
+  // Expand/collapse state
+  const [expandedTags, setExpandedTags] = useState(false);
   const [expandedSize, setExpandedSize] = useState(false);
   const [expandedColor, setExpandedColor] = useState(false);
   const [expandedPriceRange, setExpandedPriceRange] = useState(false);
 
-  // Refs for sections
-  const categoryRef = useRef(null);
+  // Refs for smooth height animation
+  const tagsRef = useRef(null);
   const sizeRef = useRef(null);
   const colorRef = useRef(null);
   const priceRef = useRef(null);
 
-  // Unique options
-  const categories = [...new Set(products.map((p) => p.category))];
+  // Extract unique values from all products
+  const tags = [
+    ...new Set(products.flatMap((p) => p.tags || [])), // ✅ Fix: Extract from tags
+  ];
   const sizes = [...new Set(products.flatMap((p) => p.sizes || []))];
   const colors = [
     ...new Set(products.flatMap((p) => (p.color ? [p.color] : []))),
   ];
 
-  // 🧠 Pin filter sidebar with GSAP
+  // ✅ Pin sidebar with GSAP ScrollTrigger
   useEffect(() => {
     const el = filterRef.current;
+    if (!el) return;
 
-    const st = ScrollTrigger.create({
-      trigger: el,
-      start: "top 18%",
-      endTrigger: "footer",
-      end: "top bottom",
-      pin: true,
-      pinSpacing: true, // ✅ keeps layout natural
-      markers: false,
-    });
+    ScrollTrigger.getAll()
+      .filter((t) => t.vars?.trigger === el)
+      .forEach((t) => t.kill());
 
-    return () => {
-      st.kill();
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
-    };
-  }, []);
+    const timeout = setTimeout(() => {
+      const st = ScrollTrigger.create({
+        trigger: el,
+        scroller: "body",
+        start: "top 15%",
+        endTrigger: "footer",
+        end: "top bottom",
+        pin: true,
+        pinSpacing: true,
+        markers: false,
+        invalidateOnRefresh: true,
+      });
+      ScrollTrigger.refresh();
+      return () => st.kill();
+    }, 200);
 
-  // 🌀 Toggle helper (works for primitives + ranges)
-  const toggleSelection = (value, setFn) => {
-    setFn((prev) => {
-      if (typeof value === "object" && ("min" in value || "id" in value)) {
-        const exists = prev.some(
-          (p) =>
-            p.id === value.id || (p.min === value.min && p.max === value.max)
-        );
-        return exists
-          ? prev.filter(
-              (p) =>
-                !(
-                  p.id === value.id ||
-                  (p.min === value.min && p.max === value.max)
-                )
-            )
-          : [...prev, value];
-      } else {
-        return prev.includes(value)
-          ? prev.filter((v) => v !== value)
-          : [...prev, value];
-      }
-    });
-  };
+    return () => clearTimeout(timeout);
+  }, [location.pathname]);
 
-  // 💡 Animate smooth expand/collapse per section
+  // ✅ Smooth expand/collapse height
   const animateHeight = (ref, isExpanded) => {
     const el = ref.current;
     if (!el) return;
     gsap.to(el, {
       height: isExpanded ? el.scrollHeight : 0,
       opacity: isExpanded ? 1 : 0,
-      duration: 0.1,
-      ease: "power1.inOut",
+      duration: 0.25,
+      ease: "power2.inOut",
     });
   };
 
   useEffect(() => {
-    animateHeight(categoryRef, expandedCategory);
+    animateHeight(tagsRef, expandedTags);
     animateHeight(sizeRef, expandedSize);
     animateHeight(colorRef, expandedColor);
     animateHeight(priceRef, expandedPriceRange);
-  }, [expandedCategory, expandedSize, expandedColor, expandedPriceRange]);
+  }, [expandedTags, expandedSize, expandedColor, expandedPriceRange]);
 
-  // ✅ Main filtering logic
+  // ✅ Toggle helper
+  const toggleSelection = (value, setFn) => {
+    setFn((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  // ✅ Filtering logic
   useEffect(() => {
     let filtered = [...products];
 
-    if (selectedCategories.length > 0)
+    // Tags (used instead of category)
+    if (selectedTags.length > 0) {
       filtered = filtered.filter((p) =>
-        selectedCategories.includes(p.category)
+        p.tags?.some((tag) => selectedTags.includes(tag))
       );
+    }
 
-    if (selectedSizes.length > 0)
+    // Size
+    if (selectedSizes.length > 0) {
       filtered = filtered.filter((p) =>
         p.sizes?.some((s) => selectedSizes.includes(s))
       );
+    }
 
-    if (selectedColors.length > 0)
+    // Color
+    if (selectedColors.length > 0) {
       filtered = filtered.filter((p) => selectedColors.includes(p.color));
+    }
 
+    // Price
     if (selectedPrices.length > 0) {
       filtered = filtered.filter((p) => {
-        const price = parseInt(
-          String(p.currentPrice || "").replace(/\D/g, ""),
-          10
-        );
+        const price = parseInt(p.currentPrice.replace(/\D/g, ""), 10);
         return selectedPrices.some(
           (range) => price >= range.min && price <= range.max
         );
@@ -137,44 +135,59 @@ const Filter = ({ products = [], onFilter }) => {
     }
 
     onFilter(filtered);
-  }, [
-    selectedCategories,
-    selectedSizes,
-    selectedColors,
-    selectedPrices,
-    onFilter,
-  ]);
+  }, [selectedTags, selectedSizes, selectedColors, selectedPrices, onFilter]);
 
   return (
     <div
       ref={filterRef}
       className="absolute rounded-r-[0.5vw] left-0 h-[80vh] w-[24vw] flex flex-col gap-6 bg-[#AC6B5C] text-[#F5D3C3] px-5 py-10 overflow-y-auto transition-colors duration-500 ease-in-out"
     >
-      <div className="flex gap-3 items-center mb-8">
+      <div className="flex flex-col justify-between gap-2 items-start mb-8">
         <div>
-          <Icons.FilterIcon size="24" />
+          <div className="flex gap-3 items-center">
+            <Icons.FilterIcon size="24" />
+            <h3 className="text-4xl uppercase font-bold tracking-[0.4vw]">
+              Filters
+            </h3>
+          </div>
         </div>
 
-        <h3 className="text-4xl uppercase font-bold tracking-[0.4vw]">
-          Filters
-        </h3>
+        {/* 🧹 Clear All Button */}
+        <div className="h-[1vh]">
+          {(selectedTags.length ||
+            selectedSizes.length ||
+            selectedColors.length ||
+            selectedPrices.length) > 0 && (
+            <button
+              onClick={() => {
+                setSelectedTags([]);
+                setSelectedSizes([]);
+                setSelectedColors([]);
+                setSelectedPrices([]);
+              }}
+              className="text-sm uppercase tracking-[0.1vw] text-[#F5D3C3] bg-[#8C4F40] px-3 py-1 rounded-md hover:bg-[#7B4336] transition-all duration-300"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* CATEGORY FILTER */}
+      {/* ✅ TAG FILTER (was Category) */}
       <FilterSection
-        title="Category"
-        expanded={expandedCategory}
-        onToggle={() => setExpandedCategory((prev) => !prev)}
-        innerRef={categoryRef}
-        options={categories}
-        selected={selectedCategories}
-        setSelected={setSelectedCategories}
+        title="Categories"
+        expanded={expandedTags}
+        onToggle={() => setExpandedTags((prev) => !prev)}
+        innerRef={tagsRef}
+        options={tags}
+        selected={selectedTags}
+        setSelected={setSelectedTags}
         toggleSelection={toggleSelection}
       />
 
-      {/* SIZE FILTER */}
+      {/* Size Filter */}
       <FilterSection
-        title="Size"
+        title="Sizes"
         expanded={expandedSize}
         onToggle={() => setExpandedSize((prev) => !prev)}
         innerRef={sizeRef}
@@ -184,7 +197,7 @@ const Filter = ({ products = [], onFilter }) => {
         toggleSelection={toggleSelection}
       />
 
-      {/* COLOR FILTER */}
+      {/* Color Filter */}
       <FilterSection
         title="Colors"
         expanded={expandedColor}
@@ -196,7 +209,7 @@ const Filter = ({ products = [], onFilter }) => {
         toggleSelection={toggleSelection}
       />
 
-      {/* PRICE RANGE FILTER */}
+      {/* Price Filter */}
       <FilterSection
         title="Price Range"
         expanded={expandedPriceRange}
@@ -212,7 +225,7 @@ const Filter = ({ products = [], onFilter }) => {
   );
 };
 
-// 🔹 Reusable collapsible filter section component
+// 🔹 Reusable Filter Section
 const FilterSection = ({
   title,
   expanded,
@@ -225,7 +238,6 @@ const FilterSection = ({
   isRange = false,
 }) => (
   <div className="flex flex-col transition-all duration-300 ease-in-out">
-    {/* Header */}
     <div
       className={`flex justify-between items-center cursor-pointer select-none transition-all duration-300 ${
         expanded ? "text-base" : "text-xl"
@@ -246,7 +258,6 @@ const FilterSection = ({
       </span>
     </div>
 
-    {/* Options */}
     <div
       ref={innerRef}
       className={`overflow-hidden py-[1vh] pl-[2vw] transition-all duration-300 ${
@@ -262,13 +273,12 @@ const FilterSection = ({
           : selected.includes(opt);
 
         return (
-          <div key={key}>
-            <CustomCheckbox
-              label={label}
-              checked={checked}
-              onChange={() => toggleSelection(opt, setSelected)}
-            />
-          </div>
+          <CustomCheckbox
+            key={key}
+            label={label}
+            checked={checked}
+            onChange={() => toggleSelection(opt, setSelected)}
+          />
         );
       })}
     </div>

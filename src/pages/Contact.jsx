@@ -47,7 +47,12 @@ const Contact = () => {
         <div className="flex flex-col items-center justify-center gap-3">
           <Icons.UserIcon size={38} className="text-[#A96A5A]" />
           <h3 className="font-medium text-lg tracking-[0.15vw]">Email</h3>
-          <p className="text-sm font-light">shreyaguptasg856@gmail.com</p>
+          <a
+            href="mailto:shreyaguptasg856@gmail.com"
+            className="hover:text-[#8B4E3E] transition-colors"
+          >
+            shreyaguptasg856@gmail.com
+          </a>
         </div>
 
         {/* Phone */}
@@ -55,7 +60,9 @@ const Contact = () => {
           <Icons.PhoneIcon size={38} className="text-[#A96A5A]" />
           <h3 className="font-medium text-lg tracking-[0.15vw]">Phone</h3>
           <a href="tel:9752692260">
-            <p className="text-sm font-light">+91 97526 92260</p>
+            <p className="text-sm font-light hover:text-[#8B4E3E] transition-colors">
+              +91 97526 92260
+            </p>
           </a>
         </div>
 

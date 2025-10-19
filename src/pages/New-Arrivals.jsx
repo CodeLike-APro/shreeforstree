@@ -1,79 +1,18 @@
-import React, { useCallback, useState } from "react";
+// src/pages/New-Arrivals.jsx
+import React, { useState, useCallback } from "react";
 import Filter from "../components/common/Filter";
 import Cards from "../components/common/Cards";
+import allProducts from "../data/products.json"; // ✅ centralized product data
 
 const NewArrivals = () => {
-  const newArrivals = [
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Evening Wear",
-      color: "Red",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Evening Wear",
-      color: "Red",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Party Wear",
-      color: "Pink",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Night Wear",
-      color: "Violet",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-    {
-      img: "/NewArrivals/img1.jpg",
-      title: "Ivory Silk Gown",
-      sale: false,
-      discount: "30% OFF",
-      wishlist: false,
-      category: "Bridal",
-      color: "Blue",
-      originalPrice: "₹8,999",
-      currentPrice: "₹6,299",
-      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      ratings: 4.8,
-    },
-  ];
+  // ✅ Filter only "NewArrival" products
+  const newArrivals = allProducts.filter((p) =>
+    p.tags?.some((tag) => tag.toLowerCase() === "new arrival")
+  );
 
   const [filteredProducts, setFilteredProducts] = useState(newArrivals);
 
-  // ✅ Prevent re-creation on each render (main cause of infinite loop)
+  // ✅ Prevent unnecessary re-renders
   const handleFilter = useCallback((filtered) => {
     setFilteredProducts(filtered);
   }, []);
@@ -81,7 +20,16 @@ const NewArrivals = () => {
   return (
     <div className="min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
       <Filter products={newArrivals} onFilter={handleFilter} />
-      <Cards cards={filteredProducts} layout="grid" />
+      <div className="flex justify-center items-center text-6xl uppercase tracking-[.7vw] text-[#A96A5A] mb-[1.5vw]">
+        New Arrivals
+      </div>
+      {filteredProducts.length > 0 ? (
+        <Cards cards={filteredProducts} layout="grid" />
+      ) : (
+        <p className="text-[#A96A5A] text-lg italic mt-[5vh]">
+          No New Arrivals found at the moment.
+        </p>
+      )}
     </div>
   );
 };
