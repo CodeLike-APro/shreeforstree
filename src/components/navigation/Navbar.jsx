@@ -191,41 +191,38 @@ const Navbar = () => {
             </div>
 
             {/* 👤 USER ACCOUNT */}
-            <div className="relative group">
-              <div className="userAcc h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
-                {user ? (
+            <div className="userAcc h-[2vw] w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
+              {user ? (
+                user.photoURL ? (
                   <img
-                    src={
-                      user.photoURL || "https://i.ibb.co/ZYW3VTp/brown-user.png"
-                    }
+                    src={user.photoURL}
                     alt="Profile"
-                    className="h-[2vw] w-[2vw] rounded-full object-cover border border-[#A96A5A]"
+                    onClick={() => navigate("/user")}
+                    className="h-[2vw] w-[2vw] rounded-full object-cover border border-[#A96A5A] hover:opacity-80 transition-opacity duration-200"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.style.display = "none"; // hide broken image
+                      e.target.parentNode.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#b17362" class="w-full h-full">
+              <path d="M12 12c2.67 0 8 1.34 8 4v4H4v-4c0-2.66 5.33-4 8-4zm0-2c-1.66 0-3-1.34-3-3S10.34 4 12 4s3 
+              1.34 3 3-1.34 3-3 3z" />
+            </svg>
+          `;
+                    }}
                   />
                 ) : (
                   <Icons.UserIcon
                     size={28}
-                    className="text-[#b17362] hover:text-[#8e5546] hover:scale-110 transition-transform duration-200"
-                    onClick={() => navigate("/login")}
+                    className="text-[#b17362] hover:text-[#8e5546] transition-transform duration-200"
+                    onClick={() => navigate("/user")}
                   />
-                )}
-              </div>
-
-              {/* Hover menu */}
-              {user && (
-                <div className="absolute right-0 mt-2 w-[10vw] bg-white border rounded-md shadow-md opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all duration-200 z-[10000]">
-                  <p className="px-4 py-2 text-sm text-[#b17362] hover:text-[#8e5546] border-b">
-                    {user.displayName || "Guest User"}
-                  </p>
-                  <button
-                    onClick={() => {
-                      signOut(auth);
-                      navigate("/");
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-[#fff3f0] transition-colors"
-                  >
-                    Logout
-                  </button>
-                </div>
+                )
+              ) : (
+                <Icons.UserIcon
+                  size={28}
+                  className="text-[#b17362] hover:text-[#8e5546] hover:scale-110 transition-transform duration-200"
+                  onClick={() => navigate("/login")}
+                />
               )}
             </div>
           </div>

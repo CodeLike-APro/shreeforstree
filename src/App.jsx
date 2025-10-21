@@ -20,6 +20,7 @@ import SearchResults from "./pages/SearchResults";
 import Checkout from "./pages/Checkout";
 import User from "./pages/User";
 import Login from "./pages/Login";
+import "./firebase";
 
 const App = () => {
   const location = useLocation();
