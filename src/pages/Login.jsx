@@ -142,7 +142,7 @@ const Login = () => {
     }
 
     const actionCodeSettings = {
-      url: "https://shreeforstree-nine.vercel.app/login",
+      url: "https://shreeforstree-nine.vercel.app/user",
       handleCodeInApp: true,
     };
 

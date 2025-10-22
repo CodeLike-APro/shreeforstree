@@ -1238,7 +1238,7 @@ const User = () => {
                                   "firebase/auth"
                                 );
                                 const actionCodeSettings = {
-                                  url: `${window.location.origin}/user`, // ✅ your deployed URL
+                                  url: `${window.location.origin}/user`,
                                   handleCodeInApp: true,
                                 };
 
