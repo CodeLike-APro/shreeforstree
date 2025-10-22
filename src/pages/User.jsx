@@ -72,28 +72,21 @@ const User = () => {
     let authCheckComplete = false;
 
     const completeEmailLinkSignIn = async () => {
+      authCheckComplete = false; // lock auth listener until done
+
       if (isSignInWithEmailLink(auth, window.location.href)) {
         const email = window.localStorage.getItem("emailForSignIn");
-
         if (email) {
           try {
             console.log("🔗 Completing passwordless sign-in for", email);
-            console.log(
-              "🧩 isSignInWithEmailLink triggered:",
-              isSignInWithEmailLink(auth, window.location.href)
-            );
-            console.log("🧩 Current URL:", window.location.href);
-            console.log("🧩 Email from storage:", email);
-            const result = await signInWithEmailLink(
-              auth,
-              email,
-              window.location.href
-            );
-            console.log("✅ Passwordless sign-in success:", result.user);
+            await signInWithEmailLink(auth, email, window.location.href);
+            console.log("✅ Passwordless sign-in complete");
+
+            // cleanup
             window.localStorage.removeItem("emailForSignIn");
             window.localStorage.removeItem("pendingDeletion");
 
-            // Remove query params (cleanup URL)
+            // clean URL
             setTimeout(() => {
               window.history.replaceState({}, document.title, "/user");
             }, 500);
@@ -102,7 +95,8 @@ const User = () => {
           }
         }
       }
-      authCheckComplete = true;
+
+      authCheckComplete = true; // unlock for listener now
     };
 
     const setupAuthListener = () => {
@@ -173,7 +167,10 @@ const User = () => {
     // 🔄 Ensure sign-in is checked before listener runs
     (async () => {
       await completeEmailLinkSignIn();
-      setupAuthListener();
+      // Give Firebase a brief moment to finish initialization
+      setTimeout(() => {
+        setupAuthListener();
+      }, 500);
     })();
 
     return () => {
