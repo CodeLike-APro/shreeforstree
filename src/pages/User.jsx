@@ -208,8 +208,17 @@ const User = () => {
   useEffect(() => {
     const completeEmailLinkSignIn = async () => {
       if (isSignInWithEmailLink(auth, window.location.href)) {
-        const email = window.localStorage.getItem("emailForSignIn");
-        if (!email) return;
+        let email = window.localStorage.getItem("emailForSignIn");
+
+        if (!email) {
+          // ⛑️ Ask user for their email if it's lost
+          email = window.prompt("Please confirm your email for sign-in");
+        }
+
+        if (!email) {
+          console.warn("⚠️ No email available for sign-in");
+          return;
+        }
 
         try {
           console.log("🔗 Completing passwordless sign-in for", email);
@@ -221,6 +230,7 @@ const User = () => {
           window.history.replaceState({}, document.title, "/user");
         } catch (error) {
           console.error("❌ Error completing passwordless sign-in:", error);
+          alert("Link expired or invalid. Please sign in again.");
         }
       }
     };

@@ -21,6 +21,7 @@ import Checkout from "./pages/Checkout";
 import User from "./pages/User";
 import Login from "./pages/Login";
 import "./firebase";
+import { browserLocalPersistence, setPersistence } from "firebase/auth";
 
 const App = () => {
   const location = useLocation();
@@ -28,6 +29,10 @@ const App = () => {
   useEffect(() => {
     console.log("Current path:", location.pathname);
   }, [location]);
+
+  setPersistence(auth, browserLocalPersistence)
+    .then(() => console.log("✅ Auth persistence set to LOCAL"))
+    .catch((e) => console.error("❌ Persistence error:", e));
 
   return (
     <div className="min-h-screen flex flex-col">
