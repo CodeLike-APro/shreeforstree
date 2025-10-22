@@ -69,31 +69,44 @@ const User = () => {
   useEffect(() => {
     let unsubFirestore = null;
     let unsubAuth = null;
+    let authCheckComplete = false;
 
     const completeEmailLinkSignIn = async () => {
-      // ✅ Handle email link first
       if (isSignInWithEmailLink(auth, window.location.href)) {
         const email = window.localStorage.getItem("emailForSignIn");
+
         if (email) {
           try {
+            console.log("🔗 Completing passwordless sign-in for", email);
             const result = await signInWithEmailLink(
               auth,
               email,
               window.location.href
             );
-            console.log("✅ Passwordless sign-in successful", result.user);
+            console.log("✅ Passwordless sign-in success:", result.user);
             window.localStorage.removeItem("emailForSignIn");
-            // Remove any pending deletion flags
             window.localStorage.removeItem("pendingDeletion");
+
+            // Remove query params (cleanup URL)
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
           } catch (error) {
-            console.error("❌ Error completing email link sign-in:", error);
+            console.error("❌ Error completing passwordless sign-in:", error);
           }
         }
       }
+      authCheckComplete = true;
+    };
 
-      // ✅ THEN start normal auth state listener
+    const setupAuthListener = () => {
       unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+        if (!authCheckComplete) return; // 👈 Prevent premature redirect
+
         if (currentUser) {
+          console.log("👤 Authenticated user:", currentUser.email);
           await currentUser.reload();
           let updatedUser = auth.currentUser;
 
@@ -110,6 +123,7 @@ const User = () => {
 
           const userDocRef = doc(db, "users", updatedUser.uid);
           const docSnap = await getDoc(userDocRef);
+
           if (!docSnap.exists()) {
             await setDoc(
               userDocRef,
@@ -126,12 +140,11 @@ const User = () => {
             );
           }
 
-          // ✅ Live Firestore listener
           unsubFirestore = onSnapshot(
             userDocRef,
-            (docSnap) => {
-              if (docSnap.exists()) {
-                const data = docSnap.data();
+            (snap) => {
+              if (snap.exists()) {
+                const data = snap.data();
                 setAddresses(
                   Array.isArray(data.addresses) ? data.addresses : []
                 );
@@ -146,13 +159,18 @@ const User = () => {
             }
           );
         } else {
+          console.log("🚫 No user signed in yet");
           setUser(null);
           setLoading(false);
         }
       });
     };
 
-    completeEmailLinkSignIn();
+    // 🔄 Ensure sign-in is checked before listener runs
+    (async () => {
+      await completeEmailLinkSignIn();
+      setupAuthListener();
+    })();
 
     return () => {
       if (unsubFirestore) unsubFirestore();
