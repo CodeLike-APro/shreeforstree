@@ -68,6 +68,30 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    // Handle sign-in link on the login page
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      let email = window.localStorage.getItem("emailForSignIn");
+
+      if (!email) {
+        email = window.prompt("Please confirm your email for sign-in");
+      }
+
+      if (email) {
+        signInWithEmailLink(auth, email, window.location.href)
+          .then(() => {
+            console.log("✅ Passwordless login successful");
+            window.localStorage.removeItem("emailForSignIn");
+            navigate("/user"); // Redirect to user page after success
+          })
+          .catch((error) => {
+            console.error("❌ Error completing passwordless login:", error);
+            alert("The sign-in link is invalid or expired. Please try again.");
+          });
+      }
+    }
+  }, []);
+
   // <-- NEW: clear inputs & errors when switching mode
   useEffect(() => {
     // if we just sent a magic link, keep the email so the user sees confirmation;
