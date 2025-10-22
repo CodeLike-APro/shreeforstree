@@ -167,10 +167,7 @@ const User = () => {
     // 🔄 Ensure sign-in is checked before listener runs
     (async () => {
       await completeEmailLinkSignIn();
-      // Give Firebase a brief moment to finish initialization
-      setTimeout(() => {
-        setupAuthListener();
-      }, 500);
+      setupAuthListener(); // ← no delay, run immediately after
     })();
 
     return () => {
