@@ -68,116 +68,95 @@ const User = () => {
   // 🧠 Realtime user data listener
   useEffect(() => {
     let unsubFirestore = null;
+    let unsubAuth = null;
 
-    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        await currentUser.reload();
-        let updatedUser = auth.currentUser;
-
-        if (!updatedUser.photoURL && updatedUser.providerData?.length > 0) {
-          updatedUser = {
-            ...updatedUser,
-            photoURL: updatedUser.providerData[0].photoURL || null,
-          };
-        }
-
-        setUser(updatedUser);
-        setDisplayName(updatedUser.displayName || "");
-        setEmail(updatedUser.email || "");
-
-        const userDocRef = doc(db, "users", updatedUser.uid);
-
-        // ✅ Ensure Firestore user doc exists
-        const docSnap = await getDoc(userDocRef);
-        if (!docSnap.exists()) {
-          await setDoc(
-            userDocRef,
-            {
-              uid: updatedUser.uid,
-              displayName: updatedUser.displayName || "",
-              email: updatedUser.email || "",
-              phone: updatedUser.phoneNumber || "",
-              addresses: [],
-              orders: [],
-              createdAt: new Date(),
-            },
-            { merge: true }
-          );
-        }
-
-        // ✅ Realtime listener
-        // ✅ Realtime listener (FIXED)
-        unsubFirestore = onSnapshot(
-          userDocRef,
-          (docSnap) => {
-            if (!docSnap.exists()) {
-              console.warn("User doc missing, skipping listener update");
-              return;
-            }
-
-            const data = docSnap.data();
-
-            // ✅ Don’t overwrite with empty or undefined
-            if (Array.isArray(data.addresses)) {
-              setAddresses(data.addresses);
-            } else {
-              setAddresses([]);
-            }
-
-            setOrders(Array.isArray(data.orders) ? data.orders : []);
-            setPhone(data.phone || updatedUser.phoneNumber || "");
-            setLoading(false);
-          },
-          (error) => {
-            console.error("🔥 Firestore listener error:", error);
-            setLoading(false);
-          }
-        );
-      } else {
-        setUser(null);
-        setLoading(false);
-      }
-    });
-
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      const email = window.localStorage.getItem("emailForSignIn");
-      if (email) {
-        signInWithEmailLink(auth, email, window.location.href)
-          .then(async (result) => {
-            console.log("✅ Passwordless reauth successful");
-
-            // Clean up local storage
+    const completeEmailLinkSignIn = async () => {
+      // ✅ Handle email link first
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        const email = window.localStorage.getItem("emailForSignIn");
+        if (email) {
+          try {
+            const result = await signInWithEmailLink(
+              auth,
+              email,
+              window.location.href
+            );
+            console.log("✅ Passwordless sign-in successful", result.user);
             window.localStorage.removeItem("emailForSignIn");
-
-            // 🔥 Check if the user came for deletion
-            if (window.localStorage.getItem("pendingDeletion") === "true") {
-              window.localStorage.removeItem("pendingDeletion");
-
-              // Wait for auth state update
-              const currentUser = auth.currentUser;
-              if (currentUser) {
-                const uid = currentUser.uid;
-                try {
-                  const userRef = doc(db, "users", uid);
-                  await deleteDoc(userRef);
-                  await currentUser.delete();
-                  alert("Your account and all related data have been deleted.");
-                  navigate("/");
-                } catch (error) {
-                  console.error("❌ Auto-deletion failed after reauth:", error);
-                }
-              }
-            }
-          })
-          .catch((error) => {
-            console.error("❌ Error during email link reauth:", error);
-          });
+            // Remove any pending deletion flags
+            window.localStorage.removeItem("pendingDeletion");
+          } catch (error) {
+            console.error("❌ Error completing email link sign-in:", error);
+          }
+        }
       }
-    }
+
+      // ✅ THEN start normal auth state listener
+      unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+          await currentUser.reload();
+          let updatedUser = auth.currentUser;
+
+          if (!updatedUser.photoURL && updatedUser.providerData?.length > 0) {
+            updatedUser = {
+              ...updatedUser,
+              photoURL: updatedUser.providerData[0].photoURL || null,
+            };
+          }
+
+          setUser(updatedUser);
+          setDisplayName(updatedUser.displayName || "");
+          setEmail(updatedUser.email || "");
+
+          const userDocRef = doc(db, "users", updatedUser.uid);
+          const docSnap = await getDoc(userDocRef);
+          if (!docSnap.exists()) {
+            await setDoc(
+              userDocRef,
+              {
+                uid: updatedUser.uid,
+                displayName: updatedUser.displayName || "",
+                email: updatedUser.email || "",
+                phone: updatedUser.phoneNumber || "",
+                addresses: [],
+                orders: [],
+                createdAt: new Date(),
+              },
+              { merge: true }
+            );
+          }
+
+          // ✅ Live Firestore listener
+          unsubFirestore = onSnapshot(
+            userDocRef,
+            (docSnap) => {
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                setAddresses(
+                  Array.isArray(data.addresses) ? data.addresses : []
+                );
+                setOrders(Array.isArray(data.orders) ? data.orders : []);
+                setPhone(data.phone || updatedUser.phoneNumber || "");
+              }
+              setLoading(false);
+            },
+            (error) => {
+              console.error("🔥 Firestore listener error:", error);
+              setLoading(false);
+            }
+          );
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      });
+    };
+
+    completeEmailLinkSignIn();
 
     return () => {
       if (unsubFirestore) unsubFirestore();
-      unsubAuth();
+      if (unsubAuth) unsubAuth();
     };
   }, []);
 
