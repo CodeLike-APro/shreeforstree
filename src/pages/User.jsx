@@ -78,6 +78,12 @@ const User = () => {
         if (email) {
           try {
             console.log("🔗 Completing passwordless sign-in for", email);
+            console.log(
+              "🧩 isSignInWithEmailLink triggered:",
+              isSignInWithEmailLink(auth, window.location.href)
+            );
+            console.log("🧩 Current URL:", window.location.href);
+            console.log("🧩 Email from storage:", email);
             const result = await signInWithEmailLink(
               auth,
               email,
@@ -88,11 +94,9 @@ const User = () => {
             window.localStorage.removeItem("pendingDeletion");
 
             // Remove query params (cleanup URL)
-            window.history.replaceState(
-              {},
-              document.title,
-              window.location.pathname
-            );
+            setTimeout(() => {
+              window.history.replaceState({}, document.title, "/user");
+            }, 500);
           } catch (error) {
             console.error("❌ Error completing passwordless sign-in:", error);
           }
@@ -178,22 +182,22 @@ const User = () => {
     };
   }, []);
 
-  useEffect(() => {
-    // Handle return from email link reauth
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      const email = window.localStorage.getItem("emailForSignIn");
-      if (email) {
-        signInWithEmailLink(auth, email, window.location.href)
-          .then(() => {
-            console.log("✅ Passwordless reauth successful");
-            window.localStorage.removeItem("emailForSignIn");
-          })
-          .catch((error) => {
-            console.error("❌ Error during email link reauth:", error);
-          });
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   // Handle return from email link reauth
+  //   if (isSignInWithEmailLink(auth, window.location.href)) {
+  //     const email = window.localStorage.getItem("emailForSignIn");
+  //     if (email) {
+  //       signInWithEmailLink(auth, email, window.location.href)
+  //         .then(() => {
+  //           console.log("✅ Passwordless reauth successful");
+  //           window.localStorage.removeItem("emailForSignIn");
+  //         })
+  //         .catch((error) => {
+  //           console.error("❌ Error during email link reauth:", error);
+  //         });
+  //     }
+  //   }
+  // }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
