@@ -4,7 +4,8 @@ import {
   signInWithPopup,
   sendSignInLinkToEmail,
   GoogleAuthProvider,
-  createUserWithEmailAndPassword, // 👈 ADD THIS
+  createUserWithEmailAndPassword,
+  signInWithEmailLink, // 👈 ADD THIS
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
