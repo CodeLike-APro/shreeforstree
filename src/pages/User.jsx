@@ -66,126 +66,126 @@ const User = () => {
   const logoutModalRef = useRef(null);
 
   // 🧠 Realtime user data listener
-  useEffect(() => {
-    let unsubFirestore = null;
-    let unsubAuth = null;
-    let authCheckComplete = false;
+  // useEffect(() => {
+  //   let unsubFirestore = null;
+  //   let unsubAuth = null;
+  //   let authCheckComplete = false;
 
-    const completeEmailLinkSignIn = async () => {
-      authCheckComplete = false; // lock auth listener until done
+  //   const completeEmailLinkSignIn = async () => {
+  //     authCheckComplete = false; // lock auth listener until done
 
-      if (isSignInWithEmailLink(auth, window.location.href)) {
-        const email = window.localStorage.getItem("emailForSignIn");
-        if (email) {
-          try {
-            console.log("🔗 Completing passwordless sign-in for", email);
-            await signInWithEmailLink(auth, email, window.location.href);
-            console.log("✅ Passwordless sign-in complete");
+  //     if (isSignInWithEmailLink(auth, window.location.href)) {
+  //       const email = window.localStorage.getItem("emailForSignIn");
+  //       if (email) {
+  //         try {
+  //           console.log("🔗 Completing passwordless sign-in for", email);
+  //           await signInWithEmailLink(auth, email, window.location.href);
+  //           console.log("✅ Passwordless sign-in complete");
 
-            // cleanup
-            window.localStorage.removeItem("emailForSignIn");
-            window.localStorage.removeItem("pendingDeletion");
+  //           // cleanup
+  //           window.localStorage.removeItem("emailForSignIn");
+  //           window.localStorage.removeItem("pendingDeletion");
 
-            // clean URL
-            setTimeout(() => {
-              window.history.replaceState({}, document.title, "/user");
-            }, 500);
-          } catch (error) {
-            console.error("❌ Error completing passwordless sign-in:", error);
-          }
-        }
-      }
+  //           // clean URL
+  //           setTimeout(() => {
+  //             window.history.replaceState({}, document.title, "/user");
+  //           }, 500);
+  //         } catch (error) {
+  //           console.error("❌ Error completing passwordless sign-in:", error);
+  //         }
+  //       }
+  //     }
 
-      authCheckComplete = true; // unlock for listener now
-    };
+  //     authCheckComplete = true; // unlock for listener now
+  //   };
 
-    const setupAuthListener = () => {
-      unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
-        if (!authCheckComplete) return; // 👈 Prevent premature redirect
+  //   const setupAuthListener = () => {
+  //     unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+  //       if (!authCheckComplete) return; // 👈 Prevent premature redirect
 
-        if (currentUser) {
-          console.log("👤 Authenticated user:", currentUser.email);
-          await currentUser.reload();
-          let updatedUser = auth.currentUser;
+  //       if (currentUser) {
+  //         console.log("👤 Authenticated user:", currentUser.email);
+  //         await currentUser.reload();
+  //         let updatedUser = auth.currentUser;
 
-          if (!updatedUser.photoURL && updatedUser.providerData?.length > 0) {
-            updatedUser = {
-              ...updatedUser,
-              photoURL: updatedUser.providerData[0].photoURL || null,
-            };
-          }
+  //         if (!updatedUser.photoURL && updatedUser.providerData?.length > 0) {
+  //           updatedUser = {
+  //             ...updatedUser,
+  //             photoURL: updatedUser.providerData[0].photoURL || null,
+  //           };
+  //         }
 
-          setUser(updatedUser);
-          setDisplayName(updatedUser.displayName || "");
-          setEmail(updatedUser.email || "");
+  //         setUser(updatedUser);
+  //         setDisplayName(updatedUser.displayName || "");
+  //         setEmail(updatedUser.email || "");
 
-          const userDocRef = doc(db, "users", updatedUser.uid);
-          const docSnap = await getDoc(userDocRef);
+  //         const userDocRef = doc(db, "users", updatedUser.uid);
+  //         const docSnap = await getDoc(userDocRef);
 
-          if (!docSnap.exists()) {
-            await setDoc(
-              userDocRef,
-              {
-                uid: updatedUser.uid,
-                displayName: updatedUser.displayName || "",
-                email: updatedUser.email || "",
-                phone: updatedUser.phoneNumber || "",
-                addresses: [],
-                orders: [],
-                createdAt: new Date(),
-              },
-              { merge: true }
-            );
-          }
+  //         if (!docSnap.exists()) {
+  //           await setDoc(
+  //             userDocRef,
+  //             {
+  //               uid: updatedUser.uid,
+  //               displayName: updatedUser.displayName || "",
+  //               email: updatedUser.email || "",
+  //               phone: updatedUser.phoneNumber || "",
+  //               addresses: [],
+  //               orders: [],
+  //               createdAt: new Date(),
+  //             },
+  //             { merge: true }
+  //           );
+  //         }
 
-          unsubFirestore = onSnapshot(
-            userDocRef,
-            (snap) => {
-              if (snap.exists()) {
-                const data = snap.data();
-                setAddresses(
-                  Array.isArray(data.addresses) ? data.addresses : []
-                );
-                setOrders(Array.isArray(data.orders) ? data.orders : []);
-                setPhone(data.phone || updatedUser.phoneNumber || "");
-              }
-              setLoading(false);
-            },
-            (error) => {
-              console.error("🔥 Firestore listener error:", error);
-              setLoading(false);
-            }
-          );
-        } else {
-          console.log("🚫 No user signed in yet");
-          setUser(null);
-          setLoading(false);
-        }
-      });
-    };
+  //         unsubFirestore = onSnapshot(
+  //           userDocRef,
+  //           (snap) => {
+  //             if (snap.exists()) {
+  //               const data = snap.data();
+  //               setAddresses(
+  //                 Array.isArray(data.addresses) ? data.addresses : []
+  //               );
+  //               setOrders(Array.isArray(data.orders) ? data.orders : []);
+  //               setPhone(data.phone || updatedUser.phoneNumber || "");
+  //             }
+  //             setLoading(false);
+  //           },
+  //           (error) => {
+  //             console.error("🔥 Firestore listener error:", error);
+  //             setLoading(false);
+  //           }
+  //         );
+  //       } else {
+  //         console.log("🚫 No user signed in yet");
+  //         setUser(null);
+  //         setLoading(false);
+  //       }
+  //     });
+  //   };
 
-    // 🔄 Ensure sign-in is checked before listener runs
-    (async () => {
-      // Wait until Firebase Auth is fully initialized
-      const waitForAuthReady = () =>
-        new Promise((resolve) => {
-          const unsub = onAuthStateChanged(auth, () => {
-            unsub();
-            resolve();
-          });
-        });
+  //   // 🔄 Ensure sign-in is checked before listener runs
+  //   (async () => {
+  //     // Wait until Firebase Auth is fully initialized
+  //     const waitForAuthReady = () =>
+  //       new Promise((resolve) => {
+  //         const unsub = onAuthStateChanged(auth, () => {
+  //           unsub();
+  //           resolve();
+  //         });
+  //       });
 
-      await waitForAuthReady(); // ✅ ensure Firebase initialized
+  //     await waitForAuthReady(); // ✅ ensure Firebase initialized
 
-      await completeEmailLinkSignIn();
-      setupAuthListener(); // now safe to attach listener
-    })();
+  //     await completeEmailLinkSignIn();
+  //     setupAuthListener(); // now safe to attach listener
+  //   })();
 
-    return () => {
-      if (unsubFirestore) unsubFirestore();
-      if (unsubAuth) unsubAuth();
-    };
-  }, []);
+  //   return () => {
+  //     if (unsubFirestore) unsubFirestore();
+  //     if (unsubAuth) unsubAuth();
+  //   };
+  // }, []);
 
   // useEffect(() => {
   //   // Handle return from email link reauth
@@ -203,6 +203,93 @@ const User = () => {
   //     }
   //   }
   // }, []);
+
+  // ✅ Effect 1: Handle passwordless email link sign-in
+  useEffect(() => {
+    const completeEmailLinkSignIn = async () => {
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        const email = window.localStorage.getItem("emailForSignIn");
+        if (!email) return;
+
+        try {
+          console.log("🔗 Completing passwordless sign-in for", email);
+          await signInWithEmailLink(auth, email, window.location.href);
+          console.log("✅ Passwordless sign-in complete");
+
+          window.localStorage.removeItem("emailForSignIn");
+          window.localStorage.removeItem("pendingDeletion");
+          window.history.replaceState({}, document.title, "/user");
+        } catch (error) {
+          console.error("❌ Error completing passwordless sign-in:", error);
+        }
+      }
+    };
+
+    completeEmailLinkSignIn();
+  }, []);
+
+  // ✅ Effect 2: Handle Firebase Auth + Firestore sync
+  useEffect(() => {
+    let unsubFirestore = null;
+    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        console.log("👤 Authenticated user:", currentUser.email);
+        await currentUser.reload();
+
+        let updatedUser = auth.currentUser;
+        if (!updatedUser.photoURL && updatedUser.providerData?.length > 0) {
+          updatedUser = {
+            ...updatedUser,
+            photoURL: updatedUser.providerData[0].photoURL || null,
+          };
+        }
+
+        setUser(updatedUser);
+        setDisplayName(updatedUser.displayName || "");
+        setEmail(updatedUser.email || "");
+
+        const userDocRef = doc(db, "users", updatedUser.uid);
+        const snap = await getDoc(userDocRef);
+        if (!snap.exists()) {
+          await setDoc(userDocRef, {
+            uid: updatedUser.uid,
+            displayName: updatedUser.displayName || "",
+            email: updatedUser.email || "",
+            phone: updatedUser.phoneNumber || "",
+            addresses: [],
+            orders: [],
+            createdAt: new Date(),
+          });
+        }
+
+        unsubFirestore = onSnapshot(
+          userDocRef,
+          (docSnap) => {
+            if (docSnap.exists()) {
+              const data = docSnap.data();
+              setAddresses(Array.isArray(data.addresses) ? data.addresses : []);
+              setOrders(Array.isArray(data.orders) ? data.orders : []);
+              setPhone(data.phone || updatedUser.phoneNumber || "");
+            }
+            setLoading(false);
+          },
+          (error) => {
+            console.error("🔥 Firestore listener error:", error);
+            setLoading(false);
+          }
+        );
+      } else {
+        console.log("🚫 No user signed in");
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => {
+      if (unsubFirestore) unsubFirestore();
+      if (unsubAuth) unsubAuth();
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
