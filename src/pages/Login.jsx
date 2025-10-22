@@ -5,7 +5,8 @@ import {
   sendSignInLinkToEmail,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signInWithEmailLink, // 👈 ADD THIS
+  signInWithEmailLink,
+  isSignInWithEmailLink, // 👈 ADD THIS
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
