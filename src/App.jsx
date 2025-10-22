@@ -22,6 +22,7 @@ import User from "./pages/User";
 import Login from "./pages/Login";
 import "./firebase";
 import { browserLocalPersistence, setPersistence } from "firebase/auth";
+import { auth } from "./firebase";
 
 const App = () => {
   const location = useLocation();
