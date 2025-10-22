@@ -166,8 +166,19 @@ const User = () => {
 
     // 🔄 Ensure sign-in is checked before listener runs
     (async () => {
+      // Wait until Firebase Auth is fully initialized
+      const waitForAuthReady = () =>
+        new Promise((resolve) => {
+          const unsub = onAuthStateChanged(auth, () => {
+            unsub();
+            resolve();
+          });
+        });
+
+      await waitForAuthReady(); // ✅ ensure Firebase initialized
+
       await completeEmailLinkSignIn();
-      setupAuthListener(); // ← no delay, run immediately after
+      setupAuthListener(); // now safe to attach listener
     })();
 
     return () => {
