@@ -1238,7 +1238,7 @@ const User = () => {
                                   "firebase/auth"
                                 );
                                 const actionCodeSettings = {
-                                  url: "https://shreeforstree-foe1ru12a-akshit-guptas-projects-3d09e3b1.vercel.app/user", // ✅ your deployed URL
+                                  url: `${window.location.origin}/user`, // ✅ your deployed URL
                                   handleCodeInApp: true,
                                 };
 
