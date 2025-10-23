@@ -1,13 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Slider from "../common/Slider";
+import products from "../../data/products.json"; // ✅ Import products.json directly
 
 const HomeTop = () => {
-  const slides = ["/Banner/img1.png", "/Banner/img2.jpg", "/Banner/img3.png"];
+  const [bannerProducts, setBannerProducts] = useState([]);
+
+  useEffect(() => {
+    const filtered = products.filter((p) =>
+      p.tags?.some((tag) => tag.toLowerCase() === "banner")
+    );
+    setBannerProducts(filtered);
+  }, []);
+
   return (
-    <div>
-      <div className="p-4 flex flex-col justify-center items-center overflow-hidden select-none">
-        <Slider slides={slides} />
-      </div>
+    <div className="p-4 flex flex-col justify-center items-center overflow-hidden select-none">
+      <Slider slides={bannerProducts} />
     </div>
   );
 };

@@ -11,35 +11,37 @@ const OrderDetails = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    let unsubOrder = null;
+
+    const unsubAuth = auth.onAuthStateChanged(async (user) => {
       if (!user) {
         navigate("/login");
         return;
       }
 
       try {
-        // ✅ Real-time listener for order document
         const orderRef = doc(db, "users", user.uid, "orders", id);
-        const unsub = onSnapshot(orderRef, (snap) => {
+        unsubOrder = onSnapshot(orderRef, (snap) => {
           if (snap.exists()) {
             setOrder(snap.data());
           } else {
-            console.warn("Order not found in Firestore");
+            console.warn("❌ Order not found in Firestore");
             setOrder(null);
           }
           setLoading(false);
         });
-
-        // 🧹 Clean up snapshot listener when component unmounts
-        return () => unsub();
-      } catch (error) {
-        console.error("Error fetching order details:", error);
+      } catch (err) {
+        console.error("🔥 Error fetching order:", err);
         setOrder(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribe();
+    // 🧹 Cleanup both listeners
+    return () => {
+      if (unsubAuth) unsubAuth();
+      if (unsubOrder) unsubOrder();
+    };
   }, [id, navigate]);
 
   // --- Helpers ---
@@ -84,7 +86,7 @@ const OrderDetails = () => {
       <div className="flex flex-col items-center justify-center h-[70vh] text-[#A96A5A]">
         <p>Order not found or unavailable.</p>
         <button
-          onClick={() => navigate("/user")}
+          onClick={() => navigate("/user", { state: { activeTab: "orders" } })}
           className="mt-3 bg-[#A96A5A] text-white px-4 py-2 rounded-md hover:bg-[#91584b]"
         >
           Go Back

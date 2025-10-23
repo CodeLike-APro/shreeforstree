@@ -37,6 +37,8 @@ const User = () => {
   const [phone, setPhone] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   // Addresses
   const [addresses, setAddresses] = useState([]);
@@ -419,6 +421,50 @@ const User = () => {
     return 0;
   };
 
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Please fill in all password fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    try {
+      const user = auth.currentUser;
+      if (!user) return alert("User not authenticated.");
+
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, newPassword);
+
+      alert("Password updated successfully!");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Error changing password:", error);
+      switch (error.code) {
+        case "auth/wrong-password":
+          alert("Incorrect current password.");
+          break;
+        case "auth/weak-password":
+          alert("Password too weak. Use at least 6 characters.");
+          break;
+        case "auth/requires-recent-login":
+          alert("Please log in again before changing your password.");
+          break;
+        default:
+          alert("Failed to update password. Try again.");
+      }
+    }
+  };
+
   // 🔥 Main UI
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-6">
@@ -538,7 +584,7 @@ const User = () => {
                   />
                 </div>
 
-                {/* Email */}
+                {/* Email (read-only but fades in edit mode) */}
                 <div>
                   <label className="block text-xs text-[#A96A5A]/70 mb-1">
                     Email
@@ -546,27 +592,16 @@ const User = () => {
                   <input
                     type="email"
                     value={email}
-                    disabled={
-                      !editMode ||
-                      user.providerData[0]?.providerId === "google.com"
-                    }
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`w-full border rounded-md p-2 text-sm ${
-                      editMode
-                        ? user.providerData[0]?.providerId === "google.com"
-                          ? "border-[#EBDAD5] bg-[#FAF7F6] cursor-not-allowed"
-                          : "border-[#A96A5A]/50 focus:ring-1 focus:ring-[#A96A5A]"
-                        : "border-[#EBDAD5] bg-[#FAF7F6]"
-                    }`}
+                    readOnly
+                    disabled
+                    className={`w-full border border-[#EBDAD5] rounded-md p-2 text-sm text-[#7B6A65] transition-all duration-300 ${
+                      editMode ? "cursor-not-allowed" : "bg-[#FAF7F6]"
+                    } `}
                   />
-                  {editMode &&
-                    user.providerData[0]?.providerId === "google.com" && (
-                      <p className="text-xs text-[#A96A5A]/70 mt-1 italic">
-                        Email managed by Google — cannot be changed here.
-                      </p>
-                    )}
+                  <p className="text-xs text-[#A96A5A]/70 mt-1 italic">
+                    Email cannot be changed.
+                  </p>
                 </div>
-
                 {/* Phone */}
                 <div>
                   <label className="block text-xs text-[#A96A5A]/70 mb-1">
@@ -839,9 +874,29 @@ const User = () => {
                 Manage your account preferences, privacy, and security.
               </p>
 
+              <div className="mt-8 border-t border-[#EBDAD5] pt-6">
+                <h3 className="text-lg font-semibold text-[#A96A5A] mb-4">
+                  Security Settings
+                </h3>
+
+                {/* Only show "Change Password" if the user signed in with Email/Password */}
+                {user?.providerData?.[0]?.providerId === "password" ? (
+                  <button
+                    onClick={() => setShowChangePassword(true)}
+                    className="w-full bg-[#A96A5A] text-white py-2.5 rounded-md hover:bg-[#91584b] transition-all"
+                  >
+                    Change Password
+                  </button>
+                ) : (
+                  <p className="text-sm text-[#7B6A65]/70 italic">
+                    Password changes are managed through your Google Account.
+                  </p>
+                )}
+              </div>
+
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-sm w-full bg-red-500 text-white py-2.5 rounded-md hover:bg-red-600 transition-all"
+                className="text-sm w-full bg-red-500 text-white py-2.5 rounded-md hover:bg-red-600 transition-all mt-2"
               >
                 Delete Account
               </button>
@@ -961,6 +1016,93 @@ const User = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <AnimatePresence>
+          {showChangePassword && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 bg-black/40 flex items-center justify-center z-[9999]"
+              onClick={() => setShowChangePassword(false)} // close when clicking backdrop
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={(e) => e.stopPropagation()} // prevent modal close when clicking inside
+                className="bg-white rounded-lg p-8 w-[90%] max-w-md shadow-xl border border-[#EAD8D2]/70 relative"
+              >
+                <h2 className="text-lg font-semibold text-[#A96A5A] mb-3">
+                  Change Password
+                </h2>
+
+                <div className="space-y-3 mb-6">
+                  <input
+                    type="text"
+                    name="fakeusernameremembered"
+                    autoComplete="username"
+                    style={{ display: "none" }}
+                  />
+                  <input
+                    type="password"
+                    name="fakepasswordremembered"
+                    autoComplete="new-password"
+                    style={{ display: "none" }}
+                  />
+                  <input
+                    type="password"
+                    placeholder="Current Password"
+                    autoComplete="off"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full border border-[#EBDAD5] rounded-md p-2 text-sm focus:ring-1 focus:ring-[#A96A5A] focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    autoComplete="off"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full border border-[#EBDAD5] rounded-md p-2 text-sm focus:ring-1 focus:ring-[#A96A5A] focus:outline-none"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Confirm New Password"
+                    autoComplete="off"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full border border-[#EBDAD5] rounded-md p-2 text-sm focus:ring-1 focus:ring-[#A96A5A] focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setShowChangePassword(false);
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
+                    className="text-sm px-4 py-2 rounded-md border border-[#A96A5A]/60 text-[#A96A5A] hover:bg-[#FAF2F0] transition-all"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleChangePassword}
+                    className="text-sm px-4 py-2 rounded-md bg-[#A96A5A] text-white hover:bg-[#91584b] transition-all"
+                  >
+                    Update
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* 🗑️ Delete Account Modal */}
         <AnimatePresence>
           {showDeleteConfirm && (

@@ -101,11 +101,42 @@ const Navbar = () => {
                   : "border-[1.5px] border-transparent bg-transparent"
               }`}
             >
+              {/* ---- Autofill traps (off-screen, not display:none) ---- */}
+              <input
+                type="text"
+                name="fakeusernameremembered"
+                autoComplete="username"
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  width: "1px",
+                  height: "1px",
+                  opacity: 0,
+                  pointerEvents: "none",
+                }}
+                tabIndex={-1}
+              />
+              <input
+                type="password"
+                name="fakepasswordremembered"
+                autoComplete="new-password"
+                style={{
+                  position: "absolute",
+                  left: "-9999px",
+                  width: "1px",
+                  height: "1px",
+                  opacity: 0,
+                  pointerEvents: "none",
+                }}
+                tabIndex={-1}
+              />
               <input
                 ref={inputRef}
                 type="text"
                 placeholder="Search..."
                 value={tempQuery}
+                autoComplete="off"
+                name="siteSearch"
                 onChange={(e) => setTempQuery(e.target.value)}
                 onKeyDown={handleSearch} // ✅ Trigger on Enter
                 onFocus={() => setSearchActive(true)}
