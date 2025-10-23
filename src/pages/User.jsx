@@ -8,11 +8,22 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, onSnapshot, deleteDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  onSnapshot,
+  deleteDoc,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import Icons from "../assets/Icons/Icons";
 import { AnimatePresence, motion } from "motion/react";
+import { useLocation } from "react-router-dom";
 
 const User = () => {
   const [user, setUser] = useState(null);
@@ -55,9 +66,31 @@ const User = () => {
   const deleteAddressModalRef = useRef(null);
   const logoutModalRef = useRef(null);
 
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    } else {
+      const savedTab = localStorage.getItem("activeTab");
+      if (savedTab) setActiveTab(savedTab);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
+    localStorage.setItem("activeTab", activeTab);
+  }, [activeTab]);
+
   // Handle Firebase Auth + Firestore sync
   useEffect(() => {
     let unsubFirestore = null;
+    let unsubOrders = null; // 👈 define here
     const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         console.log("👤 Authenticated user:", currentUser.email);
@@ -84,27 +117,36 @@ const User = () => {
             email: updatedUser.email || "",
             phone: updatedUser.phoneNumber || "",
             addresses: [],
-            orders: [],
             createdAt: new Date(),
           });
         }
 
-        unsubFirestore = onSnapshot(
-          userDocRef,
-          (docSnap) => {
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setAddresses(Array.isArray(data.addresses) ? data.addresses : []);
-              setOrders(Array.isArray(data.orders) ? data.orders : []);
-              setPhone(data.phone || updatedUser.phoneNumber || "");
-            }
-            setLoading(false);
-          },
-          (error) => {
-            console.error("🔥 Firestore listener error:", error);
-            setLoading(false);
-          }
+        const userOrdersRef = collection(
+          db,
+          "users",
+          updatedUser.uid,
+          "orders"
         );
+
+        // 🔄 Listen for profile updates
+        unsubFirestore = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setAddresses(Array.isArray(data.addresses) ? data.addresses : []);
+            setPhone(data.phone || updatedUser.phoneNumber || "");
+          }
+          setLoading(false);
+        });
+
+        const q = query(userOrdersRef, orderBy("date", "desc"));
+
+        unsubOrders = onSnapshot(q, (querySnap) => {
+          const ordersList = querySnap.docs.map((d) => ({
+            id: d.id,
+            ...d.data(),
+          }));
+          setOrders(ordersList);
+        });
       } else {
         console.log("🚫 No user signed in");
         setUser(null);
@@ -112,8 +154,10 @@ const User = () => {
       }
     });
 
+    // 🧹 Cleanup on unmount
     return () => {
       if (unsubFirestore) unsubFirestore();
+      if (unsubOrders) unsubOrders();
       if (unsubAuth) unsubAuth();
     };
   }, []);
@@ -279,11 +323,11 @@ const User = () => {
       return;
     }
 
-    const userRef = doc(db, "users", currentUser.uid);
+    const userRef = collection(db, "users", user.uid, "orders");
 
     try {
       // 🔄 Get the current snapshot from Firestore
-      const snap = await getDoc(userRef);
+      const snap = await getDocs(userRef);
       const data = snap.exists() ? snap.data() : {};
 
       const currentAddresses = Array.isArray(data.addresses)
@@ -361,6 +405,18 @@ const User = () => {
       console.error("❌ Error deleting address:", error);
       alert("Failed to delete address. Try again.");
     }
+  };
+
+  // 🧮 Utility to safely convert any price string into a number
+  const getNumericPrice = (price) => {
+    if (price == null) return 0;
+    if (typeof price === "number") return price;
+    if (typeof price === "string") {
+      // Strip ₹, commas, or other non-numeric characters
+      const parsed = Number(price.replace(/[^0-9.-]+/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+    return 0;
   };
 
   // 🔥 Main UI
@@ -688,35 +744,75 @@ const User = () => {
                   {orders.map((order, i) => (
                     <div
                       key={i}
+                      onClick={() => navigate(`/order/${order.id}`)}
                       className="border border-[#EBDAD5] rounded-lg p-5 bg-[#FFF9F8] shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="flex justify-between items-center mb-3">
+                      {/* Header */}
+                      <div className="flex justify-between items-center mb-4">
                         <h3 className="text-[#A96A5A] font-semibold">
                           Order #{order.id || i + 1}
                         </h3>
                         <span className="text-sm text-[#7B6A65]/70">
                           {order.date
-                            ? new Date(
-                                order.date.seconds * 1000
-                              ).toLocaleDateString()
-                            : "Unknown date"}
+                            ? (order.date.toDate
+                                ? order.date.toDate()
+                                : new Date(order.date.seconds * 1000)
+                              ).toLocaleDateString("en-IN", {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "Date unavailable"}
                         </span>
                       </div>
 
-                      <div className="text-sm text-[#7B6A65] space-y-1">
+                      {/* Product Items */}
+                      <div className="space-y-3">
                         {order.items?.map((item, j) => (
-                          <p key={j}>
-                            • {item.name} × {item.quantity}
-                          </p>
+                          <div
+                            key={j}
+                            className="flex items-center justify-between border border-[#EBDAD5]/60 rounded-md p-3 bg-white/60"
+                          >
+                            <div className="flex items-center gap-4">
+                              <img
+                                src={item.img}
+                                alt={item.title}
+                                className="w-16 h-16 object-cover rounded-md border border-[#EBDAD5]"
+                              />
+                              <div>
+                                <p className="font-medium text-[#A96A5A]">
+                                  {item.title}
+                                </p>
+                                <p className="text-sm text-[#7B6A65]">
+                                  Size: {item.size || "N/A"} | Qty:{" "}
+                                  {item.quantity}
+                                </p>
+                                <p className="text-sm text-[#A96A5A] font-semibold">
+                                  ₹
+                                  {(
+                                    getNumericPrice(
+                                      item.currentPrice ||
+                                        item.price ||
+                                        item.originalPrice ||
+                                        0
+                                    ) * (item.quantity || 1)
+                                  ).toLocaleString("en-IN")}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
                       </div>
 
-                      <div className="mt-3 flex justify-between items-center">
-                        <span className="font-medium text-[#A96A5A]">
-                          Total: ₹{order.total || 0}
+                      {/* Summary */}
+                      <div className="mt-4 flex justify-between items-center border-t border-[#EBDAD5] pt-3">
+                        <span className="font-semibold text-[#A96A5A] text-base">
+                          Total: ₹{order.total?.toLocaleString("en-IN") || "0"}
                         </span>
                         <span
-                          className={`text-xs px-2 py-1 rounded-md ${
+                          className={`text-xs px-2 py-1 rounded-md font-medium ${
                             order.status === "Delivered"
                               ? "bg-green-100 text-green-700"
                               : order.status === "Shipped"

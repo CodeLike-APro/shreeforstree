@@ -23,6 +23,8 @@ import Login from "./pages/Login";
 import "./firebase";
 import { browserLocalPersistence, setPersistence } from "firebase/auth";
 import { auth } from "./firebase";
+import Payment from "./pages/Payment";
+import OrderDetails from "./pages/OrderDetails";
 
 const App = () => {
   const location = useLocation();
@@ -56,6 +58,8 @@ const App = () => {
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/user" element={<User />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/Payment" element={<Payment />} />
+          <Route path="/order/:id" element={<OrderDetails />} />
         </Routes>
       </main>
       {/* ✅ Footer always at bottom */}

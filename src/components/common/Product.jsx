@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import allProducts from "../../data/products.json"; // your updated JSON import
 import { useCartStore } from "../../store/useCartStore";
+import { auth } from "../../firebase";
 
 const Product = () => {
   const { id } = useParams();
@@ -18,9 +19,12 @@ const Product = () => {
 
   const [mainImage, setMainImage] = useState(product.img);
   const [isZooming, setIsZooming] = useState(false);
-  const [selectedSize, setSelectedSize] = useState(null);
+  const location = useLocation();
+  const preselectedSize = location.state?.selectedSize || null;
+  const [selectedSize, setSelectedSize] = useState(preselectedSize);
   const [quantity, setQuantity] = useState(1); // ✅ NEW
   const zoomRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseMove = (e) => {
     if (!zoomRef.current) return;
@@ -41,6 +45,27 @@ const Product = () => {
     addToCart({ ...product, quantity }, selectedSize); // ✅ pass quantity
     alert(`${product.title} (${selectedSize}) added to cart 🛒`);
   };
+
+  const handleBuyNow = () => {
+    if (!selectedSize) {
+      alert("Please select a size before continuing!");
+      return;
+    }
+
+    // Add to cart first
+    addToCart({ ...product, quantity }, selectedSize);
+
+    // Check auth status
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("Please sign in to continue checkout.");
+      navigate("/login");
+    } else {
+      navigate("/checkout");
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col md:flex-row justify-center items-start p-[4vw] gap-[3vw] bg-[#fffaf8]">
       {/* LEFT SIDE — Gallery */}
@@ -167,7 +192,10 @@ const Product = () => {
             Add to Cart
           </button>
 
-          <button className="w-1/2 py-3 uppercase tracking-[0.2vw] bg-[#A96A5A] text-white hover:bg-[#8b5447] transition-all duration-300 rounded-md">
+          <button
+            onClick={handleBuyNow}
+            className="w-1/2 py-3 uppercase tracking-[0.2vw] bg-[#A96A5A] text-white hover:bg-[#8b5447] transition-all duration-300 rounded-md"
+          >
             Buy Now
           </button>
         </div>
