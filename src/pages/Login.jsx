@@ -2,11 +2,8 @@ import React, { useState, useEffect } from "react";
 import {
   signInWithEmailAndPassword,
   signInWithPopup,
-  sendSignInLinkToEmail,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  signInWithEmailLink,
-  isSignInWithEmailLink, // 👈 ADD THIS
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -17,9 +14,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const [mode, setMode] = useState("login"); // login | signup | magic
+  const [mode, setMode] = useState("login"); // login | signup
   const [shake, setShake] = useState("");
-  const [magicSent, setMagicSent] = useState(false); // don't clear when we just sent link
+
   const navigate = useNavigate();
   const provider = new GoogleAuthProvider();
 
@@ -69,43 +66,6 @@ const Login = () => {
       }
     }
   };
-
-  useEffect(() => {
-    // Handle sign-in link on the login page
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      let email = window.localStorage.getItem("emailForSignIn");
-
-      if (!email) {
-        email = window.prompt("Please confirm your email for sign-in");
-      }
-
-      if (email) {
-        signInWithEmailLink(auth, email, window.location.href)
-          .then(() => {
-            console.log("✅ Passwordless login successful");
-            window.localStorage.removeItem("emailForSignIn");
-            navigate("/user"); // Redirect to user page after success
-          })
-          .catch((error) => {
-            console.error("❌ Error completing passwordless login:", error);
-            alert("The sign-in link is invalid or expired. Please try again.");
-          });
-      }
-    }
-  }, []);
-
-  // <-- NEW: clear inputs & errors when switching mode
-  useEffect(() => {
-    // if we just sent a magic link, keep the email so the user sees confirmation;
-    // otherwise clear everything
-    if (!magicSent) {
-      setEmail("");
-    }
-    setPassword("");
-    resetErrors();
-    // reset magicSent once we switch mode away from magic
-    if (mode !== "magic") setMagicSent(false);
-  }, [mode]); // runs whenever mode changes
 
   // EMAIL LOGIN
   const handleEmailAuth = async (e) => {
@@ -157,42 +117,12 @@ const Login = () => {
   };
 
   // MAGIC LINK
-  const handleMagic = async (e) => {
-    e.preventDefault();
-    resetErrors();
-
-    if (!email.trim()) {
-      setEmailError("Enter a valid email");
-      shakeField("email");
-      return;
-    }
-
-    const actionCodeSettings = {
-      url: "https://shreeforstree-nine.vercel.app/user",
-      handleCodeInApp: true,
-    };
-
-    try {
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem("emailForSignIn", email);
-      setMagicSent(true); // keep email visible as confirmation
-      alert("Passwordless sign-in link sent! Check your inbox ✨");
-    } catch (err) {
-      console.error(err.code);
-      if (err.code === "auth/invalid-email") {
-        setEmailError("Invalid email address");
-        shakeField("email");
-      } else {
-        alert("Something went wrong while sending the link.");
-      }
-    }
-  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#fff9f7] to-[#fff]"
+      className="h-[90vh] flex items-center justify-center bg-gradient-to-br from-[#fff9f7] to-[#fff]"
     >
       <motion.div
         layout
@@ -207,9 +137,7 @@ const Login = () => {
         >
           {mode === "login"
             ? "Sign In to Shree For Stree"
-            : mode === "signup"
-            ? "Create an Account"
-            : "Passwordless Sign-In ✨"}
+            : "Create an Account"}
         </motion.h2>
 
         <AnimatePresence mode="wait">
@@ -220,23 +148,19 @@ const Login = () => {
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.25 }}
           >
-            {mode !== "magic" && (
-              <>
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  onClick={handleGoogle}
-                  className="w-full bg-[#A96A5A]/90 hover:bg-[#A96A5A] text-white py-2.5 rounded-md transition-all mb-5"
-                >
-                  Continue with Google
-                </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={handleGoogle}
+              className="w-full bg-[#A96A5A]/90 hover:bg-[#A96A5A] text-white py-2.5 rounded-md transition-all mb-5"
+            >
+              Continue with Google
+            </motion.button>
 
-                <div className="flex items-center justify-center mb-5">
-                  <span className="h-px bg-[#EAD8D2] w-1/3"></span>
-                  <span className="text-xs text-[#A96A5A]/60 mx-2">OR</span>
-                  <span className="h-px bg-[#EAD8D2] w-1/3"></span>
-                </div>
-              </>
-            )}
+            <div className="flex items-center justify-center mb-5">
+              <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+              <span className="text-xs text-[#A96A5A]/60 mx-2">OR</span>
+              <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+            </div>
 
             {/* EMAIL */}
             <motion.div
@@ -309,20 +233,10 @@ const Login = () => {
             {/* ACTION BUTTON */}
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={
-                mode === "magic"
-                  ? handleMagic
-                  : mode === "signup"
-                  ? handleSignup
-                  : handleEmailAuth
-              }
+              onClick={mode === "signup" ? handleSignup : handleEmailAuth}
               className="w-full bg-[#A96A5A] hover:bg-[#8E584C] text-white py-2 rounded-md transition-all"
             >
-              {mode === "magic"
-                ? "Send Passwordless Link"
-                : mode === "signup"
-                ? "Create Account"
-                : "Login with Email"}
+              {mode === "signup" ? "Create Account" : "Login with Email"}
             </motion.button>
 
             {/* SWITCH LINKS */}
@@ -333,12 +247,6 @@ const Login = () => {
             >
               {mode === "login" && (
                 <>
-                  <button
-                    onClick={() => setMode("magic")}
-                    className="hover:text-[#A96A5A] transition-all hover:underline"
-                  >
-                    Try Passwordless Sign-In ✨
-                  </button>
                   <p className="mt-2">
                     Don’t have an account?{" "}
                     <button
@@ -358,17 +266,6 @@ const Login = () => {
                     className="text-[#A96A5A] hover:underline"
                   >
                     Sign in
-                  </button>
-                </p>
-              )}
-              {mode === "magic" && (
-                <p>
-                  Want to use password login?{" "}
-                  <button
-                    onClick={() => setMode("login")}
-                    className="text-[#A96A5A] hover:underline"
-                  >
-                    Back to Email Login
                   </button>
                 </p>
               )}
