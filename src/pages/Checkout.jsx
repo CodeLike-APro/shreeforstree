@@ -4,6 +4,7 @@ import { auth, db } from "../firebase";
 import { doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import Icons from "../assets/Icons/Icons";
+import { notify } from "../components/common/toast";
 
 const Checkout = () => {
   const { cart = [], updateQuantity } = useCartStore();
@@ -37,7 +38,7 @@ const Checkout = () => {
         (item.quantity || 1),
     0
   );
-  console.log("🛒 Cart contents at checkout:", cart);
+  // console.log("🛒 Cart contents at checkout:", cart);
   const shipping = subtotal > 1000 ? 0 : 99;
   const total = subtotal + shipping;
 
@@ -85,11 +86,11 @@ const Checkout = () => {
   // 🏠 Add a new address
   const handleAddAddress = async () => {
     const user = auth.currentUser;
-    if (!user) return alert("Please log in to add an address.");
+    if (!user) return notify.info("Please log in to add an address.");
 
     const { name, line1, city, state, zip, phone } = newAddress;
     if (!name || !line1 || !city || !state || !zip || !phone) {
-      alert("Please fill all address fields.");
+      notify.error("Please fill all address fields.");
       return;
     }
 
@@ -114,17 +115,17 @@ const Checkout = () => {
         phone: "",
       });
 
-      alert("Address saved successfully!");
+      notify.success("Address saved successfully!");
     } catch (err) {
       console.error("Error saving address:", err);
-      alert("Something went wrong while saving address.");
+      notify.error("Something went wrong while saving address.");
     }
   };
 
   // 🧾 Continue to Payment
   const handleContinue = () => {
     if (!selectedAddress) {
-      alert("Please select a shipping address before continuing!");
+      notify.error("Please select a shipping address before continuing!");
       return;
     }
 

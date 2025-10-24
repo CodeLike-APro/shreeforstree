@@ -49,7 +49,7 @@ const Login = () => {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-      navigate("/user"); // redirect after signup success
+      navigate("/"); // redirect after signup success
     } catch (err) {
       console.error(err.code);
       if (err.code === "auth/email-already-in-use") {
@@ -91,7 +91,7 @@ const Login = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate("/user");
+      navigate("/");
     } catch (err) {
       console.error(err.code);
       if (err.code === "auth/invalid-email") {
@@ -110,7 +110,7 @@ const Login = () => {
   const handleGoogle = async () => {
     try {
       await signInWithPopup(auth, provider);
-      navigate("/user");
+      navigate("/");
     } catch (err) {
       console.error(err);
     }

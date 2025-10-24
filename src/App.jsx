@@ -25,17 +25,23 @@ import { browserLocalPersistence, setPersistence } from "firebase/auth";
 import { auth } from "./firebase";
 import Payment from "./pages/Payment";
 import OrderDetails from "./pages/OrderDetails";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import FAQs from "./pages/FAQs";
+import { Toaster } from "react-hot-toast";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminOrderDetails from "./pages/AdminOrderDetails";
 
 const App = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log("Current path:", location.pathname);
+    // console.log("Current path:", location.pathname);
   }, [location]);
 
-  setPersistence(auth, browserLocalPersistence)
-    .then(() => console.log("✅ Auth persistence set to LOCAL"))
-    .catch((e) => console.error("❌ Persistence error:", e));
+  useEffect(() => {
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -60,10 +66,30 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/Payment" element={<Payment />} />
           <Route path="/order/:id" element={<OrderDetails />} />
+          <Route path="/PrivacyPolicy" element={<PrivacyPolicy />} />
+          <Route path="/TermsAndConditions" element={<TermsAndConditions />} />
+          <Route path="/faqs" element={<FAQs />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
         </Routes>
       </main>
       {/* ✅ Footer always at bottom */}
       <Footer />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            borderRadius: "8px",
+            fontFamily: "Poppins, sans-serif",
+          },
+          success: { iconTheme: { primary: "#16a34a", secondary: "#fff" } },
+          error: { iconTheme: { primary: "#dc2626", secondary: "#fff" } },
+        }}
+        containerStyle={{
+          top: 80,
+        }}
+      />
     </div>
   );
 };

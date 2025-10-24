@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   setDoc,
 } from "firebase/firestore";
+import { notify } from "../components/common/toast";
 
 const Payment = () => {
   const { cart, clearCart } = useCartStore();
@@ -51,7 +52,7 @@ const Payment = () => {
   const handlePayment = async () => {
     const user = auth.currentUser;
     if (!user) {
-      alert("Please sign in to continue.");
+      notify.info("Please sign in to continue.");
       navigate("/login");
       return;
     }
@@ -67,7 +68,7 @@ const Payment = () => {
       const order = await res.json();
       if (!order.id) {
         console.error("❌ Razorpay order creation failed:", order);
-        alert("Could not initiate payment. Please try again.");
+        notify.warning("Could not initiate payment. Please try again.");
         return;
       }
 
@@ -81,7 +82,7 @@ const Payment = () => {
         image: "/logo.png",
         order_id: order.id,
         handler: async function (response) {
-          console.log("✅ Payment success:", response);
+          // console.log("✅ Payment success:", response);
 
           try {
             // Fetch user reference
@@ -105,10 +106,13 @@ const Payment = () => {
               shipping,
               status: "Processing",
               date: new Date().toISOString(),
-              address: selectedAddress || {
-                name: user.displayName || "Customer",
-                phone: user.phoneNumber || "—",
-                line1: "Address not available",
+              address: {
+                ...(selectedAddress || {
+                  name: user.displayName || "Customer",
+                  phone: user.phoneNumber || "—",
+                  line1: "Address not available",
+                }),
+                email: user.email, // ✅ Add this line (customer email)
               },
             };
 
@@ -126,13 +130,29 @@ const Payment = () => {
                 date: serverTimestamp(), // Firestore server timestamp for consistent ordering
               }
             );
+
+            // 💾 Also save to global "orders" collection for admin dashboard
+            await setDoc(doc(db, "orders", response.razorpay_payment_id), {
+              ...newOrder,
+              userId: user.uid,
+              userEmail: user.email,
+              date: serverTimestamp(),
+            });
+
+            // 📧 Send order email notification to admin and customer
+            await fetch("https://shreeforstree.in/api/send-order-mail.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ order: newOrder }),
+            });
+
             // Clear cart and redirect
             clearCart();
-            alert("Payment successful! 🎉");
+            notify.success("Payment successful! 🎉");
             navigate("/user");
           } catch (err) {
             console.error("🔥 Firestore save failed:", err);
-            alert(
+            notify.warning(
               "Payment successful, but order could not be saved. Please contact support."
             );
           }
@@ -149,11 +169,11 @@ const Payment = () => {
 
       paymentObject.on("payment.failed", (response) => {
         console.error("❌ Payment failed:", response.error);
-        alert("Payment failed. Please try again.");
+        notify.warning("Payment failed. Please try again.");
       });
     } catch (error) {
       console.error("🔥 Error in payment flow:", error);
-      alert("Something went wrong. Please try again later.");
+      notify.warning("Something went wrong. Please try again later.");
     }
   };
 

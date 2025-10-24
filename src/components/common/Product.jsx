@@ -3,6 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import allProducts from "../../data/products.json"; // your updated JSON import
 import { useCartStore } from "../../store/useCartStore";
 import { auth } from "../../firebase";
+import { notify } from "./toast";
 
 const Product = () => {
   const { id } = useParams();
@@ -39,16 +40,16 @@ const Product = () => {
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert("Please select a size before adding to cart!");
+      notify.info("Please select a size before adding to cart!");
       return;
     }
     addToCart({ ...product, quantity }, selectedSize); // ✅ pass quantity
-    alert(`${product.title} (${selectedSize}) added to cart 🛒`);
+    notify.success(`${product.title} (${selectedSize}) added to cart 🛒`);
   };
 
   const handleBuyNow = () => {
     if (!selectedSize) {
-      alert("Please select a size before continuing!");
+      notify.info("Please select a size before continuing!");
       return;
     }
 
@@ -59,7 +60,7 @@ const Product = () => {
     const user = auth.currentUser;
 
     if (!user) {
-      alert("Please sign in to continue checkout.");
+      notify.info("Please sign in to continue checkout.");
       navigate("/login");
     } else {
       navigate("/checkout");

@@ -1,6 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { GoogleAuthProvider } from "firebase/auth/web-extension";
+import {
+  getAuth,
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  GoogleAuthProvider,
+} from "firebase/auth";
 import {
   getFirestore,
   doc,
@@ -42,7 +47,7 @@ onAuthStateChanged(auth, async (user) => {
           addresses: [],
           createdAt: serverTimestamp(),
         });
-        console.log("✅ User document created in Firestore");
+        // console.log("✅ User document created in Firestore");
       }
     } catch (error) {
       console.error("❌ Error creating user document:", error);

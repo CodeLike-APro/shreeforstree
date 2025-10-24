@@ -76,9 +76,9 @@ const Footer = () => {
         </h2>
         <ul className="mt-[2.2vh] flex flex-col gap-[1.2vh] text-[1.05vw] font-light">
           <li>
-            <a href="/privacy-policy" className="hover:underline">
+            <Link to="/PrivacyPolicy" className="hover:underline">
               Privacy Policy
-            </a>
+            </Link>
           </li>
           <li>
             <a href="/return-policy" className="hover:underline">
@@ -91,9 +91,9 @@ const Footer = () => {
             </a>
           </li>
           <li>
-            <a href="/terms-of-service" className="hover:underline">
+            <Link to="/TermsAndConditions" className="hover:underline">
               Terms & Conditions
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
@@ -105,9 +105,9 @@ const Footer = () => {
         </h2>
         <ul className="mt-[2.2vh] flex flex-col gap-[1.2vh] text-[1.05vw] font-light">
           <li>
-            <a href="/faq" className="hover:underline">
+            <Link to="/faqs" className="hover:underline">
               FAQs
-            </a>
+            </Link>
           </li>
           <li>
             <a href="/track-order" className="hover:underline">

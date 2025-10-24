@@ -40,7 +40,7 @@ const Navbar = () => {
       setSearchActive(false);
     }
   };
-  console.log("Searching for:", tempQuery);
+  // console.log("Searching for:", tempQuery);
 
   return (
     <>

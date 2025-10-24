@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import Icons from "../assets/Icons/Icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useLocation } from "react-router-dom";
+import { notify } from "../components/common/toast";
 
 const User = () => {
   const [user, setUser] = useState(null);
@@ -95,7 +96,7 @@ const User = () => {
     let unsubOrders = null; // 👈 define here
     const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        console.log("👤 Authenticated user:", currentUser.email);
+        // console.log("👤 Authenticated user:", currentUser.email);
         await currentUser.reload();
 
         let updatedUser = auth.currentUser;
@@ -150,7 +151,7 @@ const User = () => {
           setOrders(ordersList);
         });
       } else {
-        console.log("🚫 No user signed in");
+        // console.log("🚫 No user signed in");
         setUser(null);
         setLoading(false);
       }
@@ -233,7 +234,7 @@ const User = () => {
   const handleSave = async () => {
     try {
       const currentUser = auth.currentUser;
-      if (!currentUser) return alert("No user is currently signed in.");
+      if (!currentUser) return notify.error("No user is currently signed in.");
 
       // Reauthenticate if needed
       if (currentPassword) {
@@ -273,21 +274,21 @@ const User = () => {
       setNewPassword("");
       setCurrentPassword("");
 
-      alert("Profile updated successfully!");
+      notify.success("Profile updated successfully!");
     } catch (err) {
       console.error("Error updating profile:", err);
       switch (err.code) {
         case "auth/wrong-password":
-          alert("Incorrect current password.");
+          notify.warning("Incorrect current password.");
           break;
         case "auth/requires-recent-login":
-          alert("Please re-login to make these changes.");
+          notify.info("Please re-login to make these changes.");
           break;
         case "auth/invalid-email":
-          alert("Please enter a valid email address.");
+          notify.warning("Please enter a valid email address.");
           break;
         default:
-          alert("Something went wrong while saving your profile.");
+          notify.error("Something went wrong while saving your profile.");
       }
     }
   };
@@ -315,13 +316,13 @@ const User = () => {
   const handleSaveAddress = async () => {
     const requiredFields = ["name", "line1", "city", "state", "zip", "phone"];
     if (requiredFields.some((f) => !newAddress[f]?.trim())) {
-      alert("Please fill all address fields.");
+      notify.error("Please fill all address fields.");
       return;
     }
 
     const currentUser = auth.currentUser;
     if (!currentUser) {
-      alert("User not authenticated!");
+      notify.warning("User not authenticated!");
       return;
     }
 
@@ -341,13 +342,13 @@ const User = () => {
       if (typeof editAddressIndex === "number") {
         currentAddresses[editAddressIndex] = { ...newAddress };
         updatedAddresses = [...currentAddresses];
-        console.log("📝 Updated address index:", editAddressIndex);
+        // console.log("📝 Updated address index:", editAddressIndex);
       } else {
         updatedAddresses = [
           ...currentAddresses,
           { ...newAddress, createdAt: new Date() },
         ];
-        console.log("➕ Added new address");
+        // console.log("➕ Added new address");
       }
 
       // ✅ Write it cleanly (merge keeps all other fields like 'orders')
@@ -372,10 +373,10 @@ const User = () => {
         phone: "",
       });
 
-      alert("Address saved successfully!");
+      notify.success("Address saved successfully!");
     } catch (error) {
       console.error("❌ Error saving address:", error);
-      alert("Failed to save address. Check console for details.");
+      notify.error("Failed to save address.");
     }
   };
 
@@ -383,7 +384,7 @@ const User = () => {
   const handleDeleteAddress = async (index) => {
     const currentUser = auth.currentUser;
     if (!currentUser) {
-      alert("User not authenticated!");
+      notify.warning("User not authenticated!");
       return;
     }
 
@@ -399,13 +400,13 @@ const User = () => {
         },
         { merge: true }
       );
-      console.log("🗑️ Address deleted from Firestore");
+      // console.log("🗑️ Address deleted from Firestore");
 
       // Locally update UI immediately
       setAddresses(updated);
     } catch (error) {
-      console.error("❌ Error deleting address:", error);
-      alert("Failed to delete address. Try again.");
+      // console.error("❌ Error deleting address:", error);
+      notify.error("Failed to delete address. Try again.");
     }
   };
 
@@ -423,18 +424,18 @@ const User = () => {
 
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
-      alert("Please fill in all password fields.");
+      notify.info("Please fill in all password fields.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      alert("New passwords do not match.");
+      notify.warning("New passwords do not match.");
       return;
     }
 
     try {
       const user = auth.currentUser;
-      if (!user) return alert("User not authenticated.");
+      if (!user) return notify.warning("User not authenticated.");
 
       const credential = EmailAuthProvider.credential(
         user.email,
@@ -443,7 +444,7 @@ const User = () => {
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
 
-      alert("Password updated successfully!");
+      notify.success("Password updated successfully!");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -451,16 +452,16 @@ const User = () => {
       console.error("Error changing password:", error);
       switch (error.code) {
         case "auth/wrong-password":
-          alert("Incorrect current password.");
+          notify.warning("Incorrect current password.");
           break;
         case "auth/weak-password":
-          alert("Password too weak. Use at least 6 characters.");
+          notify.info("Password too weak. Use at least 6 characters.");
           break;
         case "auth/requires-recent-login":
-          alert("Please log in again before changing your password.");
+          notify.info("Please log in again before changing your password.");
           break;
         default:
-          alert("Failed to update password. Try again.");
+          notify.error("Failed to update password. Try again.");
       }
     }
   };
@@ -1183,7 +1184,10 @@ const User = () => {
                         onClick={() => {
                           if (confirmEmail.trim() === user.email)
                             setDeleteStep(3);
-                          else alert("Email does not match. Please try again.");
+                          else
+                            notify.error(
+                              "Email does not match. Please try again."
+                            );
                         }}
                         className="text-sm px-4 py-2 rounded-md bg-[#A96A5A] text-white hover:bg-[#91584b] transition-all"
                       >
@@ -1238,7 +1242,7 @@ const User = () => {
                           try {
                             const currentUser = auth.currentUser;
                             if (!currentUser) {
-                              alert("No user is signed in.");
+                              notify.info("No user is signed in.");
                               return;
                             }
 
@@ -1249,7 +1253,9 @@ const User = () => {
                             // 🔐 Step 1: Reauthenticate
                             if (providerId === "password") {
                               if (!currentPassword.trim()) {
-                                alert("Please enter your current password.");
+                                notify.info(
+                                  "Please enter your current password."
+                                );
                                 return;
                               }
 
@@ -1276,12 +1282,12 @@ const User = () => {
                             // 🔥 Step 2: Delete Firestore document FIRST
                             const userRef = doc(db, "users", uid);
                             await deleteDoc(userRef);
-                            console.log("✅ Firestore user data deleted:", uid);
+                            // console.log("✅ Firestore user data deleted:", uid);
 
                             // 🧹 Step 3: Delete Firebase Auth user
                             await currentUser.delete();
 
-                            alert(
+                            notify.success(
                               "Your account and all related data have been permanently deleted."
                             );
                             navigate("/");
@@ -1290,20 +1296,22 @@ const User = () => {
 
                             switch (error.code) {
                               case "auth/popup-closed-by-user":
-                                alert(
+                                notify.error(
                                   "You closed the Google sign-in popup before confirming."
                                 );
                                 break;
                               case "auth/wrong-password":
-                                alert("Incorrect password. Please try again.");
+                                notify.error(
+                                  "Incorrect password. Please try again."
+                                );
                                 break;
                               case "auth/requires-recent-login":
-                                alert(
+                                notify.info(
                                   "Please reauthenticate to delete your account."
                                 );
                                 break;
                               default:
-                                alert(
+                                notify.error(
                                   "Something went wrong while deleting your account. Try again."
                                 );
                             }
