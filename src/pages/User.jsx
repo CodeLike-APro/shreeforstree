@@ -326,11 +326,11 @@ const User = () => {
       return;
     }
 
-    const userRef = collection(db, "users", user.uid, "orders");
+    const userRef = doc(db, "users", user.uid);
 
     try {
       // 🔄 Get the current snapshot from Firestore
-      const snap = await getDocs(userRef);
+      const snap = await getDoc(userRef);
       const data = snap.exists() ? snap.data() : {};
 
       const currentAddresses = Array.isArray(data.addresses)
