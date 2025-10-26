@@ -144,7 +144,7 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] text-[#A96A5A]">
+      <div className="flex flex-col items-center justify-center h-[90vh] text-[#A96A5A]">
         <Icons.CartIcon className="text-5xl mb-4 opacity-70" />
         <p className="text-lg mb-3">Your cart is empty.</p>
         <button
@@ -158,13 +158,13 @@ const Checkout = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center text-[#A96A5A] p-10 bg-gradient-to-br from-[#fff9f7] to-[#fff]">
+    <div className="min-h-screen flex flex-col items-center text-[#A96A5A] pt-4 lg:p-10 bg-gradient-to-br from-[#fff9f7] to-[#fff]">
       <h1 className="text-3xl uppercase font-light mb-8 tracking-[1vw]">
         Checkout
       </h1>
 
       {/* 🏠 Saved Addresses */}
-      <div className="w-[90%] sm:w-[80%] md:w-[60%] bg-[#fffaf8] border border-[#A96A5A]/40 shadow-md rounded-xl p-8 mb-8">
+      <div className="w-[97%] lg:w-[60%] bg-[#fffaf8] border border-[#A96A5A]/40 shadow-md rounded-[2.5vw] lg:rounded-xl py-5 px-2 lg:px-8 lg:py-8 mb-8">
         <h2 className="text-center text-2xl font-light mb-6 uppercase">
           Select Shipping Address
         </h2>
@@ -223,12 +223,12 @@ const Checkout = () => {
       </div>
 
       {/* 🧾 Order Summary */}
-      <div className="w-[90%] sm:w-[80%] md:w-[60%] bg-white border border-[#EBDAD5] rounded-lg shadow-md p-8">
-        <h2 className="text-xl font-semibold mb-4 text-[#A96A5A]">
+      <div className="w-[97%] lg:w-[60%] bg-white border border-[#EBDAD5] rounded-lg shadow-md px-3 py-5 lg:px-8 lg:py-8">
+        <h2 className="text-2xl lg:text-xl font-semibold mb-4 text-[#A96A5A]">
           Order Summary
         </h2>
 
-        <div className="divide-y divide-[#EAD8D2] mb-6">
+        <div className="divide-y divide-[#EAD8D2] mb-4 lg:mb-6">
           {cart.map((item, i) => {
             const priceValue = Number(
               String(item.currentPrice || item.price)
@@ -239,7 +239,7 @@ const Checkout = () => {
             return (
               <div
                 key={i}
-                className="flex items-center justify-between py-4 sm:flex-row flex-col gap-4 border-b border-[#EBDAD5]/50 last:border-none"
+                className="flex items-center justify-between py-4 gap-4 border-b border-[#EBDAD5]/50 last:border-none"
               >
                 {/* Left side: image + product info */}
                 <div className="flex items-center gap-4 w-full sm:w-auto">

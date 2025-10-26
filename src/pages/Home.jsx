@@ -28,7 +28,7 @@ const Home = () => {
       {isAdmin && (
         <button
           onClick={() => navigate("/admin")}
-          className="fixed top-29 right-8 px-4 py-2 bg-[#A96A5A] text-white rounded-lg border border-[#A96A5A]/30 shadow-md hover:shadow-xl hover:scale-105 hover:bg-[#8E574B] active:scale-95 transition-all duration-300 ease-out z-50 animate-[float_3s_ease-in-out_infinite]"
+          className="fixed top-138 right-3 lg:top-29 lg:right-8 px-4 py-2 bg-[#A96A5A] text-white rounded-lg border border-[#A96A5A]/30 shadow-md hover:shadow-xl hover:scale-105 hover:bg-[#8E574B] active:scale-95 transition-all duration-300 ease-out z-50 animate-[float_3s_ease-in-out_infinite]"
         >
           Admin
         </button>

@@ -124,8 +124,8 @@ const OrderDetails = () => {
     : "Unknown date";
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-6">
-      <div className="absolute top-6 left-6 z-50">
+    <div className="relative bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[4vw] px-2 lg:py-[2vw] lg:px-6">
+      <div className="fixed top-19 left-2 lg:top-26 lg:left-20 z-50">
         <button
           onClick={() => navigate("/user", { state: { activeTab: "orders" } })}
           className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FAF2F0] text-[#A96A5A] hover:bg-[#EAD8D2] transition-all shadow-md border border-[#EAD8D2]"
@@ -133,12 +133,12 @@ const OrderDetails = () => {
           <Icons.BackIcon size={22} />
         </button>
       </div>
-      <div className="bg-white shadow-md rounded-xl w-full max-w-[900px] p-8 border border-[#EAD8D2]/60">
+      <div className="bg-white shadow-md rounded-xl w-full max-w-[900px] px-3 py-9 lg:px-8 lg:py-8 border border-[#EAD8D2]/60">
         <h2 className="text-2xl font-semibold text-[#A96A5A] mb-4">
           Order Details
         </h2>
 
-        <div className="flex justify-between text-sm text-[#7B6A65] mb-6">
+        <div className="flex flex-col gap-2 lg:flex-row lg:justify-between text-sm text-[#7B6A65] mb-6">
           <p>
             <strong>Order ID:</strong> {order.id}
           </p>
@@ -241,18 +241,18 @@ const OrderDetails = () => {
           </p>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex justify-center">
           <button
             onClick={() =>
               navigate("/user", { state: { activeTab: "orders" } })
             }
-            className="border border-[#A96A5A]/60 text-[#A96A5A] px-4 py-2 rounded-md hover:bg-[#FAF2F0] transition-all"
+            className="hidden lg:block border border-[#A96A5A]/60 text-[#A96A5A] px-4 py-2 rounded-md hover:bg-[#FAF2F0] transition-all lg:tracking-[.2vw]"
           >
             Back to Orders
           </button>
-          <button className="bg-[#A96A5A] text-white px-4 py-2 rounded-md hover:bg-[#91584b] transition-all">
+          {/* <button className="bg-[#A96A5A] text-white px-4 py-2 rounded-md hover:bg-[#91584b] transition-all">
             Download Invoice
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

@@ -44,11 +44,15 @@ const App = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div id="ScrollContainer" className="min-h-screen flex flex-col">
       {/* ✅ Navbar always at top */}
       <Navbar />
+
       {/* ✅ Main content area */}
-      <main className="flex-grow pt-[7vw]">
+      <div
+        id="main-content"
+        className="flex-1 overflow-y-auto pt-[16vw] lg:pb-[12vh] lg:pt-[7vw] lg:pb-0"
+      >
         <Routes key={location.pathname}>
           <Route path="/" element={<Home />} />
           <Route path="/AllProducts" element={<AllProducts />} />
@@ -72,7 +76,8 @@ const App = () => {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
         </Routes>
-      </main>
+      </div>
+
       {/* ✅ Footer always at bottom */}
       <Footer />
       <Toaster

@@ -28,7 +28,7 @@ const CategoryPage = () => {
   }, []);
 
   return (
-    <div className="product-page min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
+    <div className="product-page min-h-screen right-0 flex flex-col items-center pt-[3vw] lg:pl-[20vw]">
       {/* 🧩 Sidebar Filter */}
       <Filter products={categoryProducts} onFilter={handleFilter} />
 

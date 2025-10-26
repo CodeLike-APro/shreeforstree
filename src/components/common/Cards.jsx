@@ -20,7 +20,7 @@ const Cards = ({ layout = "row", filterTag, cards: passedCards = [] }) => {
 
   const layoutClasses =
     layout === "grid"
-      ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 justify-items-center"
+      ? "grid grid-cols-2  lg:grid-cols-3 gap-2 justify-items-center"
       : layout === "flex"
       ? "flex flex-nowrap gap-6 overflow-x-auto no-scrollbar pl-2"
       : "flex flex-wrap gap-6 justify-center";
@@ -46,7 +46,11 @@ const Cards = ({ layout = "row", filterTag, cards: passedCards = [] }) => {
           <div
             key={`${card.id}-${i}`}
             onClick={() => handleCardClick(card)}
-            className="min-w-[22.5vw] max-w-[22.5vw] flex flex-col bg-white transition-all duration-300 overflow-hidden cursor-pointer group"
+            className={`${
+              layout === "grid"
+                ? "w-[48vw] h-[100vw] lg:w-[22vw] lg:h-[35vw]" // 🧩 for grid layout
+                : "min-w-[85vw] max-w-[85vw] lg:min-w-[22.5vw] lg:max-w-[22.5vw]" // 🧩 for flex layout
+            } flex flex-col bg-white transition-all duration-300 overflow-hidden cursor-pointer group`}
           >
             <div className="imageContainer w-full h-[55vh] overflow-hidden">
               <img

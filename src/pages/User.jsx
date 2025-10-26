@@ -30,6 +30,7 @@ const User = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
+  const [showMobileContent, setShowMobileContent] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
   // Profile fields
@@ -68,6 +69,7 @@ const User = () => {
   const deleteModalRef = useRef(null);
   const deleteAddressModalRef = useRef(null);
   const logoutModalRef = useRef(null);
+  const isMobile = window.innerWidth < 1024; // Tailwind 'lg' breakpoint
 
   const location = useLocation();
 
@@ -135,7 +137,10 @@ const User = () => {
         unsubFirestore = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setAddresses(Array.isArray(data.addresses) ? data.addresses : []);
+            const cleanAddresses = Array.isArray(data.addresses)
+              ? data.addresses.map((addr) => ({ ...addr, menuOpen: false }))
+              : [];
+            setAddresses(cleanAddresses);
             setPhone(data.phone || updatedUser.phoneNumber || "");
           }
           setLoading(false);
@@ -468,10 +473,14 @@ const User = () => {
 
   // 🔥 Main UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-6">
+    <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-1 lg:px-6">
       <div className="bg-white/90 backdrop-blur-sm shadow-[0_4px_30px_rgba(169,106,90,0.08)] rounded-xl w-full max-w-[1100px] flex overflow-hidden border border-[#EAD8D2]/60">
         {/* Sidebar */}
-        <div className="w-[22%] border-r border-[#F1E3DE] flex flex-col bg-[#fffaf8]/80">
+        <div
+          className={`lg:w-[22%] border-r border-[#F1E3DE] flex flex-col bg-[#fffaf8]/80 ${
+            isMobile && showMobileContent ? "hidden" : "block w-full border-0"
+          }`}
+        >
           <div className="flex items-center gap-4 px-6 py-5 border-b border-[#F1E3DE]">
             {user.photoURL ? (
               <div className="relative w-14 h-14 rounded-full overflow-hidden border-[2px] border-transparent bg-[linear-gradient(135deg,#A96A5A,#D8A79E,#A96A5A)] p-[1px]">
@@ -495,9 +504,11 @@ const User = () => {
               </div>
             )}
 
-            <div>
-              <h1 className="text-sm text-[#A96A5A]/60 mt-1">Welcome,</h1>
-              <p className="text-xl font-medium text-[#A96A5A] leading-tight">
+            <div className="flex lg:flex-col flex-row lg:items-center gap-1 lg:gap-0">
+              <h1 className="text-xl lg:text-sm text-[#A96A5A]/60 mt-1 lg:mt-0">
+                Welcome,
+              </h1>
+              <p className="text-2xl lg:text-3xl font-medium text-[#A96A5A] leading-tight lg:inline mt-1 lg:-mt-1">
                 {displayName?.split(" ")[0] || "User"}
               </p>
             </div>
@@ -525,15 +536,18 @@ const User = () => {
             ].map(({ id, label, icon }) => (
               <div
                 key={id}
-                onClick={() => setActiveTab(id)}
+                onClick={() => {
+                  setActiveTab(id);
+                  if (isMobile) setShowMobileContent(true);
+                }}
                 className={`relative flex items-center gap-3 px-5 py-2 cursor-pointer transition-all ${
                   activeTab === id
-                    ? "text-[#A96A5A] bg-[#F9E8E2]"
+                    ? "text-[#7B6A65] lg:text-[#A96A5A] lg:bg-[#F9E8E2]"
                     : "text-[#7B6A65] hover:bg-[#FAF2F0]"
                 }`}
               >
                 {activeTab === id && (
-                  <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A96A5A] rounded-r-md"></span>
+                  <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A96A5A] rounded-r-md hidden lg:block"></span>
                 )}
                 <span className="text-[1.1rem]">{icon}</span>
                 <span className="text-[0.95rem] font-medium">{label}</span>
@@ -550,12 +564,36 @@ const User = () => {
         </div>
 
         {/* 🧾 Main Content */}
-        <main className="flex-1 px-10 py-8">
+        <main
+          className={`flex-1 px-2 lg:px-10 py-6 lg:py-8 transition-all duration-300 ${
+            isMobile
+              ? showMobileContent
+                ? "translate-x-0 opacity-100"
+                : "translate-x-full opacity-0 pointer-events-none absolute top-0 left-0 w-full h-full bg-white z-50"
+              : "block"
+          }`}
+        >
+          {isMobile && showMobileContent && (
+            <div className="fixed top-5 left-2 lg:top-25 lg:left-8 z-50">
+              <button
+                onClick={() => {
+                  if (isMobile) {
+                    setShowMobileContent(false); // 👈 just hide current tab content
+                  } else {
+                    navigate("/user"); // fallback for desktop (rare)
+                  }
+                }}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FAF2F0] text-[#A96A5A] hover:bg-[#EAD8D2] transition-all shadow-md border border-[#EAD8D2]"
+              >
+                <Icons.BackIcon size={22} />
+              </button>
+            </div>
+          )}
           {/* Profile */}
           {activeTab === "profile" && (
             <section className="max-w-md mx-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-[#A96A5A]">
+              <div className="flex justify-between items-center mb-4 pt-10">
+                <h2 className="text-base lg:text-xl font-semibold text-[#A96A5A]">
                   Personal Information
                 </h2>
                 <button
@@ -635,7 +673,7 @@ const User = () => {
           {/* 🏠 Saved Addresses Tab */}
           {activeTab === "address" && (
             <section className="max-w-xl mx-auto">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex justify-between items-center mb-6 pt-10">
                 <h2 className="text-xl font-semibold text-[#A96A5A]">
                   Saved Addresses
                 </h2>
@@ -757,8 +795,8 @@ const User = () => {
           )}
           {/* 🛒 Orders Tab */}
           {activeTab === "orders" && (
-            <section className="max-w-2xl mx-auto">
-              <div className="flex justify-between items-center mb-6">
+            <section className="relative  max-w-2xl mx-auto">
+              <div className="flex justify-between items-center mb-6 pt-10">
                 <h2 className="text-xl font-semibold text-[#A96A5A]">
                   My Orders
                 </h2>
@@ -781,14 +819,17 @@ const User = () => {
                     <div
                       key={i}
                       onClick={() => navigate(`/order/${order.id}`)}
-                      className="border border-[#EBDAD5] rounded-lg p-5 bg-[#FFF9F8] shadow-sm hover:shadow-md transition-all"
+                      className="border border-[#EBDAD5] rounded-lg p-4 sm:p-5 bg-[#FFF9F8] shadow-sm hover:shadow-md transition-all flex flex-col gap-3 sm:gap-4"
                     >
                       {/* Header */}
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-[#A96A5A] font-semibold">
-                          Order #{order.id || i + 1}
-                        </h3>
-                        <span className="text-sm text-[#7B6A65]/70">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center text-[#7B6A65] text-sm sm:text-base">
+                        <div className="font-semibold text-[#A96A5A] break-all">
+                          Order <br className="sm:hidden" />
+                          <span className="block sm:inline font-bold text-[#A96A5A]">
+                            #{order.id || i + 1}
+                          </span>
+                        </div>
+                        <span className="text-xs sm:text-sm text-[#7B6A65]/70 mt-1 sm:mt-0 text-right">
                           {order.date
                             ? (order.date.toDate
                                 ? order.date.toDate()
@@ -809,46 +850,42 @@ const User = () => {
                         {order.items?.map((item, j) => (
                           <div
                             key={j}
-                            className="flex items-center justify-between border border-[#EBDAD5]/60 rounded-md p-3 bg-white/60"
+                            className="flex items-center gap-3 border border-[#EBDAD5]/60 rounded-md p-3 bg-white/70"
                           >
-                            <div className="flex items-center gap-4">
-                              <img
-                                src={item.img}
-                                alt={item.title}
-                                className="w-16 h-16 object-cover rounded-md border border-[#EBDAD5]"
-                              />
-                              <div>
-                                <p className="font-medium text-[#A96A5A]">
-                                  {item.title}
-                                </p>
-                                <p className="text-sm text-[#7B6A65]">
-                                  Size: {item.size || "N/A"} | Qty:{" "}
-                                  {item.quantity}
-                                </p>
-                                <p className="text-sm text-[#A96A5A] font-semibold">
-                                  ₹
-                                  {(
-                                    getNumericPrice(
-                                      item.currentPrice ||
-                                        item.price ||
-                                        item.originalPrice ||
-                                        0
-                                    ) * (item.quantity || 1)
-                                  ).toLocaleString("en-IN")}
-                                </p>
-                              </div>
+                            <img
+                              src={item.img}
+                              alt={item.title}
+                              className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-md border border-[#EBDAD5]"
+                            />
+                            <div className="flex flex-col justify-between text-sm sm:text-base">
+                              <p className="font-medium text-[#A96A5A] leading-tight">
+                                {item.title}
+                              </p>
+                              <p className="text-xs sm:text-sm text-[#7B6A65]">
+                                Size: {item.size || "N/A"} | Qty:{" "}
+                                {item.quantity}
+                              </p>
+                              <p className="text-xs sm:text-sm text-[#A96A5A] font-semibold">
+                                ₹
+                                {(
+                                  (item.currentPrice ||
+                                    item.price ||
+                                    item.originalPrice ||
+                                    0) * (item.quantity || 1)
+                                ).toLocaleString("en-IN")}
+                              </p>
                             </div>
                           </div>
                         ))}
                       </div>
 
                       {/* Summary */}
-                      <div className="mt-4 flex justify-between items-center border-t border-[#EBDAD5] pt-3">
-                        <span className="font-semibold text-[#A96A5A] text-base">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-t border-[#EBDAD5] pt-2 sm:pt-3 text-sm sm:text-base">
+                        <span className="font-semibold text-[#A96A5A]">
                           Total: ₹{order.total?.toLocaleString("en-IN") || "0"}
                         </span>
                         <span
-                          className={`text-xs px-2 py-1 rounded-md font-medium ${
+                          className={`self-start sm:self-auto mt-2 sm:mt-0 text-xs px-2 py-1 rounded-md font-medium ${
                             order.status === "Delivered"
                               ? "bg-green-100 text-green-700"
                               : order.status === "Shipped"
@@ -867,7 +904,7 @@ const User = () => {
           )}
           {/* ⚙️ Account Settings Tab */}
           {activeTab === "settings" && (
-            <section className="max-w-md mx-auto">
+            <section className="max-w-md mx-auto pt-10">
               <h2 className="text-xl font-semibold text-[#A96A5A] mb-4">
                 Account Settings
               </h2>

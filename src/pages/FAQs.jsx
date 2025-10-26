@@ -63,9 +63,9 @@ const FAQs = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center px-6 py-12">
-      <div className="max-w-4xl w-full bg-white rounded-xl shadow-md border border-[#EAD8D2]/70 p-8">
-        <h1 className="text-3xl font-semibold text-[#A96A5A] mb-6 text-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center px-1 lg:px-6 py-7 lg:py-12">
+      <div className="max-w-4xl w-full bg-white rounded-xl shadow-md border border-[#EAD8D2]/70 px-4 py-8 lg:px-8 lg:py-8">
+        <h1 className="text-2xl lg:text-3xl font-semibold text-[#A96A5A] mb-6 text-center">
           Frequently Asked Questions
         </h1>
 

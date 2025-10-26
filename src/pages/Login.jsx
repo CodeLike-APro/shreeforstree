@@ -4,10 +4,12 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { notify } from "../components/common/toast";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,15 +21,40 @@ const Login = () => {
 
   const navigate = useNavigate();
   const provider = new GoogleAuthProvider();
+  const emailControls = useAnimation();
+  const passwordControls = useAnimation();
 
   const resetErrors = () => {
     setEmailError("");
     setPasswordError("");
   };
 
-  const shakeField = (id) => {
-    setShake(id);
-    setTimeout(() => setShake(""), 500);
+  const shakeField = (field) => {
+    const controls =
+      field === "email"
+        ? emailControls
+        : field === "password"
+        ? passwordControls
+        : null;
+
+    if (field === "both") {
+      emailControls.start({
+        x: [-8, 8, -6, 6, -4, 4, 0],
+        transition: { duration: 0.6, ease: "easeInOut" },
+      });
+      passwordControls.start({
+        x: [-8, 8, -6, 6, -4, 4, 0],
+        transition: { duration: 0.6, ease: "easeInOut" },
+      });
+      return;
+    }
+
+    if (controls) {
+      controls.start({
+        x: [-8, 8, -6, 6, -4, 4, 0],
+        transition: { duration: 0.6, ease: "easeInOut" },
+      });
+    }
   };
 
   // SIGNUP WITH EMAIL
@@ -63,6 +90,7 @@ const Login = () => {
         shakeField("password");
       } else {
         setPasswordError("Something went wrong. Please try again.");
+        shakeField("password");
       }
     }
   };
@@ -102,6 +130,7 @@ const Login = () => {
         shakeField("both");
       } else {
         setPasswordError("Something went wrong, try again");
+        shakeField("password");
       }
     }
   };
@@ -116,7 +145,42 @@ const Login = () => {
     }
   };
 
-  // MAGIC LINK
+  // FORGOT PASSWORD (Email only)
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    resetErrors();
+
+    if (!email.trim()) {
+      setEmailError("Please enter your email");
+      shakeField("email");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      notify.success(
+        "If an account is associated with this email, a password reset link will be sent to it."
+      );
+      setMode("login");
+    } catch (err) {
+      console.error(err.code);
+      if (err.code === "auth/invalid-email") {
+        setEmailError("Invalid email format");
+        shakeField("email");
+      } else {
+        notify.error("Something went wrong. Please try again.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Clear fields and errors when switching between slides
+    setEmail("");
+    setPassword("");
+    setEmailError("");
+    setPasswordError("");
+    setShake("");
+  }, [mode]);
 
   return (
     <motion.div
@@ -137,77 +201,62 @@ const Login = () => {
         >
           {mode === "login"
             ? "Sign In to Shree For Stree"
-            : "Create an Account"}
+            : mode === "signup"
+            ? "Create an Account"
+            : "Reset Your Password"}
         </motion.h2>
 
         <AnimatePresence mode="wait">
-          <motion.div
-            key={mode}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            <motion.button
-              whileTap={{ scale: 0.96 }}
-              onClick={handleGoogle}
-              className="w-full bg-[#A96A5A]/90 hover:bg-[#A96A5A] text-white py-2.5 rounded-md transition-all mb-5"
-            >
-              Continue with Google
-            </motion.button>
-
-            <div className="flex items-center justify-center mb-5">
-              <span className="h-px bg-[#EAD8D2] w-1/3"></span>
-              <span className="text-xs text-[#A96A5A]/60 mx-2">OR</span>
-              <span className="h-px bg-[#EAD8D2] w-1/3"></span>
-            </div>
-
-            {/* EMAIL */}
+          {/* LOGIN SLIDE */}
+          {mode === "login" && (
             <motion.div
-              animate={
-                shake === "email" || shake === "both"
-                  ? { x: [-6, 6, -4, 4, 0] }
-                  : {}
-              }
-              transition={{ duration: 0.4 }}
-              className="mb-4"
+              key="login"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
             >
-              <input
-                id="email-input"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full border rounded-md p-2 text-sm focus:outline-none transition-all ${
-                  emailError
-                    ? "border-red-400 focus:ring-1 focus:ring-red-400"
-                    : "border-[#EBDAD5] focus:ring-1 focus:ring-[#A96A5A]"
-                }`}
-              />
-              {emailError && (
-                <motion.p
-                  initial={{ opacity: 0, y: -3 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-red-500 text-xs mt-1"
-                >
-                  {emailError}
-                </motion.p>
-              )}
-            </motion.div>
-
-            {/* PASSWORD (not for magic link) */}
-            {mode !== "magic" && (
-              <motion.div
-                animate={
-                  shake === "password" || shake === "both"
-                    ? { x: [-6, 6, -4, 4, 0] }
-                    : {}
-                }
-                transition={{ duration: 0.4 }}
-                className="mb-4"
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={handleGoogle}
+                className="w-full bg-[#A96A5A]/90 hover:bg-[#A96A5A] text-white py-2.5 rounded-md transition-all mb-5"
               >
+                Continue with Google
+              </motion.button>
+
+              <div className="flex items-center justify-center mb-5">
+                <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+                <span className="text-xs text-[#A96A5A]/60 mx-2">OR</span>
+                <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+              </div>
+
+              {/* EMAIL INPUT */}
+              <motion.div animate={emailControls} className="mb-4">
                 <input
-                  id="password-input"
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full border rounded-md p-2 text-sm focus:outline-none transition-all ${
+                    emailError
+                      ? "border-red-400 focus:ring-1 focus:ring-red-400"
+                      : "border-[#EBDAD5] focus:ring-1 focus:ring-[#A96A5A]"
+                  }`}
+                />
+                {emailError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-xs mt-1"
+                  >
+                    {emailError}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              {/* PASSWORD INPUT */}
+              <motion.div animate={passwordControls} className="mb-4">
+                <input
                   type="password"
                   placeholder="Password"
                   value={password}
@@ -228,37 +277,92 @@ const Login = () => {
                   </motion.p>
                 )}
               </motion.div>
-            )}
 
-            {/* ACTION BUTTON */}
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={mode === "signup" ? handleSignup : handleEmailAuth}
-              className="w-full bg-[#A96A5A] hover:bg-[#8E584C] text-white py-2 rounded-md transition-all"
-            >
-              {mode === "signup" ? "Create Account" : "Login with Email"}
-            </motion.button>
+              {/* LOGIN BUTTON */}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleEmailAuth}
+                className="w-full bg-[#A96A5A] hover:bg-[#8E584C] text-white py-2 rounded-md transition-all"
+              >
+                Login with Email
+              </motion.button>
 
-            {/* SWITCH LINKS */}
+              {/* SWITCH TO SIGNUP */}
+              <div className="text-center text-sm text-[#A96A5A]/80 mt-5">
+                <p>
+                  Don’t have an account?{" "}
+                  <button
+                    onClick={() => setMode("signup")}
+                    className="text-[#A96A5A] hover:underline"
+                  >
+                    Create one
+                  </button>
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* SIGNUP SLIDE */}
+          {mode === "signup" && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-sm text-[#A96A5A]/80 mt-5"
+              key="signup"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
             >
-              {mode === "login" && (
-                <>
-                  <p className="mt-2">
-                    Don’t have an account?{" "}
-                    <button
-                      onClick={() => setMode("signup")}
-                      className="text-[#A96A5A] hover:underline"
-                    >
-                      Create one
-                    </button>
-                  </p>
-                </>
-              )}
-              {mode === "signup" && (
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                onClick={handleGoogle}
+                className="w-full bg-[#A96A5A]/90 hover:bg-[#A96A5A] text-white py-2.5 rounded-md transition-all mb-5"
+              >
+                Continue with Google
+              </motion.button>
+
+              <div className="flex items-center justify-center mb-5">
+                <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+                <span className="text-xs text-[#A96A5A]/60 mx-2">OR</span>
+                <span className="h-px bg-[#EAD8D2] w-1/3"></span>
+              </div>
+
+              {/* SIGNUP EMAIL + PASSWORD */}
+              <motion.div className="mb-4">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full border rounded-md p-2 text-sm focus:outline-none transition-all ${
+                    emailError
+                      ? "border-red-400 focus:ring-1 focus:ring-red-400"
+                      : "border-[#EBDAD5] focus:ring-1 focus:ring-[#A96A5A]"
+                  }`}
+                />
+              </motion.div>
+
+              <motion.div className="mb-4">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full border rounded-md p-2 text-sm focus:outline-none transition-all ${
+                    passwordError
+                      ? "border-red-400 focus:ring-1 focus:ring-red-400"
+                      : "border-[#EBDAD5] focus:ring-1 focus:ring-[#A96A5A]"
+                  }`}
+                />
+              </motion.div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleSignup}
+                className="w-full bg-[#A96A5A] hover:bg-[#8E584C] text-white py-2 rounded-md transition-all"
+              >
+                Create Account
+              </motion.button>
+
+              <div className="text-center text-sm text-[#A96A5A]/80 mt-5">
                 <p>
                   Already have an account?{" "}
                   <button
@@ -268,9 +372,64 @@ const Login = () => {
                     Sign in
                   </button>
                 </p>
-              )}
+              </div>
             </motion.div>
-          </motion.div>
+          )}
+
+          {/* FORGOT PASSWORD SLIDE */}
+          {mode === "forgot" && (
+            <motion.div
+              key="forgot"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
+            >
+              <motion.div
+                animate={shake === "email" ? { x: [-6, 6, -4, 4, 0] } : {}}
+                transition={{ duration: 0.4 }}
+                className="mb-4"
+              >
+                <input
+                  type="email"
+                  placeholder="Enter your registered email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full border rounded-md p-2 text-sm focus:outline-none transition-all ${
+                    emailError
+                      ? "border-red-400 focus:ring-1 focus:ring-red-400"
+                      : "border-[#EBDAD5] focus:ring-1 focus:ring-[#A96A5A]"
+                  }`}
+                />
+                {emailError && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-red-500 text-xs mt-1"
+                  >
+                    {emailError}
+                  </motion.p>
+                )}
+              </motion.div>
+
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleForgotPassword}
+                className="w-full bg-[#A96A5A] hover:bg-[#8E584C] text-white py-2 rounded-md transition-all"
+              >
+                Send Reset Link
+              </motion.button>
+
+              <div className="text-center text-sm text-[#A96A5A]/80 mt-5">
+                <button
+                  onClick={() => setMode("login")}
+                  className="text-[#A96A5A] hover:underline"
+                >
+                  Back to Login
+                </button>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </motion.div>
     </motion.div>

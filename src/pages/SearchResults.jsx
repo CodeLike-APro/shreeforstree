@@ -47,12 +47,13 @@ const SearchResults = () => {
   return (
     <div className="relative flex flex-col items-center pt-[4vw] text-[#A96A5A] min-h-screen">
       <h1 className="text-3xl font-light uppercase tracking-[0.3vw] mb-6 text-center">
-        Search Results for: <span className="font-semibold">"{query}"</span>
+        Search Results for:{" "}
+        <span className="mt-3 lg:mt-0 font-semibold">"{query}"</span>
       </h1>
 
       <Filter products={searchResults} onFilter={handleFilter} />
 
-      <div className="pl-[20vw]">
+      <div className="lg:pl-[20vw]">
         {filteredResults.length > 0 ? (
           <Cards cards={filteredResults} layout="grid" />
         ) : (

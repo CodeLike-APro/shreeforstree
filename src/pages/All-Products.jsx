@@ -13,9 +13,9 @@ const AllProducts = () => {
   }, []);
 
   return (
-    <div className="product-page min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
+    <div className="min-h-screen right-0 flex flex-col items-center pt-[7vw] lg:pt-[3vw] lg:pl-[20vw]">
       <Filter products={allProducts} onFilter={handleFilter} />
-      <div className="flex justify-center items-center text-6xl uppercase tracking-[.7vw] text-[#A96A5A] mb-[1.5vw]">
+      <div className="flex justify-center items-center text-3xl lg:text-6xl uppercase tracking-[2vw] lg:tracking-[.7vw] text-[#A96A5A] mb-[7vw] lg:mb-[1.5vw]">
         All Products
       </div>
       <Cards cards={filteredProducts} layout="grid" />

@@ -18,9 +18,9 @@ const NewArrivals = () => {
   }, []);
 
   return (
-    <div className="min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
+    <div className="min-h-screen right-0 flex flex-col items-center pt-[7vw] lg:pt-[3vw] lg:pl-[20vw]">
       <Filter products={newArrivals} onFilter={handleFilter} />
-      <div className="flex justify-center items-center text-6xl uppercase tracking-[.7vw] text-[#A96A5A] mb-[1.5vw]">
+      <div className="flex justify-center items-center text-4xl lg:text-6xl uppercase tracking-[1vw] lg:tracking-[.7vw] text-[#A96A5A] mb-[7vw] lg:mb-[1.5vw]">
         New Arrivals
       </div>
       {filteredProducts.length > 0 ? (

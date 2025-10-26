@@ -3,6 +3,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import Icons from "../assets/Icons/Icons";
 
 const AdminDashboard = () => {
   const [orders, setOrders] = useState([]);
@@ -69,8 +70,17 @@ const AdminDashboard = () => {
     );
 
   return (
-    <div className="p-8 bg-[#fff9f7] min-h-screen">
-      <h2 className="text-2xl font-semibold text-[#A96A5A] mb-6">
+    <div className="px-2 py-14 lg:px-8 lg:py-14 bg-[#fff9f7] min-h-screen">
+      <div className="fixed top-19 left-2 lg:top-25 lg:left-8 z-50">
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FAF2F0] text-[#A96A5A] hover:bg-[#EAD8D2] transition-all shadow-md border border-[#EAD8D2]"
+        >
+          <Icons.BackIcon size={22} />
+        </button>
+      </div>
+
+      <h2 className="text-xl lg:text-2xl font-semibold text-[#A96A5A] mb-6 tracking-[.27vw] lg:tracking-[.1vw]">
         Admin Dashboard — All Orders
       </h2>
 

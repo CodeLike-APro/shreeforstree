@@ -1,9 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import allProducts from "../../data/products.json"; // your updated JSON import
 import { useCartStore } from "../../store/useCartStore";
 import { auth } from "../../firebase";
 import { notify } from "./toast";
+import Icons from "./../../assets/Icons/Icons";
 
 const Product = () => {
   const { id } = useParams();
@@ -26,6 +27,25 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1); // ✅ NEW
   const zoomRef = useRef(null);
   const navigate = useNavigate();
+  const [fullscreen, setFullscreen] = useState(false);
+
+  const mainImageRef = useRef(null);
+  const [galleryHeight, setGalleryHeight] = useState(0);
+
+  useEffect(() => {
+    if (mainImageRef.current) {
+      setGalleryHeight(mainImageRef.current.offsetHeight);
+    }
+
+    const handleResize = () => {
+      if (mainImageRef.current) {
+        setGalleryHeight(mainImageRef.current.offsetHeight);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleMouseMove = (e) => {
     if (!zoomRef.current) return;
@@ -68,35 +88,26 @@ const Product = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col md:flex-row justify-center items-start p-[4vw] gap-[3vw] bg-[#fffaf8]">
-      {/* LEFT SIDE — Gallery */}
-      <div className="flex flex-col md:flex-row gap-[2vw] w-full md:w-[60%] justify-center items-start">
-        <div className="flex md:flex-col gap-[1vw] w-full md:w-[10vw] justify-center">
-          {product.gallery?.map((img, i) => (
-            <div
-              key={i}
-              className={`cursor-pointer border-[1.5px] rounded-md overflow-hidden transition-all duration-300 ${
-                mainImage === img
-                  ? "border-[#A96A5A] scale-105"
-                  : "border-transparent hover:border-[#A96A5A]"
-              }`}
-              onMouseEnter={() => setMainImage(img)}
-            >
-              <img
-                src={img}
-                alt={`Product ${i}`}
-                className="w-full h-[10vh] md:h-[10vw] object-cover"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* ZOOMABLE MAIN IMAGE */}
+    <div className="min-h-screen w-full flex flex-col lg:flex-row justify-center items-start p-[4vw] gap-[3vw] bg-[#fffaf8]">
+      {/* LEFT SIDE — Image + Gallery */}
+      {/* LEFT SIDE — Image + Gallery */}
+      <div className="flex flex-col lg:flex-row gap-[2vw] w-full lg:w-[60%] justify-center items-start">
+        {/* MAIN IMAGE — 1st on mobile, 2nd on desktop */}
         <div
-          className="relative w-full md:w-[40vw] h-[50vh] md:h-[70vh] overflow-hidden rounded-md border border-[#e6d3cb] cursor-zoom-in"
-          onMouseEnter={() => setIsZooming(true)}
-          onMouseLeave={() => setIsZooming(false)}
-          onMouseMove={handleMouseMove}
+          ref={mainImageRef}
+          className="order-1 lg:order-2 relative w-full lg:w-[40vw] h-[50vh] lg:h-[70vh] overflow-hidden rounded-md border border-[#e6d3cb] cursor-pointer"
+          onMouseEnter={() => {
+            if (window.innerWidth >= 1024) setIsZooming(true);
+          }}
+          onMouseLeave={() => {
+            if (window.innerWidth >= 1024) setIsZooming(false);
+          }}
+          onMouseMove={(e) => {
+            if (window.innerWidth >= 1024) handleMouseMove(e);
+          }}
+          onClick={() => {
+            if (window.innerWidth < 1024) setFullscreen(true);
+          }}
         >
           <img
             ref={zoomRef}
@@ -107,25 +118,57 @@ const Product = () => {
             }`}
           />
         </div>
+
+        {/* GALLERY — 2nd on mobile, 1st on desktop */}
+        <div
+          className="order-2 lg:order-1 flex lg:flex-col gap-[2vw] lg:gap-[1vw] w-full lg:w-[7vw] items-center justify-center mt-3 lg:py-1 lg:mt-0
+              lg:overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-[#A96A5A]/60 lg:scrollbar-track-transparent"
+          style={{ maxHeight: `${galleryHeight}px` }}
+        >
+          {product.gallery?.map((img, i) => (
+            <div
+              key={i}
+              className={`cursor-pointer lg:w-[5vw] border-[1.5px] rounded-md overflow-hidden transition-all duration-300 ${
+                mainImage === img
+                  ? "border-[#A96A5A] scale-105"
+                  : "border-transparent hover:border-[#F5D3C3]"
+              }`}
+              onClick={() => setMainImage(img)}
+            >
+              <img
+                src={img}
+                alt={`Product ${i}`}
+                className="w-full h-[10vh] lg:h-[5vw] lg:w-[5vw] object-cover"
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* RIGHT SIDE — Info */}
-      <div className="flex flex-col w-full md:w-[35%] text-[#A96A5A]">
+      <div className="flex flex-col w-full lg:w-[35%] text-[#A96A5A]">
         {/* ✅ Changed category → tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {product.tags?.map((tag, i) => (
-            <span
-              key={i}
-              className="text-xs uppercase tracking-[0.15vw] font-light bg-[#f5d3c3] text-[#A96A5A] px-2 py-1 rounded-md"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
 
-        <h1 className="text-3xl md:text-4xl font-semibold tracking-wide mb-4">
-          {product.title}
-        </h1>
+        <div className="flex flex-col">
+          {/* Title */}
+          <h1 className="order-1 lg:order-2 text-3xl lg:text-4xl font-semibold tracking-wide mb-4">
+            {product.title}
+          </h1>
+
+          {/* Tags */}
+          <div className="order-2 lg:order-1 flex flex-wrap gap-2 mb-3">
+            {product.tags
+              ?.filter((tag) => tag.toLowerCase() !== "banner") // ✅ filters out banner tag
+              .map((tag, i) => (
+                <span
+                  key={i}
+                  className="text-[2.5vw] lg:text-xs uppercase tracking-[0.3vw] lg:tracking-[0.15vw] font-light bg-[#f5d3c3] text-[#A96A5A] px-1 lg:px-2 py-0.5 lg:py-1 rounded-md"
+                >
+                  {tag}
+                </span>
+              ))}
+          </div>
+        </div>
 
         <p className="text-lg font-light text-[#8b5447] mb-4">
           {product.currentPrice}
@@ -201,6 +244,26 @@ const Product = () => {
           </button>
         </div>
       </div>
+      {/* FULLSCREEN IMAGE VIEWER (Mobile Only) */}
+      {fullscreen && (
+        <div className="fixed inset-0 z-[99999] bg-black bg-opacity-95 flex items-center justify-center">
+          <img
+            src={mainImage}
+            alt={product.title}
+            className="max-w-full max-h-full object-contain touch-pinch-zoom"
+            style={{
+              transform: "scale(1)",
+              transition: "transform 0.3s ease",
+            }}
+          />
+          <button
+            onClick={() => setFullscreen(false)}
+            className="absolute top-4 right-4 text-white p-2 z-[100000]"
+          >
+            <Icons.CloseIcon className="w-8 h-8 text-white hover:scale-110 transition-transform duration-200" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

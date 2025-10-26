@@ -191,21 +191,21 @@ const Payment = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-6">
-      <div className="bg-white/90 backdrop-blur-sm shadow-[0_4px_30px_rgba(169,106,90,0.08)] rounded-xl w-full max-w-[900px] border border-[#EAD8D2]/60 p-8">
+    <div className="min-h-[70vh] lg:min-h-screen bg-gradient-to-br from-[#fff9f7] to-[#fff] flex justify-center py-[2vw] px-6">
+      <div className="bg-white/90 backdrop-blur-sm shadow-[0_4px_30px_rgba(169,106,90,0.08)] rounded-xl w-full max-w-[900px] border border-[#EAD8D2]/60 px-3 py-5 lg:px-8 lg:py-8">
         <h2 className="text-2xl font-semibold text-[#A96A5A] mb-6 text-center">
           Payment Summary
         </h2>
 
         {/* Order Items */}
-        <div className="divide-y divide-[#EBDAD5] mb-6">
+        <div className="divide-y divide-[#EBDAD5] mb-2 lg:mb-6">
           {cart.map((item, i) => (
-            <div key={i} className="flex justify-between py-4">
+            <div key={i} className="flex justify-between py-2 lg:py-4">
               <div className="flex items-center gap-4">
                 <img
                   src={item.img}
                   alt={item.title}
-                  className="w-16 h-16 object-cover rounded-md border border-[#EBDAD5]"
+                  className="h-20 lg:w-16 lg:h-16 object-cover rounded-md border border-[#EBDAD5]"
                 />
                 <div>
                   <p className="font-medium text-[#A96A5A]">{item.title}</p>

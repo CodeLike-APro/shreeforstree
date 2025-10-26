@@ -1,7 +1,18 @@
 @import "tailwindcss";
 
-body {
-  background: #ffffff;
+/* GLOBAL SCROLL FIX — paste this and save */
+html,
+body,
+#root {
+  background: #fff9f7;
+  height: 100%;
+  min-height: 100%;
+  overflow-x: hidden; /* keep horizontal hide */
+  overflow-y: auto; /* enable vertical scroll */
+  /* -webkit-overflow-scrolling: touch; smooth momentum on iOS */
+  overscroll-behavior-y: contain; /* avoid double-bounce but allow scroll */
+  touch-action: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Global text selection style */
@@ -52,4 +63,21 @@ html {
   50% {
     transform: translateY(-4px);
   }
+}
+
+:root {
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* ✅ Fix mobile scroll blocked by fixed elements */
+.bottom-nav {
+  pointer-events: none;
+}
+
+.bottom-nav button {
+  pointer-events: auto;
 }

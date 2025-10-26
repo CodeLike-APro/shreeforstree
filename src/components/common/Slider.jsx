@@ -151,7 +151,7 @@ const Slider = ({ slides = [] }) => {
   };
 
   return (
-    <div className="overflow-hidden w-[95vw] h-[85vh] relative rounded-[2vw] flex justify-center items-center">
+    <div className="overflow-hidden w-[90vw] h-[50vw] lg:w-[95vw] lg:h-[85vh] relative rounded-[5vw] lg:rounded-[2vw] flex justify-center items-center">
       {/* SLIDES */}
       <div
         ref={sliderRef}
@@ -164,7 +164,7 @@ const Slider = ({ slides = [] }) => {
             className="absolute top-0 left-0 w-full h-full overflow-hidden group"
           >
             {/* IMAGE */}
-            <div className="w-full h-full flex items-center justify-center rounded-[2vw] overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center rounded-[5vw] lg:rounded-[2vw] overflow-hidden">
               <img
                 ref={(el) => (imageRefs.current[idx] = el)}
                 src={slide.img}
@@ -178,11 +178,11 @@ const Slider = ({ slides = [] }) => {
 
             {/* TEXT CONTENT (above overlay, used for fade) */}
             <div className="slide-text absolute inset-0 z-[2] flex flex-col justify-center items-start px-[5vw] text-white">
-              <h2 className="text-4xl md:text-5xl font-semibold mb-3 drop-shadow-lg">
+              <h2 className="text-xl lg:text-6xl md:text-5xl font-semibold mb-1 lg:mb-3 drop-shadow-lg">
                 {slide.title}
               </h2>
-              <p className="max-w-[500px] text-base md:text-lg mb-6 opacity-90 leading-relaxed">
-                {slide.description}
+              <p className="w-[50%] lg:max-w-[500px] text-[2.5vw] lg:text-base md:text-lg mb-2 lg:mb-6 opacity-90 leading-relaxed">
+                {slide.bannerDescription}
               </p>
 
               <button
@@ -190,7 +190,7 @@ const Slider = ({ slides = [] }) => {
                   e.stopPropagation(); // prevents parent click
                   navigate(`/product/${slide.id}`);
                 }}
-                className="bg-[#A96A5A] text-white text-lg px-6 py-2 rounded-md hover:bg-[#91584b] transition-all shadow-lg group-hover:scale-[1.05] duration-200 cursor-pointer"
+                className="bg-[#A96A5A] text-white text-[3vw] lg:text-lg px-2.5 lg:px-6 py-1.5 lg:py-2 rounded-md hover:bg-[#91584b] transition-all shadow-lg group-hover:scale-[1.05] duration-200 cursor-pointer"
               >
                 Buy Now
               </button>
@@ -209,8 +209,8 @@ const Slider = ({ slides = [] }) => {
               className={`relative cursor-pointer overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
           ${
             active === idx
-              ? "w-[1.7vw] h-[0.6vw] rounded-full bg-[#A96A5A]"
-              : "w-[0.6vw] h-[0.6vw] rounded-full bg-gray-300"
+              ? "w-[5vw] h-[0.7vw] lg:w-[1.7vw] lg:h-[0.6vw] rounded-full bg-[#A96A5A]"
+              : "w-[1.7vw] h-[0.7vw] lg:w-[0.6vw] lg:h-[0.6vw] rounded-full bg-gray-300"
           }`}
             >
               <div className="absolute top-0 left-0 w-full h-full bg-gray-300"></div>

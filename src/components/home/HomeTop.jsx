@@ -13,7 +13,7 @@ const HomeTop = () => {
   }, []);
 
   return (
-    <div className="p-4 flex flex-col justify-center items-center overflow-hidden select-none">
+    <div className="pt-2 lg:pt-4 lg:pb-4 px-4 flex flex-col justify-center items-center overflow-hidden select-none">
       <Slider slides={bannerProducts} />
     </div>
   );

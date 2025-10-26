@@ -1,15 +1,8 @@
 import React from "react";
 
 // 🔍 Search Icon
-export const SearchIcon = ({ size = 24, className = "", ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    width={size}
-    height={size}
-    className={className}
-    {...props}
-  >
+export const SearchIcon = ({ className = "", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
     <path d="M18.031 16.6168L22.3137 20.8995L20.8995 22.3137L16.6168 18.031C15.0769 19.263 13.124 20 11 20C6.032 20 2 15.968 2 11C2 6.032 6.032 2 11 2C15.968 2 20 6.032 20 11C20 13.124 19.263 15.0769 18.031 16.6168ZM16.0247 15.8748C17.2475 14.6146 18 12.8956 18 11C18 7.1325 14.8675 4 11 4C7.1325 4 4 7.1325 4 11C4 14.8675 7.1325 18 11 18C12.8956 18 14.6146 17.2475 15.8748 16.0247L16.0247 15.8748Z" />
   </svg>
 );
@@ -57,12 +50,10 @@ export const UserIcon = ({ size = 24, className = "", ...props }) => (
 );
 
 // Instagram Icon
-export const InstaIcon = ({ size = 24, className = "", ...props }) => (
+export const InstaIcon = ({ className = "", ...props }) => (
   <svg
     viewBox="-0.5 -0.5 24 24"
     fill="currentColor"
-    width={size}
-    height={size}
     className={className}
     {...props}
   >
@@ -71,12 +62,10 @@ export const InstaIcon = ({ size = 24, className = "", ...props }) => (
 );
 
 // Instagram ID
-export const InstaID = ({ size = "24", className = "", ...props }) => (
+export const InstaID = ({ className = "", ...props }) => (
   <svg
     viewBox="0 10 282.3999938964844 62.79999542236328"
     fill="currentColor"
-    width={size}
-    height={size}
     className={className}
     {...props}
   >
@@ -210,6 +199,20 @@ export const DownIcon = ({ size = 24, className = "", ...props }) => (
   </svg>
 );
 
+// 🔍 Search Icon
+export const StarIcon = ({ className = "", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    <path d="M17.0007 1.20825 18.3195 3.68108 20.7923 4.99992 18.3195 6.31876 17.0007 8.79159 15.6818 6.31876 13.209 4.99992 15.6818 3.68108 17.0007 1.20825ZM8.00065 4.33325 10.6673 9.33325 15.6673 11.9999 10.6673 14.6666 8.00065 19.6666 5.33398 14.6666.333984 11.9999 5.33398 9.33325 8.00065 4.33325ZM19.6673 16.3333 18.0007 13.2083 16.334 16.3333 13.209 17.9999 16.334 19.6666 18.0007 22.7916 19.6673 19.6666 22.7923 17.9999 19.6673 16.3333Z"></path>
+  </svg>
+);
+
+// 🔍 Search Icon
+export const TagIcon = ({ className = "", ...props }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+    <path d="M11.1889 13.2642L12.5715 21.106L4.00024 21.1067C3.44795 21.1067 3.00024 20.659 3.00024 20.1067L2.99951 14.709L11.1889 13.2642ZM20.0002 3.10668C20.5525 3.10668 21.0002 3.5544 21.0002 4.10668V20.1067C21.0002 20.659 20.5525 21.1067 20.0002 21.1067L14.6025 21.106L11.4285 3.10596L20.0002 3.10668ZM9.39751 3.10596L10.8416 11.2945L2.99951 12.678L3.00024 4.10668C3.00024 3.5544 3.44795 3.10668 4.00024 3.10668L9.39751 3.10596Z"></path>
+  </svg>
+);
+
 // 🧩 Default export (optional convenience)
 const Icons = {
   SearchIcon,
@@ -227,5 +230,7 @@ const Icons = {
   DotIcon,
   BackIcon,
   DownIcon,
+  StarIcon,
+  TagIcon,
 };
 export default Icons;

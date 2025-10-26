@@ -22,9 +22,9 @@ const Kurties = () => {
   }, []);
 
   return (
-    <div className="min-h-screen right-0 flex flex-col items-center pt-[3vw] pl-[20vw]">
+    <div className="min-h-screen right-0 flex flex-col items-center pt-[7vw] lg:pt-[3vw] lg:pl-[20vw]">
       <Filter products={kurtiesProducts} onFilter={handleFilter} />
-      <div className="flex justify-center items-center text-6xl uppercase tracking-[.7vw] text-[#A96A5A] mb-[1.5vw]">
+      <div className="flex justify-center items-center text-5xl lg:text-6xl uppercase tracking-[2vw] lg:tracking-[.7vw] text-[#A96A5A] mb-[7vw] lg:mb-[1.5vw]">
         Kurties
       </div>
       {filteredProducts.length === 0 ? (
