@@ -25,13 +25,13 @@ const OrderDetails = () => {
           if (snap.exists()) {
             setOrder(snap.data());
           } else {
-            console.warn("❌ Order not found in Firestore");
+            // console.warn("❌ Order not found in Firestore");
             setOrder(null);
           }
           setLoading(false);
         });
       } catch (err) {
-        console.error("🔥 Error fetching order:", err);
+        // console.error("🔥 Error fetching order:", err);
         setOrder(null);
         setLoading(false);
       }

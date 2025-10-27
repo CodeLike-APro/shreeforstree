@@ -33,7 +33,13 @@ const Filter = ({ products = [], onFilter }) => {
   const [expandedColor, setExpandedColor] = useState(false);
   const [expandedPriceRange, setExpandedPriceRange] = useState(false);
 
-  const tags = [...new Set(products.flatMap((p) => p.tags || []))];
+  const tags = [
+    ...new Set(
+      products
+        .flatMap((p) => p.tags || [])
+        .filter((tag) => tag.toLowerCase() !== "banner")
+    ),
+  ];
   const sizes = [...new Set(products.flatMap((p) => p.sizes || []))];
   const colors = [
     ...new Set(products.flatMap((p) => (p.color ? [p.color] : []))),
@@ -129,7 +135,14 @@ const Filter = ({ products = [], onFilter }) => {
         ref={filterRef}
         className="hidden lg:flex absolute rounded-r-[0.5vw] left-0 lg:h-[80vh] lg:w-[24vw] flex-col bg-[#AC6B5C] text-[#F5D3C3] overflow-hidden"
       >
-        <div className="flex-1 overflow-y-auto px-5 py-10">
+        <div className="flex items-center gap-3 px-5 pt-6 pb-2 border-b border-[#F5D3C3]/30">
+          <Icons.FilterIcon size={30} />
+          <h3 className="text-4xl font-bold uppercase pl-2 tracking-[0.2vw]">
+            Filters
+          </h3>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-10 transition-all duration-300">
           <FilterContent
             {...{
               selectedTags,
@@ -236,33 +249,42 @@ const FilterContent = ({
   setExpandedColor,
   setExpandedPriceRange,
   toggleSelection,
-  tagsRef,
-  sizeRef,
-  colorRef,
-  priceRef,
   tags,
   sizes,
   colors,
-  animateHeight,
 }) => (
   <>
-    <div className="flex flex-col justify-between gap-2 items-start mb-8">
-      {(selectedTags.length ||
-        selectedSizes.length ||
-        selectedColors.length ||
-        selectedPrices.length) > 0 && (
-        <button
-          onClick={() => {
-            setSelectedTags([]);
-            setSelectedSizes([]);
-            setSelectedColors([]);
-            setSelectedPrices([]);
-          }}
-          className="text-sm uppercase tracking-[0.1vw] text-[#F5D3C3] bg-[#8C4F40] px-3 py-1 rounded-md hover:bg-[#7B4336] transition-all duration-300"
-        >
-          Clear All
-        </button>
-      )}
+    <div className="relative h-[36px] mb-2 flex items-center">
+      <motion.button
+        key="clear-all"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{
+          opacity:
+            selectedTags.length ||
+            selectedSizes.length ||
+            selectedColors.length ||
+            selectedPrices.length
+              ? 1
+              : 0,
+          pointerEvents:
+            selectedTags.length ||
+            selectedSizes.length ||
+            selectedColors.length ||
+            selectedPrices.length
+              ? "auto"
+              : "none",
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        onClick={() => {
+          setSelectedTags([]);
+          setSelectedSizes([]);
+          setSelectedColors([]);
+          setSelectedPrices([]);
+        }}
+        className="absolute left-0 text-sm uppercase tracking-[0.1vw] text-[#F5D3C3] bg-[#8C4F40] px-3 py-1 rounded-md hover:bg-[#7B4336] transition-all duration-300"
+      >
+        Clear All
+      </motion.button>
     </div>
 
     <FilterSection
@@ -319,7 +341,7 @@ const FilterSection = ({
   toggleSelection,
   isRange = false,
 }) => (
-  <div className="flex flex-col transition-all duration-300 ease-in-out">
+  <div className="flex flex-col transition-all duration-300 ease-in-out lg:mt-4">
     <div
       className="flex justify-between items-center cursor-pointer select-none"
       onClick={onToggle}
@@ -328,7 +350,7 @@ const FilterSection = ({
         className={`${
           expanded
             ? "font-light tracking-[0.2vw]"
-            : "font-semibold tracking-[0.4vw]"
+            : "font-semibold lg:text-xl tracking-[0.4vw]"
         } uppercase transition-all duration-300`}
       >
         {title}

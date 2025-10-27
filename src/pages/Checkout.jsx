@@ -70,7 +70,7 @@ const Checkout = () => {
           setLoadingAddresses(false);
         },
         (err) => {
-          console.error("Error fetching addresses:", err);
+          // console.error("Error fetching addresses:", err);
           setLoadingAddresses(false);
         }
       );
@@ -117,7 +117,7 @@ const Checkout = () => {
 
       notify.success("Address saved successfully!");
     } catch (err) {
-      console.error("Error saving address:", err);
+      // console.error("Error saving address:", err);
       notify.error("Something went wrong while saving address.");
     }
   };

@@ -281,7 +281,7 @@ const User = () => {
 
       notify.success("Profile updated successfully!");
     } catch (err) {
-      console.error("Error updating profile:", err);
+      // console.error("Error updating profile:", err);
       switch (err.code) {
         case "auth/wrong-password":
           notify.warning("Incorrect current password.");
@@ -380,7 +380,7 @@ const User = () => {
 
       notify.success("Address saved successfully!");
     } catch (error) {
-      console.error("❌ Error saving address:", error);
+      // console.error("❌ Error saving address:", error);
       notify.error("Failed to save address.");
     }
   };
@@ -454,7 +454,7 @@ const User = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      console.error("Error changing password:", error);
+      // console.error("Error changing password:", error);
       switch (error.code) {
         case "auth/wrong-password":
           notify.warning("Incorrect current password.");
@@ -868,10 +868,11 @@ const User = () => {
                               <p className="text-xs sm:text-sm text-[#A96A5A] font-semibold">
                                 ₹
                                 {(
-                                  (item.currentPrice ||
-                                    item.price ||
-                                    item.originalPrice ||
-                                    0) * (item.quantity || 1)
+                                  getNumericPrice(
+                                    item.currentPrice ||
+                                      item.price ||
+                                      item.originalPrice
+                                  ) * (item.quantity || 1)
                                 ).toLocaleString("en-IN")}
                               </p>
                             </div>
@@ -1329,7 +1330,7 @@ const User = () => {
                             );
                             navigate("/");
                           } catch (error) {
-                            console.error("Account deletion failed:", error);
+                            // console.error("Account deletion failed:", error);
 
                             switch (error.code) {
                               case "auth/popup-closed-by-user":

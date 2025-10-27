@@ -50,7 +50,7 @@ onAuthStateChanged(auth, async (user) => {
         // console.log("✅ User document created in Firestore");
       }
     } catch (error) {
-      console.error("❌ Error creating user document:", error);
+      // console.error("❌ Error creating user document:", error);
     }
   }
 });

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useCartStore } from "../store/useCartStore";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,7 @@ import { notify } from "../components/common/toast";
 const Payment = () => {
   const { cart, clearCart } = useCartStore();
   const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // 🧮 Safe price parser (handles ₹ symbols, commas, numbers)
   const getNumericPrice = (price) => {
@@ -58,6 +59,9 @@ const Payment = () => {
     }
 
     try {
+      // 🧠 Show the “Processing Payment...” overlay
+      setIsProcessing(true);
+
       // Step 1: Create Razorpay order via backend
       const res = await fetch("https://shreeforstree.in/api/create-order.php", {
         method: "POST",
@@ -69,6 +73,7 @@ const Payment = () => {
       if (!order.id) {
         console.error("❌ Razorpay order creation failed:", order);
         notify.warning("Could not initiate payment. Please try again.");
+        setIsProcessing(false);
         return;
       }
 
@@ -82,21 +87,18 @@ const Payment = () => {
         image: "/logo.png",
         order_id: order.id,
         handler: async function (response) {
-          // console.log("✅ Payment success:", response);
-
           try {
-            // Fetch user reference
+            // 🧾 Fetch user reference
             const userRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userRef);
             const userData = userSnap.exists() ? userSnap.data() : {};
 
-            // Fetch the selected address
             // 🏠 Pull selected address from Checkout (sessionStorage)
             const selectedAddress = JSON.parse(
               sessionStorage.getItem("selectedAddress")
             );
 
-            // Prepare order data
+            // 🛍️ Prepare order data
             const newOrder = {
               id: response.razorpay_payment_id,
               razorpay_order_id: order.id,
@@ -112,11 +114,11 @@ const Payment = () => {
                   phone: user.phoneNumber || "—",
                   line1: "Address not available",
                 }),
-                email: user.email, // ✅ Add this line (customer email)
+                email: user.email,
               },
             };
 
-            // 💾 Save order with Razorpay payment ID as the Firestore document ID
+            // 💾 Save order under user's collection
             await setDoc(
               doc(
                 db,
@@ -127,11 +129,11 @@ const Payment = () => {
               ),
               {
                 ...newOrder,
-                date: serverTimestamp(), // Firestore server timestamp for consistent ordering
+                date: serverTimestamp(),
               }
             );
 
-            // 💾 Also save to global "orders" collection for admin dashboard
+            // 💾 Also save globally for admin dashboard
             await setDoc(doc(db, "orders", response.razorpay_payment_id), {
               ...newOrder,
               userId: user.uid,
@@ -139,22 +141,25 @@ const Payment = () => {
               date: serverTimestamp(),
             });
 
-            // 📧 Send order email notification to admin and customer
+            // 📧 Send email notifications
             await fetch("https://shreeforstree.in/api/send-order-mail.php", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ order: newOrder }),
             });
 
-            // Clear cart and redirect
+            // 🧹 Clean up
             clearCart();
             notify.success("Payment successful! 🎉");
-            navigate("/user");
+            navigate("/");
           } catch (err) {
             console.error("🔥 Firestore save failed:", err);
             notify.warning(
               "Payment successful, but order could not be saved. Please contact support."
             );
+          } finally {
+            // 🧠 Hide loader after everything finishes
+            setIsProcessing(false);
           }
         },
         prefill: {
@@ -165,15 +170,23 @@ const Payment = () => {
       };
 
       const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
 
-      paymentObject.on("payment.failed", (response) => {
-        console.error("❌ Payment failed:", response.error);
+      // 🧠 Hide loader when user closes or payment fails
+      paymentObject.on("payment.failed", () => {
+        setIsProcessing(false);
         notify.warning("Payment failed. Please try again.");
       });
+
+      paymentObject.on("payment.closed", () => {
+        setIsProcessing(false);
+      });
+
+      // 🚀 Open Razorpay checkout
+      paymentObject.open();
     } catch (error) {
       console.error("🔥 Error in payment flow:", error);
       notify.warning("Something went wrong. Please try again later.");
+      setIsProcessing(false);
     }
   };
 
@@ -246,9 +259,17 @@ const Payment = () => {
           onClick={handlePayment}
           className="w-full bg-[#A96A5A] hover:bg-[#91584b] text-white py-3 rounded-md text-lg transition-all"
         >
-          Pay with Razorpay
+          Pay Now
         </button>
       </div>
+      {isProcessing && (
+        <div className="fixed inset-0 bg-[#fff9f7]/80 backdrop-blur-sm flex flex-col items-center justify-center z-50">
+          <div className="w-12 h-12 border-4 border-[#A96A5A] border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-[#A96A5A] text-lg font-medium">
+            Processing Payment...
+          </p>
+        </div>
+      )}
     </div>
   );
 };

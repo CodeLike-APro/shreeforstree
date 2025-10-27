@@ -78,7 +78,7 @@ const Login = () => {
       await createUserWithEmailAndPassword(auth, email, password);
       navigate("/"); // redirect after signup success
     } catch (err) {
-      console.error(err.code);
+      // console.error(err.code);
       if (err.code === "auth/email-already-in-use") {
         setEmailError("This email is already registered");
         shakeField("email");
@@ -121,7 +121,7 @@ const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/");
     } catch (err) {
-      console.error(err.code);
+      // console.error(err.code);
       if (err.code === "auth/invalid-email") {
         setEmailError("Invalid email address");
         shakeField("email");
@@ -141,7 +141,7 @@ const Login = () => {
       await signInWithPopup(auth, provider);
       navigate("/");
     } catch (err) {
-      console.error(err);
+      // console.error(err);
     }
   };
 
@@ -163,7 +163,7 @@ const Login = () => {
       );
       setMode("login");
     } catch (err) {
-      console.error(err.code);
+      // console.error(err.code);
       if (err.code === "auth/invalid-email") {
         setEmailError("Invalid email format");
         shakeField("email");
@@ -277,6 +277,16 @@ const Login = () => {
                   </motion.p>
                 )}
               </motion.div>
+
+              {/* FORGOT PASSWORD */}
+              <div className="text-right mb-4">
+                <button
+                  onClick={() => setMode("forgot")}
+                  className="text-sm text-[#A96A5A] hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
 
               {/* LOGIN BUTTON */}
               <motion.button
