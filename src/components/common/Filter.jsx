@@ -172,7 +172,7 @@ const Filter = ({ products = [], onFilter }) => {
 
       {/* 📱 Floating Filter Button */}
       <button
-        className="fixed bottom-20 right-5 z-[10000] bg-[#AC6B5C] text-[#F5D3C3] p-3 rounded-full shadow-lg lg:hidden active:scale-95 transition-transform"
+        className="fixed bottom-20 right-5 z-[9999] bg-[#AC6B5C] text-[#F5D3C3] p-3 rounded-full shadow-lg lg:hidden active:scale-95 transition-transform"
         onClick={() => setMobileOpen(true)}
       >
         <Icons.FilterIcon size={24} />
