@@ -10,19 +10,34 @@ const PageBreak = () => {
   useGSAP(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Animate only THIS PageBreak’s container
-    gsap.from(stringContainerRef.current, {
-      scaleX: 0,
-      opacity: 0,
-      transformOrigin: "center",
-      duration: 1.3,
-      ease: "power2.out",
-      scrollTrigger: {
-        trigger: stringContainerRef.current,
-        start: "top 80%",
-        end: "bottom 60%",
-      },
-    });
+    const el = stringContainerRef.current;
+    if (!el) return;
+
+    // ✅ Create animation
+    const tween = gsap.fromTo(
+      el,
+      { scaleX: 0, opacity: 0 },
+      {
+        scaleX: 1,
+        opacity: 1,
+        transformOrigin: "center",
+        duration: 1.3,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 80%",
+          end: "bottom 60%",
+          scrub: false,
+          once: true, // ✅ triggers once per page load
+        },
+      }
+    );
+
+    // ✅ Cleanup safely (avoid ScrollTrigger.kill error)
+    return () => {
+      tween?.kill();
+      ScrollTrigger.getAll().forEach((t) => t.kill());
+    };
   }, []);
 
   const handleMouseMove = (e) => {

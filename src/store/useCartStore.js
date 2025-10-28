@@ -2,6 +2,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+const getNumericPrice = (price) => {
+  if (typeof price === "number") return price;
+  if (typeof price === "string") {
+    return parseInt(price.replace(/\D/g, ""), 10) || 0;
+  }
+  return 0;
+};
+
 export const useCartStore = create(
   persist(
     (set, get) => ({
@@ -11,7 +19,7 @@ export const useCartStore = create(
         set((state) => ({
           cart: state.cart.map((item) => {
             if (item.id === id && item.size === size) {
-              const price = parseInt(item.currentPrice.replace(/\D/g, ""), 10);
+              const price = getNumericPrice(item.currentPrice);
               const updatedQty = Math.max(1, newQty);
               return {
                 ...item,
@@ -39,13 +47,13 @@ export const useCartStore = create(
                     quantity: item.quantity + product.quantity,
                     totalPrice:
                       (item.quantity + product.quantity) *
-                      parseInt(product.currentPrice.replace(/\D/g, ""), 10),
+                      getNumericPrice(product.currentPrice),
                   }
                 : item
             ),
           });
         } else {
-          const price = parseInt(product.currentPrice.replace(/\D/g, ""), 10);
+          const price = getNumericPrice(product.currentPrice);
           set({
             cart: [
               ...existingCart,
@@ -70,8 +78,8 @@ export const useCartStore = create(
       clearCart: () => set({ cart: [] }),
     }),
     {
-      name: "cart-storage", // localStorage key
-      getStorage: () => localStorage, // persist across tabs/pages
+      name: "cart-storage",
+      getStorage: () => localStorage,
     }
   )
 );

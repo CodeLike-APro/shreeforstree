@@ -1,17 +1,56 @@
-import React, { useEffect, useRef } from "react";
-
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import allProducts from "../data/products.json";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 const Categories = () => {
-  const tags = [
-    ...new Set(allProducts.flatMap((product) => product.tags || [])),
-  ].filter((tag) => tag.toLowerCase() !== "banner");
+  const [tagImages, setTagImages] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const tagImages = tags.map((tag) => {
-    const found = allProducts.find((p) => p.tags?.includes(tag));
-    return { name: tag, img: found?.img || "/NewArrivals/default.jpg" };
-  });
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "products"));
+        const products = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // ✅ Collect all unique tags (except banner)
+        const tags = [
+          ...new Set(products.flatMap((product) => product.tags || [])),
+        ].filter((tag) => tag.toLowerCase() !== "banner");
+
+        // ✅ Pick a representative image for each tag
+        const tagsWithImages = tags.map((tag) => {
+          const found = products.find((p) => p.tags?.includes(tag));
+          const image =
+            found?.img ||
+            (Array.isArray(found?.images) && found.images.length > 0
+              ? found.images[0]
+              : "/NewArrivals/default.jpg");
+
+          return { name: tag, img: image };
+        });
+
+        setTagImages(tagsWithImages);
+      } catch (error) {
+        console.error("🔥 Error loading categories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-screen flex justify-center items-center text-[#A96A5A] text-lg">
+        Loading categories...
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -36,6 +75,7 @@ const Categories = () => {
                 src={tag.img}
                 alt={tag.name}
                 loading="lazy"
+                onError={(e) => (e.target.src = "/NewArrivals/default.jpg")}
               />
               <div className="absolute top-0 left-0 flex justify-center items-end h-full w-full bg-gradient-to-t from-black/70 to-black/20 transition-all duration-700 group-hover:bg-black/10">
                 <h2 className="text-white text-3xl font-light tracking-[1vw] uppercase mb-[3vh] lg:mb-[10vh] px-[1vw] py-[0.6vh] transition-all duration-700 group-hover:tracking-[0.5vw]">

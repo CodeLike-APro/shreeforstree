@@ -182,7 +182,7 @@ const Slider = ({ slides = [] }) => {
                 {slide.title}
               </h2>
               <p className="w-[50%] lg:max-w-[500px] text-[2.5vw] lg:text-base md:text-lg mb-2 lg:mb-6 opacity-90 leading-relaxed">
-                {slide.bannerDescription}
+                {slide.bannerDescription || slide.description || ""}
               </p>
 
               <button

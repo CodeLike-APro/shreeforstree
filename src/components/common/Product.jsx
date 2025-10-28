@@ -1,25 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import allProducts from "../../data/products.json"; // your updated JSON import
 import { useCartStore } from "../../store/useCartStore";
 import { auth } from "../../firebase";
 import { notify } from "./toast";
 import Icons from "./../../assets/Icons/Icons";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 
 const Product = () => {
   const { id } = useParams();
-  const product = allProducts.find((item) => item.id === id);
-  const { addToCart } = useCartStore();
-
-  if (!product) {
-    return (
-      <div className="h-screen flex items-center justify-center text-[#A96A5A] text-2xl">
-        Product not found.
-      </div>
-    );
-  }
-
-  const [mainImage, setMainImage] = useState(product.img);
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [mainImage, setMainImage] = useState("");
   const [isZooming, setIsZooming] = useState(false);
   const location = useLocation();
   const preselectedSize = location.state?.selectedSize || null;
@@ -28,9 +20,61 @@ const Product = () => {
   const zoomRef = useRef(null);
   const navigate = useNavigate();
   const [fullscreen, setFullscreen] = useState(false);
-
   const mainImageRef = useRef(null);
   const [galleryHeight, setGalleryHeight] = useState(0);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const docRef = doc(db, "products", id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+
+          // 🧠 Handle both single + multiple image fields
+          const imagesArray = Array.isArray(data.images)
+            ? data.images.filter((url) => url && typeof url === "string")
+            : data.img
+            ? [data.img] // if only one img field exists
+            : [];
+
+          const fallbackImage = "/fallback-user-icon.svg";
+
+          console.log("Images found:", imagesArray);
+
+          setProduct({
+            id: docSnap.id,
+            title: data.title || "Untitled Product",
+            description: data.description || "",
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            sizes: Array.isArray(data.sizes) ? data.sizes : [],
+            color: data.color || "",
+            price: data.price || "0",
+            currentPrice: data.currentPrice || data.price || "0",
+            img: imagesArray[0] || fallbackImage,
+            gallery: imagesArray.length > 0 ? imagesArray : [fallbackImage],
+          });
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  useEffect(() => {
+    if (product?.img) {
+      setMainImage(product.img);
+    }
+  }, [product]);
+
+  const { addToCart } = useCartStore();
 
   useEffect(() => {
     if (mainImageRef.current) {
@@ -58,12 +102,32 @@ const Product = () => {
     zoomRef.current.style.transformOrigin = `${x}% ${y}%`;
   };
 
+  // ✅ Normalize and send consistent data to cart store
   const handleAddToCart = () => {
     if (!selectedSize) {
       notify.info("Please select a size before adding to cart!");
       return;
     }
-    addToCart({ ...product, quantity }, selectedSize); // ✅ pass quantity
+
+    const numericPrice = Number(
+      (product.currentPrice || product.price || "0")
+        .toString()
+        .replace(/[^0-9.-]+/g, "")
+    );
+
+    const item = {
+      id: product.id,
+      title: product.title || "Untitled Product",
+      img: product.img || product.gallery?.[0] || "/fallback-user-icon.svg",
+      price: numericPrice,
+      currentPrice: numericPrice,
+      quantity,
+      size: selectedSize,
+    };
+
+    // ✅ Ensure consistent call signature
+    useCartStore.getState().addToCart(item, selectedSize);
+
     notify.success(`${product.title} (${selectedSize}) added to cart 🛒`);
   };
 
@@ -73,12 +137,25 @@ const Product = () => {
       return;
     }
 
-    // Add to cart first
-    addToCart({ ...product, quantity }, selectedSize);
+    const numericPrice = Number(
+      (product.currentPrice || product.price || "0")
+        .toString()
+        .replace(/[^0-9.-]+/g, "")
+    );
 
-    // Check auth status
+    const item = {
+      id: product.id,
+      title: product.title || "Untitled Product",
+      img: product.img || product.gallery?.[0] || "/fallback-user-icon.svg",
+      price: numericPrice,
+      currentPrice: numericPrice,
+      quantity,
+      size: selectedSize,
+    };
+
+    useCartStore.getState().addToCart(item, selectedSize);
+
     const user = auth.currentUser;
-
     if (!user) {
       notify.info("Please sign in to continue checkout.");
       navigate("/login");
@@ -86,6 +163,22 @@ const Product = () => {
       navigate("/checkout");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[#A96A5A] text-lg">
+        Loading product...
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="h-screen flex items-center justify-center text-[#A96A5A] text-2xl">
+        Product not found.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex flex-col lg:flex-row justify-center items-start p-[4vw] gap-[3vw] bg-[#fffaf8]">
@@ -109,21 +202,27 @@ const Product = () => {
             if (window.innerWidth < 1024) setFullscreen(true);
           }}
         >
-          <img
-            ref={zoomRef}
-            src={mainImage}
-            alt={product.title}
-            className={`w-full h-full object-cover transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isZooming ? "scale-250" : "scale-100"
-            }`}
-          />
+          {mainImage && (
+            <img
+              ref={zoomRef}
+              src={mainImage || "/fallback-user-icon.svg"}
+              alt={product?.title || "Product Image"}
+              className={`w-full h-full object-cover transition-transform duration-600 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                isZooming ? "scale-250" : "scale-100"
+              }`}
+              onError={(e) => (e.target.src = "/fallback-user-icon.svg")}
+            />
+          )}
         </div>
 
         {/* GALLERY — 2nd on mobile, 1st on desktop */}
         <div
           className="order-2 lg:order-1 flex lg:flex-col gap-[2vw] lg:gap-[1vw] w-full lg:w-[7vw] items-center justify-center mt-3 lg:py-1 lg:mt-0
-              lg:overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-[#A96A5A]/60 lg:scrollbar-track-transparent"
-          style={{ maxHeight: `${galleryHeight}px` }}
+    lg:overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-[#A96A5A]/60 lg:scrollbar-track-transparent"
+          style={{
+            maxHeight: galleryHeight > 0 ? `${galleryHeight}px` : "70vh", // ✅ fallback
+            minHeight: "20vh", // ✅ ensures visibility even before main image loads
+          }}
         >
           {product.gallery?.map((img, i) => (
             <div
@@ -136,8 +235,9 @@ const Product = () => {
               onClick={() => setMainImage(img)}
             >
               <img
-                src={img}
+                src={img || "/fallback-user-icon.svg"}
                 alt={`Product ${i}`}
+                onError={(e) => (e.target.src = "/fallback-user-icon.svg")}
                 className="w-full h-[10vh] lg:h-[5vw] lg:w-[5vw] object-cover"
               />
             </div>
@@ -171,10 +271,7 @@ const Product = () => {
         </div>
 
         <p className="text-lg font-light text-[#8b5447] mb-4">
-          {product.currentPrice}
-          <span className="text-gray-400 line-through ml-2">
-            {product.originalPrice}
-          </span>
+          ₹{product.currentPrice}
         </p>
 
         <p className="text-sm text-[#9c7e73] mb-6 leading-relaxed">
