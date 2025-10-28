@@ -31,6 +31,7 @@ import FAQs from "./pages/FAQs";
 import { Toaster } from "react-hot-toast";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrderDetails from "./pages/AdminOrderDetails";
+import AddProduct from "./pages/AddProduct";
 
 const App = () => {
   const location = useLocation();
@@ -75,6 +76,7 @@ const App = () => {
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
+          <Route path="/AddProducts" element={<AddProduct />} />
         </Routes>
       </div>
 

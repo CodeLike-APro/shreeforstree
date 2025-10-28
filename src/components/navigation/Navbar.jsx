@@ -209,39 +209,14 @@ const Navbar = () => {
               </div>
 
               {/* 👤 USER ACCOUNT */}
-              <div className="userAcc lg:h-[2vw] lg:w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110">
-                {user ? (
-                  user.photoURL ? (
-                    <img
-                      src={user.photoURL}
-                      alt="Profile"
-                      onClick={() => navigate("/user")}
-                      className="h-[2vw] w-[2vw] rounded-full object-cover border border-[#A96A5A] hover:opacity-80 transition-opacity duration-200"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.style.display = "none"; // hide broken image
-                        e.target.parentNode.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#b17362" class="w-full h-full">
-              <path d="M12 12c2.67 0 8 1.34 8 4v4H4v-4c0-2.66 5.33-4 8-4zm0-2c-1.66 0-3-1.34-3-3S10.34 4 12 4s3 
-              1.34 3 3-1.34 3-3 3z" />
-            </svg>
-          `;
-                      }}
-                    />
-                  ) : (
-                    <Icons.UserIcon
-                      size={28}
-                      className="w-[20px] h-[20px] lg:w-[28px] lg:h-[28px] text-[#b17362] hover:text-[#8e5546] transition-transform duration-200"
-                      onClick={() => navigate("/user")}
-                    />
-                  )
-                ) : (
-                  <Icons.UserIcon
-                    size={28}
-                    className="w-[20px] h-[20px] lg:w-[28px] lg:h-[28px] text-[#b17362] hover:text-[#8e5546] hover:scale-110 transition-transform duration-200"
-                    onClick={() => navigate("/login")}
-                  />
-                )}
+              <div
+                className="userAcc lg:h-[2vw] lg:w-[2vw] cursor-pointer flex items-center justify-center transition-transform duration-200 hover:scale-110"
+                onClick={() => navigate(user ? "/user" : "/login")}
+              >
+                <Icons.UserIcon
+                  size={28}
+                  className="w-[20px] h-[20px] lg:w-[28px] lg:h-[28px] text-[#b17362] hover:text-[#8e5546] transition-transform duration-200"
+                />
               </div>
             </div>
             {/* 🍔 MENU ICON (Mobile) */}

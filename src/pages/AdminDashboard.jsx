@@ -10,6 +10,18 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user?.email === "ceoprinci@gmail.com") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (user) => {
@@ -79,6 +91,15 @@ const AdminDashboard = () => {
           <Icons.BackIcon size={22} />
         </button>
       </div>
+      {/* ✅ Show only if admin */}
+      {isAdmin && (
+        <button
+          onClick={() => navigate("/AddProducts")}
+          className="fixed top-138 right-3 lg:top-29 lg:right-8 px-4 py-2 bg-[#A96A5A] text-white rounded-lg border border-[#A96A5A]/30 shadow-md hover:shadow-xl hover:scale-105 hover:bg-[#8E574B] active:scale-95 transition-all duration-300 ease-out z-50 animate-[float_3s_ease-in-out_infinite]"
+        >
+          Add Products
+        </button>
+      )}
 
       <h2 className="text-xl lg:text-2xl font-semibold text-[#A96A5A] mb-6 tracking-[.27vw] lg:tracking-[.1vw]">
         Admin Dashboard — All Orders
