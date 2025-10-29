@@ -59,13 +59,13 @@ const AllProducts = () => {
                 : ["/fallback-user-icon.svg"],
           };
         });
-        console.log("🔥 Raw Firestore products:", snapshot.docs.length, "docs");
-        console.log("🧩 Parsed products:", fetched);
+        // console.log("🔥 Raw Firestore products:", snapshot.docs.length, "docs");
+        // console.log("🧩 Parsed products:", fetched);
         // 🚀 No manual filtering — keep all products (even "banner" ones)
         setProducts(fetched);
         setFilteredProducts(fetched);
       } catch (err) {
-        console.error("🔥 Error fetching products:", err);
+        // console.error("🔥 Error fetching products:", err);
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ const AllProducts = () => {
       </div>
     );
   }
-  console.log("🧩 Rendering Cards with:", filteredProducts); // ✅ move this above return
+  // console.log("🧩 Rendering Cards with:", filteredProducts); // ✅ move this above return
   return (
     <div className="min-h-screen right-0 flex flex-col items-center pt-[7vw] lg:pt-[3vw] lg:pl-[20vw]">
       <Filter products={products} onFilter={handleFilter} />

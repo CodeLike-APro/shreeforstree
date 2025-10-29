@@ -78,7 +78,7 @@ const HomeMid = () => {
         setNewArrivals(filteredNewArrivals);
         setFestive(filteredFestive);
       } catch (error) {
-        console.error("🔥 Error fetching products:", error);
+        // console.error("🔥 Error fetching products:", error);
       } finally {
         setLoading(false);
       }

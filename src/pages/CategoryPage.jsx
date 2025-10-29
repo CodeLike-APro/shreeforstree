@@ -61,7 +61,7 @@ const CategoryPage = () => {
         setCategoryProducts(filtered);
         setFilteredProducts(filtered);
       } catch (error) {
-        console.error("🔥 Error fetching category products:", error);
+        // console.error("🔥 Error fetching category products:", error);
       } finally {
         setLoading(false);
       }

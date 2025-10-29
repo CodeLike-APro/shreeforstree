@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { db, auth } from "./../firebase";
+import { notify } from "./../components/common/toast";
 import {
   collection,
   addDoc,
@@ -108,7 +109,7 @@ const AddProduct = () => {
 
     await addDoc(collection(db, "products"), productData);
 
-    alert("✅ Product added successfully!");
+    notify.success("✅ Product added successfully!");
     setForm({
       title: "",
       description: "",

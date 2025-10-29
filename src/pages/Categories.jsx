@@ -35,7 +35,7 @@ const Categories = () => {
 
         setTagImages(tagsWithImages);
       } catch (error) {
-        console.error("🔥 Error loading categories:", error);
+        // console.error("🔥 Error loading categories:", error);
       } finally {
         setLoading(false);
       }

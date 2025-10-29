@@ -46,7 +46,7 @@ const HomeTop = () => {
 
         setBannerProducts(data);
       } catch (err) {
-        console.error("🔥 Error fetching banner products:", err);
+        // console.error("🔥 Error fetching banner products:", err);
       } finally {
         setLoading(false);
       }

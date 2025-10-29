@@ -60,7 +60,7 @@ const Kurties = () => {
         setKurtiesProducts(filtered);
         setFilteredProducts(filtered);
       } catch (error) {
-        console.error("🔥 Error fetching Kurties:", error);
+        // console.error("🔥 Error fetching Kurties:", error);
       } finally {
         setLoading(false);
       }

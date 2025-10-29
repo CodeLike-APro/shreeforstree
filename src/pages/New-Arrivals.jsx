@@ -61,7 +61,7 @@ const NewArrivals = () => {
         setNewArrivals(filteredArrivals);
         setFilteredProducts(filteredArrivals);
       } catch (error) {
-        console.error("🔥 Error fetching New Arrivals:", error);
+        // console.error("🔥 Error fetching New Arrivals:", error);
       } finally {
         setLoading(false);
       }

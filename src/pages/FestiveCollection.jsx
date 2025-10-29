@@ -57,7 +57,7 @@ const FestiveCollection = () => {
         setFestiveProducts(filteredFestive);
         setFilteredProducts(filteredFestive);
       } catch (error) {
-        console.error("🔥 Error fetching festive products:", error);
+        // console.error("🔥 Error fetching festive products:", error);
       } finally {
         setLoading(false);
       }

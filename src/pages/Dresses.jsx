@@ -59,7 +59,7 @@ const Dresses = () => {
         setDresses(filteredDresses);
         setFilteredProducts(filteredDresses);
       } catch (error) {
-        console.error("🔥 Error fetching dresses:", error);
+        // console.error("🔥 Error fetching dresses:", error);
       } finally {
         setLoading(false);
       }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const Cards = ({ layout = "row", filterTag, cards: passedCards = [] }) => {
-  console.log("🧩 Cards received:", passedCards);
+  // console.log("🧩 Cards received:", passedCards);
   const [cards, setCards] = useState([]);
   const location = useLocation();
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ const Cards = ({ layout = "row", filterTag, cards: passedCards = [] }) => {
   }
 
   if (Array.isArray(cards) && cards.length === 0) {
-    console.log("✅ Cards array empty, showing placeholder");
+    // console.log("✅ Cards array empty, showing placeholder");
     return <div>Loaded but no items found</div>;
   }
 

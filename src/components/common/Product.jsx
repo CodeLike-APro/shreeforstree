@@ -41,7 +41,7 @@ const Product = () => {
 
           const fallbackImage = "/fallback-user-icon.svg";
 
-          console.log("Images found:", imagesArray);
+          // console.log("Images found:", imagesArray);
 
           setProduct({
             id: docSnap.id,
@@ -59,7 +59,7 @@ const Product = () => {
           setProduct(null);
         }
       } catch (err) {
-        console.error("Error fetching product:", err);
+        // console.error("Error fetching product:", err);
       } finally {
         setLoading(false);
       }

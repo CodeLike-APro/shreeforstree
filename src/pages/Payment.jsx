@@ -71,7 +71,7 @@ const Payment = () => {
 
       const order = await res.json();
       if (!order.id) {
-        console.error("❌ Razorpay order creation failed:", order);
+        // console.error("❌ Razorpay order creation failed:", order);
         notify.warning("Could not initiate payment. Please try again.");
         setIsProcessing(false);
         return;
@@ -153,7 +153,7 @@ const Payment = () => {
             notify.success("Payment successful! 🎉");
             navigate("/");
           } catch (err) {
-            console.error("🔥 Firestore save failed:", err);
+            // console.error("🔥 Firestore save failed:", err);
             notify.warning(
               "Payment successful, but order could not be saved. Please contact support."
             );
@@ -184,7 +184,7 @@ const Payment = () => {
       // 🚀 Open Razorpay checkout
       paymentObject.open();
     } catch (error) {
-      console.error("🔥 Error in payment flow:", error);
+      // console.error("🔥 Error in payment flow:", error);
       notify.warning("Something went wrong. Please try again later.");
       setIsProcessing(false);
     }
