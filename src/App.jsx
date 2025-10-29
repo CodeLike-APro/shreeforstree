@@ -32,6 +32,8 @@ import { Toaster } from "react-hot-toast";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminOrderDetails from "./pages/AdminOrderDetails";
 import AddProduct from "./pages/AddProduct";
+import EditProduct from "./pages/EditProduct";
+import AdminProducts from "./pages/AdminProducts";
 
 const App = () => {
   const location = useLocation();
@@ -76,7 +78,10 @@ const App = () => {
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/order/:id" element={<AdminOrderDetails />} />
-          <Route path="/AddProducts" element={<AddProduct />} />
+          <Route path="/admin/edit-product/:id" element={<EditProduct />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/edit-product/:id" element={<EditProduct />} />
+          <Route path="/admin/add-product" element={<EditProduct />} />
         </Routes>
       </div>
 

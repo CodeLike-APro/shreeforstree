@@ -217,17 +217,19 @@ const Product = () => {
 
         {/* GALLERY — 2nd on mobile, 1st on desktop */}
         <div
-          className="order-2 lg:order-1 flex lg:flex-col gap-[2vw] lg:gap-[1vw] w-full lg:w-[7vw] items-center justify-center mt-3 lg:py-1 lg:mt-0
-    lg:overflow-y-auto lg:scrollbar-thin lg:scrollbar-thumb-[#A96A5A]/60 lg:scrollbar-track-transparent"
+          className="order-2 lg:order-1 flex flex-row lg:flex-col gap-[2vw] lg:gap-[1vw] w-full lg:w-[7vw] items-center justify-start mt-3 lg:py-1 lg:mt-0 
+  overflow-x-auto lg:overflow-y-auto scroll-smooth snap-x snap-mandatory 
+  scrollbar-thin scrollbar-thumb-[#A96A5A]/60 scrollbar-track-transparent"
           style={{
-            maxHeight: galleryHeight > 0 ? `${galleryHeight}px` : "70vh", // ✅ fallback
-            minHeight: "20vh", // ✅ ensures visibility even before main image loads
+            maxHeight: galleryHeight > 0 ? `${galleryHeight}px` : "70vh",
+            minHeight: "20vh",
+            WebkitOverflowScrolling: "touch", // ✅ smooth scrolling for iOS
           }}
         >
           {product.gallery?.map((img, i) => (
             <div
               key={i}
-              className={`cursor-pointer lg:w-[5vw] border-[1.5px] rounded-md overflow-hidden transition-all duration-300 ${
+              className={`cursor-pointer flex-shrink-0 w-[25vw] sm:w-[20vw] lg:w-[5vw] border-[1.5px] rounded-md overflow-hidden transition-all duration-300 snap-center ${
                 mainImage === img
                   ? "border-[#A96A5A] scale-105"
                   : "border-transparent hover:border-[#F5D3C3]"
@@ -238,7 +240,7 @@ const Product = () => {
                 src={img || "/fallback-user-icon.svg"}
                 alt={`Product ${i}`}
                 onError={(e) => (e.target.src = "/fallback-user-icon.svg")}
-                className="w-full h-[10vh] lg:h-[5vw] lg:w-[5vw] object-cover"
+                className="w-full h-[20vw] sm:h-[15vw] lg:h-[5vw] lg:w-[5vw] object-cover"
               />
             </div>
           ))}
