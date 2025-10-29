@@ -1,6 +1,13 @@
-import React, { useState, useRef } from "react";
-import { db } from "./../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import React, { useState, useRef, useEffect } from "react";
+import { db, auth } from "./../firebase";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 
 const AddProduct = () => {
   const [images, setImages] = useState([]);
@@ -14,6 +21,22 @@ const AddProduct = () => {
     sizes: "",
     color: "",
   });
+
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (!user || user.email !== "ceoprinci@gmail.com") {
+        alert("Unauthorized access. Admins only!");
+        window.location.href = "/";
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => unsub();
+  }, []);
 
   const dropRef = useRef(null);
 
@@ -96,7 +119,7 @@ const AddProduct = () => {
     });
     setImages([]);
   };
-
+  if (loading) return <div>Checking access...</div>;
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white shadow-lg rounded-xl border border-[#F0E0DB]">
       <h2 className="text-3xl font-semibold mb-4 text-[#A96A5A] text-center">
