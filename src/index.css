@@ -91,3 +91,20 @@ html {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Playfair Display", serif;
+}
+
+p,
+a,
+button,
+div,
+span {
+  font-family: "Poppins", sans-serif;
+}

@@ -16,23 +16,14 @@ const Categories = () => {
           ...doc.data(),
         }));
 
-        // ✅ Collect all unique tags (except banner)
-        const tags = [
-          ...new Set(products.flatMap((product) => product.tags || [])),
-        ].filter((tag) => tag.toLowerCase() !== "banner");
-
-        // ✅ Select one category per unique product, up to total product count
-        const tagsWithImages = [];
-        const usedProducts = new Set();
+        const tagsWithImagesMap = new Map();
 
         for (const product of products) {
-          if (tagsWithImages.length >= products.length) break; // stop once limit hit
-
-          const firstTag = (product.tags || []).find(
+          const validTags = (product.tags || []).filter(
             (tag) => tag.toLowerCase() !== "banner"
           );
 
-          if (!firstTag || usedProducts.has(product.id)) continue;
+          if (validTags.length === 0) continue;
 
           const image =
             product?.img ||
@@ -40,20 +31,20 @@ const Categories = () => {
               ? product.images[0]
               : "/NewArrivals/default.jpg");
 
-          tagsWithImages.push({ name: firstTag, img: image });
-          usedProducts.add(product.id);
+          // Assign the first unused tag an image
+          for (const tag of validTags) {
+            const lowerTag = tag.toLowerCase();
+            if (!tagsWithImagesMap.has(lowerTag)) {
+              tagsWithImagesMap.set(lowerTag, { name: tag, img: image });
+              break;
+            }
+          }
         }
 
-        // ✅ Limit to unique category names (edge case safeguard)
-        const uniqueTags = Array.from(
-          new Map(tagsWithImages.map((t) => [t.name.toLowerCase(), t])).values()
-        );
-
+        const uniqueTags = Array.from(tagsWithImagesMap.values()).slice(0, 4); // limit to 4 categories (optional)
         setTagImages(uniqueTags);
-
-        setTagImages(tagsWithImages);
       } catch (error) {
-        // console.error("🔥 Error loading categories:", error);
+        console.error("🔥 Error loading categories:", error);
       } finally {
         setLoading(false);
       }
