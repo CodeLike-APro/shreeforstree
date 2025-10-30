@@ -62,6 +62,7 @@ const AllProducts = () => {
         // console.log("🔥 Raw Firestore products:", snapshot.docs.length, "docs");
         // console.log("🧩 Parsed products:", fetched);
         // 🚀 No manual filtering — keep all products (even "banner" ones)
+        console.log("🔥 Product sample:", fetched[0]);
         setProducts(fetched);
         setFilteredProducts(fetched);
       } catch (err) {

@@ -58,6 +58,14 @@ const AdminProducts = () => {
 
   return (
     <div className="p-6 min-h-screen bg-[#fff9f7]">
+      <div className="fixed top-19 left-2 lg:top-25 lg:left-8 z-50">
+        <button
+          onClick={() => navigate("/admin")}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FAF2F0] text-[#A96A5A] hover:bg-[#EAD8D2] transition-all shadow-md border border-[#EAD8D2]"
+        >
+          <Icons.BackIcon size={22} />
+        </button>
+      </div>
       {/* Top Bar */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-[#A96A5A] tracking-wide">

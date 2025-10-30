@@ -21,6 +21,7 @@ const AddProduct = () => {
     tags: "",
     sizes: "",
     color: "",
+    keywords: "", // 🆕 Added this
   });
 
   const [loading, setLoading] = useState(true);
@@ -104,6 +105,7 @@ const AddProduct = () => {
       price: parseFloat(form.price),
       tags: form.tags.split(",").map((t) => t.trim()),
       sizes: form.sizes.split(",").map((s) => s.trim()),
+      keywords: form.keywords.split(",").map((k) => k.trim().toLowerCase()), // 🆕 Added
       dateAdded: serverTimestamp(),
     };
 
@@ -117,6 +119,7 @@ const AddProduct = () => {
       tags: "",
       sizes: "",
       color: "",
+      keywords: "",
     });
     setImages([]);
   };
@@ -186,7 +189,7 @@ const AddProduct = () => {
           ))}
         </div>
       )}
-
+      {console.log("Rendering AddProduct, form:", form)}
       {/* 🧾 Product Info Form */}
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <input
@@ -236,6 +239,14 @@ const AddProduct = () => {
           className="w-full border border-[#EBDAD5] p-2 rounded-md focus:border-[#A96A5A]"
           value={form.color}
           onChange={(e) => setForm({ ...form, color: e.target.value })}
+        />
+
+        <input
+          type="text"
+          placeholder="Search Keywords (comma separated)"
+          className="w-full border border-[#EBDAD5] p-2 rounded-md focus:border-[#A96A5A]"
+          value={form.keywords}
+          onChange={(e) => setForm({ ...form, keywords: e.target.value })}
         />
 
         <button

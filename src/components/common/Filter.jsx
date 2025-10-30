@@ -371,7 +371,7 @@ const FilterSection = ({
             height: { duration: 0.35, ease: "easeInOut" },
             opacity: { duration: 0.2, ease: "easeInOut" },
           }}
-          className="overflow-hidden pl-[2vw]"
+          className="overflow-hidden pl-[2vw] uppercase lg:text-sm"
         >
           {options.map((opt) => {
             const key = isRange ? opt.id : opt;

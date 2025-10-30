@@ -21,17 +21,35 @@ const Categories = () => {
           ...new Set(products.flatMap((product) => product.tags || [])),
         ].filter((tag) => tag.toLowerCase() !== "banner");
 
-        // ✅ Pick a representative image for each tag
-        const tagsWithImages = tags.map((tag) => {
-          const found = products.find((p) => p.tags?.includes(tag));
+        // ✅ Select one category per unique product, up to total product count
+        const tagsWithImages = [];
+        const usedProducts = new Set();
+
+        for (const product of products) {
+          if (tagsWithImages.length >= products.length) break; // stop once limit hit
+
+          const firstTag = (product.tags || []).find(
+            (tag) => tag.toLowerCase() !== "banner"
+          );
+
+          if (!firstTag || usedProducts.has(product.id)) continue;
+
           const image =
-            found?.img ||
-            (Array.isArray(found?.images) && found.images.length > 0
-              ? found.images[0]
+            product?.img ||
+            (Array.isArray(product?.images) && product.images.length > 0
+              ? product.images[0]
               : "/NewArrivals/default.jpg");
 
-          return { name: tag, img: image };
-        });
+          tagsWithImages.push({ name: firstTag, img: image });
+          usedProducts.add(product.id);
+        }
+
+        // ✅ Limit to unique category names (edge case safeguard)
+        const uniqueTags = Array.from(
+          new Map(tagsWithImages.map((t) => [t.name.toLowerCase(), t])).values()
+        );
+
+        setTagImages(uniqueTags);
 
         setTagImages(tagsWithImages);
       } catch (error) {

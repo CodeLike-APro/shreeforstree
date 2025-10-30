@@ -10,6 +10,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { useNavigate, useParams } from "react-router-dom";
+import Icons from "../assets/Icons/Icons";
 
 const EditProduct = () => {
   const [images, setImages] = useState([]);
@@ -22,6 +23,7 @@ const EditProduct = () => {
     tags: "",
     sizes: "",
     color: "",
+    keywords: "", // ✅ added
   });
 
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,9 @@ const EditProduct = () => {
           tags: Array.isArray(data.tags) ? data.tags.join(", ") : "",
           sizes: Array.isArray(data.sizes) ? data.sizes.join(", ") : "",
           color: data.color || "",
+          keywords: Array.isArray(data.keywords)
+            ? data.keywords.join(", ")
+            : "", // ✅ added
         });
         setImages(data.images || []);
       } else {
@@ -130,6 +135,7 @@ const EditProduct = () => {
       price: parseFloat(form.price),
       tags: form.tags.split(",").map((t) => t.trim()),
       sizes: form.sizes.split(",").map((s) => s.trim()),
+      keywords: form.keywords.split(",").map((k) => k.trim()), // ✅ added
       dateAdded: serverTimestamp(),
     };
 
@@ -158,8 +164,16 @@ const EditProduct = () => {
   if (loading) return <div>Checking access...</div>;
   return (
     <div className="p-6 max-w-3xl mx-auto bg-white shadow-lg rounded-xl border border-[#F0E0DB]">
+      <div className="fixed top-19 left-2 lg:top-25 lg:left-8 z-50">
+        <button
+          onClick={() => navigate("/admin/products")}
+          className="flex items-center justify-center w-10 h-10 rounded-full bg-[#FAF2F0] text-[#A96A5A] hover:bg-[#EAD8D2] transition-all shadow-md border border-[#EAD8D2]"
+        >
+          <Icons.BackIcon size={22} />
+        </button>
+      </div>
       <h2 className="text-3xl font-semibold mb-4 text-[#A96A5A] text-center">
-        Add New Product
+        {id ? "Edit Product" : "Add New Product"}
       </h2>
 
       {/* 🖼️ Drag & Drop Zone */}
@@ -210,9 +224,42 @@ const EditProduct = () => {
                 className="w-full h-28 object-cover rounded-md border border-[#EBDAD5]"
               />
               <button
-                onClick={() =>
-                  setImages((prev) => prev.filter((_, index) => index !== i))
-                }
+                onClick={async () => {
+                  const imageUrl = images[i];
+                  const updatedImages = images.filter(
+                    (_, index) => index !== i
+                  );
+
+                  // ✅ STEP 1: Soft Delete on Hostinger
+                  try {
+                    await fetch(
+                      "https://shreeforstree.in/api/soft-delete-image.php",
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          url: imageUrl,
+                          authKey: "rafhuc-duhtu3-jypHat",
+                        }),
+                      }
+                    );
+                  } catch (err) {
+                    console.error("⚠️ Failed to soft delete image:", err);
+                  }
+
+                  // ✅ STEP 2: Update Firestore immediately
+                  try {
+                    await updateDoc(doc(db, "products", id), {
+                      images: updatedImages,
+                    });
+                    console.log("✅ Firestore updated with new image list");
+                  } catch (err) {
+                    console.error("⚠️ Firestore update failed:", err);
+                  }
+
+                  // ✅ STEP 3: Update local state
+                  setImages(updatedImages);
+                }}
                 className="absolute top-1 right-1 bg-[#A96A5A]/80 text-white px-2 py-1 rounded-md text-xs opacity-0 group-hover:opacity-100 transition"
               >
                 ✕
@@ -273,12 +320,20 @@ const EditProduct = () => {
           onChange={(e) => setForm({ ...form, color: e.target.value })}
         />
 
+        <input
+          type="text"
+          placeholder="Search Keywords (comma separated)"
+          className="w-full border border-[#EBDAD5] p-2 rounded-md focus:border-[#A96A5A]"
+          value={form.keywords}
+          onChange={(e) => setForm({ ...form, keywords: e.target.value })}
+        />
+
         <button
           type="submit"
           disabled={uploading}
           className="w-full bg-[#A96A5A] text-white py-3 rounded-md text-lg font-medium hover:bg-[#91584b] transition-all"
         >
-          {uploading ? "Uploading..." : "Add Product"}
+          {uploading ? "Uploading..." : id ? "Update Product" : "Add Product"}
         </button>
       </form>
     </div>
