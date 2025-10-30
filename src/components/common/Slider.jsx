@@ -151,7 +151,7 @@ const Slider = ({ slides = [] }) => {
   };
 
   return (
-    <div className="overflow-hidden w-[90vw] h-[50vw] lg:w-[95vw] lg:h-[85vh] relative rounded-[5vw] lg:rounded-[2vw] flex justify-center items-center">
+    <div className="overflow-hidden w-[100vw] h-[65vw] lg:w-[95vw] lg:h-[85vh] relative lg:rounded-[2vw] flex justify-center items-center">
       {/* SLIDES */}
       <div
         ref={sliderRef}
@@ -164,12 +164,12 @@ const Slider = ({ slides = [] }) => {
             className="absolute top-0 left-0 w-full h-full overflow-hidden group"
           >
             {/* IMAGE */}
-            <div className="w-full h-full flex items-center justify-center rounded-[5vw] lg:rounded-[2vw] overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center lg:rounded-[2vw] overflow-hidden">
               <img
                 ref={(el) => (imageRefs.current[idx] = el)}
                 src={slide.img}
                 alt={`slide-${idx}`}
-                className="w-full h-full object-cover rounded-[2vw]"
+                className="w-full h-full object-cover lg:rounded-[2vw]"
               />
             </div>
 
