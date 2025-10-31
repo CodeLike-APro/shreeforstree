@@ -11,10 +11,7 @@ const Cards = ({ layout = "row", filterTag, cards: passedCards = [] }) => {
     if (!Array.isArray(passedCards)) return;
 
     // ✅ Safe filtering
-    const filtered = passedCards.filter((item) => {
-      if (!item?.tags || !Array.isArray(item.tags)) return true; // keep if tags missing
-      return !item.tags.some((tag) => tag?.toLowerCase() === "banner");
-    });
+    const filtered = passedCards.filter((item) => !!item);
 
     // ✅ If nothing passed through filter (avoid empty render)
     setCards(filtered.length > 0 ? filtered : passedCards);
