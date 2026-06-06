@@ -6,7 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { users } from "./user.schema";
+import { user } from "./auth.schema";
 import { products } from "./products.schema";
 import { relations, sql } from "drizzle-orm";
 
@@ -16,7 +16,7 @@ export const reviews = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     userId: uuid("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
     productId: uuid("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
@@ -32,9 +32,9 @@ export const reviews = pgTable(
 );
 
 export const reviewRelations = relations(reviews, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [reviews.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   product: one(products, {
     fields: [reviews.productId],

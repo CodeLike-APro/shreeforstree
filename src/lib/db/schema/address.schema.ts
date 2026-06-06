@@ -1,12 +1,12 @@
 import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { users } from "./user.schema";
+import { user } from "./auth.schema";
 import { relations } from "drizzle-orm";
 
 export const addresses = pgTable("addresses", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
+    .references(() => user.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
   fullName: text("full_name").notNull(),
   phone: text("phone").notNull(),
@@ -21,8 +21,8 @@ export const addresses = pgTable("addresses", {
 });
 
 export const addressRelations = relations(addresses, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [addresses.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));

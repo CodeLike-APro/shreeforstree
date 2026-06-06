@@ -1,5 +1,5 @@
 import { pgTable, primaryKey, timestamp, uuid } from "drizzle-orm/pg-core";
-import { users } from "./user.schema";
+import { user } from "./auth.schema";
 import { relations } from "drizzle-orm";
 import { products } from "./products.schema";
 
@@ -8,7 +8,7 @@ export const wishlist = pgTable(
   {
     userId: uuid("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => user.id, { onDelete: "cascade" }),
     productId: uuid("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
@@ -21,9 +21,9 @@ export const wishlist = pgTable(
 );
 
 export const wishlistRelations = relations(wishlist, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [wishlist.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   product: one(products, {
     fields: [wishlist.productId],

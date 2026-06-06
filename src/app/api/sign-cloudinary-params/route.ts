@@ -1,3 +1,4 @@
+import { adminCheck } from "@/lib/auth-utils";
 import { v2 as cloudinary } from "cloudinary";
 import { NextRequest } from "next/server";
 
@@ -8,10 +9,13 @@ cloudinary.config({
 });
 
 export async function POST(request: NextRequest) {
+  const isAdmin = await adminCheck(request);
+  if (!isAdmin) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const body = await request.json();
   const { paramsToSign } = body;
-
-  //TODO: Add BetterAuth admin Session Check here
 
   const signature = cloudinary.utils.api_sign_request(
     paramsToSign,

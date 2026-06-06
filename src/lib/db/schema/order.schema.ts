@@ -7,7 +7,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { users } from "./user.schema";
+import { user } from "./auth.schema";
 import { addresses } from "./address.schema";
 import { orderItems } from "./orderItem.schema";
 import { payments, paymentStatusEnum } from "./payment.schema";
@@ -26,7 +26,7 @@ export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => users.id, { onDelete: "restrict" }),
+    .references(() => user.id, { onDelete: "restrict" }),
   totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
   paymentStatus: paymentStatusEnum("payment_status")
     .notNull()
@@ -42,9 +42,9 @@ export const orders = pgTable("orders", {
 });
 
 export const orderRelations = relations(orders, ({ one, many }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [orders.userId],
-    references: [users.id],
+    references: [user.id],
   }),
   address: one(addresses, {
     fields: [orders.addressId],

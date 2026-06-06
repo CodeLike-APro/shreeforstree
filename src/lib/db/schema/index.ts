@@ -1,4 +1,5 @@
 export * from "./address.schema";
+export * from "./auth.schema";
 export * from "./cart.schema";
 export * from "./cartItem.schema";
 export * from "./category.schema";
@@ -8,5 +9,4 @@ export * from "./payment.schema";
 export * from "./productCategory.schema";
 export * from "./products.schema";
 export * from "./review.schema";
-export * from "./user.schema";
 export * from "./wishlist.schema";
