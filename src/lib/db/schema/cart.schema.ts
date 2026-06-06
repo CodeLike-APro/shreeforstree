@@ -7,7 +7,10 @@ export const carts = pgTable("carts", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").references(() => user.id, { onDelete: "cascade" }),
   sessionId: text("session_id").notNull(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const cartRelations = relations(carts, ({ one, many }) => ({

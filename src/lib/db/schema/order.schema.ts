@@ -38,7 +38,10 @@ export const orders = pgTable("orders", {
     .references(() => addresses.id, { onDelete: "restrict" }),
   estimatedDelivery: timestamp("estimated_delivery"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const orderRelations = relations(orders, ({ one, many }) => ({

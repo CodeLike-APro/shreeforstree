@@ -24,7 +24,10 @@ export const reviews = pgTable(
     comments: text("comments"),
     isVerified: boolean("is_verified").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
-    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => ({
     validRating: sql`CHECK (${t.rating} >= 1 AND ${t.rating} <= 5)`,

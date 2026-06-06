@@ -14,7 +14,10 @@ export const cartItems = pgTable("cart_items", {
   quantity: integer("quantity").notNull().default(1),
   color: text("color").notNull(),
   size: text("size").notNull(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const cartItemRelations = relations(cartItems, ({ one }) => ({

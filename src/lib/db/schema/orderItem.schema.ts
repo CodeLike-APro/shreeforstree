@@ -26,6 +26,10 @@ export const orderItems = pgTable("order_items", {
     scale: 2,
   }).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const orderItemRelations = relations(orderItems, ({ one }) => ({

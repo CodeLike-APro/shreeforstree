@@ -10,7 +10,10 @@ export const categories = pgTable("categories", {
   categoryImageUrl: text("category_image_url"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const categoryRelations = relations(categories, ({ many }) => ({

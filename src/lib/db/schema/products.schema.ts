@@ -24,7 +24,10 @@ export const products = pgTable("products", {
   heroImageUrl: text("hero_image_url"),
   slug: text("slug").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const productRelations = relations(products, ({ many }) => ({

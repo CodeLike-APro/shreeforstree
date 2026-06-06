@@ -102,11 +102,15 @@ export function validationError(message: string, errors?: unknown) {
 }
 
 // 500 Internal Server Error
-export function internalServerError(message: string = "Internal Server Error") {
+export function internalServerError(
+  message: string = "Internal Server Error",
+  error?: unknown,
+) {
   const body: ApiResponse = {
     success: false,
     message,
     data: null,
+    errors: error,
   };
   return NextResponse.json(body, {
     status: 500,

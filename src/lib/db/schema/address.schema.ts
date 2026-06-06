@@ -18,6 +18,10 @@ export const addresses = pgTable("addresses", {
   country: text("country").notNull().default("India"),
   isDefault: boolean("is_default").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 export const addressRelations = relations(addresses, ({ one }) => ({

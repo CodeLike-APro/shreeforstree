@@ -1,3 +1,4 @@
+import { validationError } from "./api-response";
 import { auth } from "./db/auth";
 
 export async function getCurrentUser(request: Request) {
@@ -5,8 +6,7 @@ export async function getCurrentUser(request: Request) {
     const session = await auth.api.getSession({ headers: request.headers });
     return session?.user;
   } catch (error) {
-    console.error("Error fetching current user:", error);
-    return null;
+    return validationError("Failed to get current user", error);
   }
 }
 
@@ -16,7 +16,7 @@ export async function adminCheck(request: Request): Promise<boolean> {
     const isAdmin = session?.user?.role === "admin";
     return isAdmin;
   } catch (error) {
-    console.error("Error checking admin status:", error);
+    validationError("Failed to check admin status", error);
     return false;
   }
 }
