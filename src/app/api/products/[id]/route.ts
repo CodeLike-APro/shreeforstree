@@ -19,10 +19,10 @@ import slugify from "slugify";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { productId } = await params;
+    const { id: productId } = await params;
 
     const product = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
@@ -40,7 +40,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -49,7 +49,7 @@ export async function PATCH(
       return forbidden("Unauthorized access");
     }
 
-    const { productId } = await params;
+    const { id: productId } = await params;
     const body = await request.json();
     const result = await updateProductSchema.safeParseAsync(body);
 
@@ -178,7 +178,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -187,7 +187,7 @@ export async function DELETE(
       return forbidden("Unauthorized access");
     }
 
-    const { productId } = await params;
+    const { id: productId } = await params;
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),

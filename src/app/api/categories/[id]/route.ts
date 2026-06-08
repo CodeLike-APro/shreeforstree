@@ -15,7 +15,7 @@ import slugify from "slugify";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -24,7 +24,7 @@ export async function PATCH(
       return forbidden("Unauthorized access");
     }
 
-    const { categoryId } = await params;
+    const { id: categoryId } = await params;
     const body = await request.json();
     const result = await updateCategorySchema.safeParseAsync(body);
 
@@ -70,7 +70,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ categoryId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -79,7 +79,7 @@ export async function DELETE(
       return forbidden("Unauthorized access");
     }
 
-    const { categoryId } = await params;
+    const { id: categoryId } = await params;
 
     const category = await db.query.categories.findFirst({
       where: (categories, { eq }) => eq(categories.id, categoryId),
