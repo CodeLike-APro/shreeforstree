@@ -1,6 +1,7 @@
 import {
   boolean,
   numeric,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -9,6 +10,19 @@ import {
 import { relations } from "drizzle-orm";
 import { productCategories } from "./productCategory.schema";
 
+export const PRODUCT_SIZES = [
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+  "3XL",
+  "Free Size",
+] as const;
+
+export const productSizeEnum = pgEnum("product_size", PRODUCT_SIZES);
+
 export const products = pgTable("products", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
@@ -16,7 +30,7 @@ export const products = pgTable("products", {
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   discountedPrice: numeric("discounted_price", { precision: 10, scale: 2 }),
   imagesUrl: text("images_url").array().notNull(),
-  sizes: text("sizes").array().notNull(),
+  sizes: productSizeEnum("sizes").array().notNull(),
   colors: text("colors").array().notNull(),
   isActive: boolean("is_active").notNull().default(true),
   isNewArrival: boolean("is_new_arrival").notNull().default(false),
