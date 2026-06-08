@@ -13,6 +13,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@better-auth/kysely-adapter": "^1.6.14",
     "@neondatabase/serverless": "^1.1.0",
     "better-auth": "^1.6.14",
     "cloudinary": "^2.10.0",

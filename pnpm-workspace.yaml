@@ -5,3 +5,6 @@ allowBuilds:
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+# pnpm-workspace.yaml
+overrides:
+  kysely: "^0.28.17"
