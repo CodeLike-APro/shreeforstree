@@ -1,3 +1,4 @@
+import { forbidden } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { v2 as cloudinary } from "cloudinary";
 import { NextRequest } from "next/server";
@@ -11,7 +12,7 @@ cloudinary.config({
 export async function POST(request: NextRequest) {
   const isAdmin = await adminCheck(request);
   if (!isAdmin) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
+    return forbidden("Unauthorized access");
   }
 
   const body = await request.json();
