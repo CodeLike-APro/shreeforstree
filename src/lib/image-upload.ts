@@ -75,6 +75,6 @@ export async function uploadProductImages(
   return Promise.all(inputs.map((input) => uploadProductImage(input, options)));
 }
 
-export async function deleteProductImage(publicId: string): Promise<void> {
-  await cloudinary.uploader.destroy(publicId);
+export async function deleteProductImage(publicId: string) {
+  return await cloudinary.uploader.destroy(publicId);
 }
