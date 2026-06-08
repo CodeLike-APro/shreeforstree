@@ -15,7 +15,7 @@ import slugify from "slugify";
 
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ categoryId: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -24,7 +24,7 @@ export async function PATCH(
       return forbidden("Unauthorized access");
     }
 
-    const { id } = await params;
+    const { categoryId } = await params;
     const body = await request.json();
     const result = await updateCategorySchema.safeParseAsync(body);
 
@@ -42,7 +42,7 @@ export async function PATCH(
       : undefined;
 
     const category = await db.query.categories.findFirst({
-      where: (categories, { eq }) => eq(categories.id, id),
+      where: (categories, { eq }) => eq(categories.id, categoryId),
     });
 
     if (!category) {
@@ -60,7 +60,7 @@ export async function PATCH(
         ...(isActive !== undefined && { isActive }),
         updatedAt: new Date(),
       })
-      .where(eq(categories.id, id))
+      .where(eq(categories.id, categoryId))
       .returning();
     return ok("Category updated successfully", updatedCategory);
   } catch (error) {
@@ -70,7 +70,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ categoryId: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -79,10 +79,10 @@ export async function DELETE(
       return forbidden("Unauthorized access");
     }
 
-    const { id } = await params;
+    const { categoryId } = await params;
 
     const category = await db.query.categories.findFirst({
-      where: (categories, { eq }) => eq(categories.id, id),
+      where: (categories, { eq }) => eq(categories.id, categoryId),
     });
 
     if (!category) {
@@ -92,14 +92,14 @@ export async function DELETE(
     const linkedProducts = await db
       .select()
       .from(productCategories)
-      .where(eq(productCategories.categoryId, id))
+      .where(eq(productCategories.categoryId, categoryId))
       .limit(1);
 
     if (linkedProducts.length > 0) {
       return badRequest("Cannot delete category with linked products");
     }
 
-    await db.delete(categories).where(eq(categories.id, id));
+    await db.delete(categories).where(eq(categories.id, categoryId));
     return ok("Category deleted successfully", category);
   } catch (error) {
     return internalServerError("Error deleting category", error);
