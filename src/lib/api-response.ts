@@ -65,11 +65,12 @@ export function forbidden(message: string = "Forbidden") {
 }
 
 // 404 Not Found
-export function notFound(message: string = "Not Found") {
+export function notFound(message: string = "Not Found", errors?: unknown) {
   const body: ApiResponse = {
     success: false,
     message,
     data: null,
+    errors,
   };
   return NextResponse.json(body, {
     status: 404,
