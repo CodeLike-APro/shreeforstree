@@ -4,7 +4,7 @@ CREATE TYPE "public"."payment_status" AS ENUM('pending', 'success', 'failed', 'r
 CREATE TYPE "public"."product_size" AS ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size');--> statement-breakpoint
 CREATE TABLE "addresses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"label" text NOT NULL,
 	"full_name" text NOT NULL,
 	"phone" text NOT NULL,
@@ -56,7 +56,8 @@ CREATE TABLE "user" (
 	"image" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
-	"role" text DEFAULT 'customer',
+	"role" text DEFAULT 'customer' NOT NULL,
+	"deleted_at" timestamp,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -71,7 +72,7 @@ CREATE TABLE "verification" (
 --> statement-breakpoint
 CREATE TABLE "carts" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid,
+	"user_id" text,
 	"session_id" text NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
@@ -92,6 +93,7 @@ CREATE TABLE "categories" (
 	"slug" text NOT NULL,
 	"description" text,
 	"category_image_url" text,
+	"category_image_public_id" text,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -101,7 +103,7 @@ CREATE TABLE "categories" (
 --> statement-breakpoint
 CREATE TABLE "orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"total_amount" numeric(10, 2) NOT NULL,
 	"payment_status" "payment_status" DEFAULT 'pending' NOT NULL,
 	"order_status" "order_status" DEFAULT 'not_placed' NOT NULL,
@@ -153,12 +155,14 @@ CREATE TABLE "products" (
 	"price" numeric(10, 2) NOT NULL,
 	"discounted_price" numeric(10, 2),
 	"images_url" text[] NOT NULL,
+	"images_public_id" text[] NOT NULL,
 	"sizes" "product_size"[] NOT NULL,
 	"colors" text[] NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"is_new_arrival" boolean DEFAULT false NOT NULL,
 	"is_hero_product" boolean DEFAULT false NOT NULL,
 	"hero_image_url" text,
+	"hero_image_public_id" text,
 	"slug" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -167,7 +171,7 @@ CREATE TABLE "products" (
 --> statement-breakpoint
 CREATE TABLE "reviews" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"product_id" uuid NOT NULL,
 	"rating" integer NOT NULL,
 	"comments" text,
@@ -177,7 +181,7 @@ CREATE TABLE "reviews" (
 );
 --> statement-breakpoint
 CREATE TABLE "wishlist" (
-	"user_id" uuid NOT NULL,
+	"user_id" text NOT NULL,
 	"product_id" uuid NOT NULL,
 	"added_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "wishlist_user_id_product_id_pk" PRIMARY KEY("user_id","product_id")
