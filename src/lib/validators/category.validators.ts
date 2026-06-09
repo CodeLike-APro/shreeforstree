@@ -11,7 +11,28 @@ export const updateCategorySchema = z4
     name: z4.string().min(1).optional(),
     description: z4.string().min(1).optional(),
     categoryImageUrl: z4.string().min(1).optional(),
+    categoryImagePublicId: z4.string().min(1).optional(),
     isActive: z4.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasImageUrl = !!data.categoryImageUrl;
+    const hasImagePublicId = !!data.categoryImagePublicId;
+
+    if (hasImageUrl !== hasImagePublicId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["categoryImageUrl"],
+        message:
+          "categoryImageUrl and categoryImagePublicId must be provided together",
+      });
+
+      ctx.addIssue({
+        code: "custom",
+        path: ["categoryImagePublicId"],
+        message:
+          "categoryImageUrl and categoryImagePublicId must be provided together",
+      });
+    }
   })
   .refine(
     (data) =>
