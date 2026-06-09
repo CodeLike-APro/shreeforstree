@@ -24,7 +24,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "restrict" }),
   totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),

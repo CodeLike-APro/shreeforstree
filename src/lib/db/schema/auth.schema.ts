@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
-import { wishlist } from "./wishlist.schema";
 import { addresses } from "./address.schema";
+import { wishlist } from "./wishlist.schema";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -16,6 +16,7 @@ export const user = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   role: text("role").default("customer").notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const session = pgTable(

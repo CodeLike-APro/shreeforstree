@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -31,6 +31,18 @@ export const auth = betterAuth({
         type: "string",
         defaultValue: "customer",
         input: false, // not settable by user
+      },
+      deletedAt: {
+        type: "date",
+        defaultValue: null,
+        input: false,
+        nullable: true,
+      },
+      phone: {
+        type: "string",
+        defaultValue: null,
+        input: true,
+        nullable: true,
       },
     },
   },

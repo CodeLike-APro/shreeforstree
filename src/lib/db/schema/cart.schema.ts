@@ -5,7 +5,7 @@ import { cartItems } from "./cartItem.schema";
 
 export const carts = pgTable("carts", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id").references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "cascade" }),
   sessionId: text("session_id").notNull(),
   updatedAt: timestamp("updated_at")
     .notNull()
