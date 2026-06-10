@@ -85,20 +85,18 @@ export async function POST(request: NextRequest) {
       price,
       discountedPrice,
       imagesUrl,
+      imagesPublicId,
       sizes,
       colors,
       isActive,
       isNewArrival,
       isHeroProduct,
+      heroImageUrl,
+      heroImagePublicId,
       categoryIds,
     } = result.data;
 
-    let { heroImageUrl } = result.data;
-
     const slug = slugify(title.trim(), { lower: true, strict: true });
-    if (!isHeroProduct && heroImageUrl) {
-      heroImageUrl = undefined;
-    }
 
     const existingProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.slug, slug),
@@ -119,12 +117,14 @@ export async function POST(request: NextRequest) {
           price,
           discountedPrice,
           imagesUrl,
+          imagesPublicId,
           sizes,
           colors,
           isActive,
           isNewArrival,
           isHeroProduct,
           heroImageUrl: heroImageUrl?.trim() || null,
+          heroImagePublicId: heroImagePublicId?.trim() || null,
           slug,
         })
         .returning();
@@ -141,6 +141,9 @@ export async function POST(request: NextRequest) {
     });
     return created("Product created successfully", newProduct);
   } catch (error) {
-    return internalServerError("Error creating product", error);
+    return internalServerError(
+      "Error creating product",
+      error instanceof Error ? error.message : error,
+    );
   }
 }

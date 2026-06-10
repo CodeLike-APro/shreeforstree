@@ -7,7 +7,6 @@ import {
   ok,
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
-import { extractPublicId } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
 import { productCategories } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
@@ -26,6 +25,7 @@ export async function GET(
 
     const product = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: { categories: { with: { category: true } } },
     });
 
     if (!product) {
@@ -66,18 +66,16 @@ export async function PATCH(
       price,
       discountedPrice,
       imagesUrl,
+      imagesPublicId,
       sizes,
       colors,
       isActive,
       isNewArrival,
       isHeroProduct,
+      heroImageUrl,
+      heroImagePublicId,
       categoryIds,
     } = result.data;
-
-    let { heroImageUrl } = result.data;
-    if (isHeroProduct === false && heroImageUrl) {
-      heroImageUrl = undefined;
-    }
 
     const slug = title
       ? slugify(title.trim(), { lower: true, strict: true })
@@ -102,37 +100,72 @@ export async function PATCH(
       }
     }
 
-    if (isHeroProduct === false && foundProduct.heroImageUrl) {
+    if (isHeroProduct === false && foundProduct.heroImagePublicId) {
       try {
-        const publicId = extractPublicId(foundProduct.heroImageUrl);
-        await deleteProductImage(publicId);
+        await deleteProductImage(foundProduct.heroImagePublicId);
       } catch (error) {
         console.error("Failed to delete hero image from Cloudinary", error);
         // continue anyway
       }
     }
 
+    if (imagesPublicId) {
+      const removedImages = foundProduct.imagesPublicId.filter(
+        (publicId) => !imagesPublicId.includes(publicId),
+      );
+      try {
+        await Promise.all(
+          removedImages.map((publicId) => deleteProductImage(publicId)),
+        );
+      } catch (error) {
+        console.error("Failed to delete removed images from Cloudinary", error);
+      }
+    }
+
+    if (
+      heroImageUrl &&
+      foundProduct.heroImagePublicId &&
+      heroImagePublicId !== foundProduct.heroImagePublicId
+    ) {
+      try {
+        await deleteProductImage(foundProduct.heroImagePublicId);
+      } catch (error) {
+        internalServerError(
+          "Failed to delete old hero image from Cloudinary",
+          error,
+        );
+      }
+    }
+
     let updatedProduct: typeof foundProduct | undefined;
+
+    const updateData = {
+      ...(title && { title: title.trim(), slug }),
+      ...(description && { description: description.trim() }),
+      ...(price && { price }),
+      ...(discountedPrice && { discountedPrice }),
+      ...(imagesUrl && { imagesUrl }),
+      ...(imagesPublicId && { imagesPublicId }),
+      ...(sizes && { sizes }),
+      ...(colors && { colors }),
+      ...(isActive !== undefined && { isActive }),
+      ...(isNewArrival !== undefined && { isNewArrival }),
+      ...(isHeroProduct !== undefined && { isHeroProduct }),
+      ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
+      ...(heroImagePublicId && {
+        heroImagePublicId: heroImagePublicId.trim(),
+      }),
+      ...(isHeroProduct === false && {
+        heroImageUrl: null,
+        heroImagePublicId: null,
+      }),
+    };
 
     if (categoryIds) {
       await db.transaction(async (tx) => {
         [updatedProduct] = await tx
           .update(products)
-          .set({
-            ...(title && { title: title.trim(), slug }),
-            ...(description && { description: description.trim() }),
-            ...(price && { price }),
-            ...(discountedPrice && { discountedPrice }),
-            ...(imagesUrl && { imagesUrl }),
-            ...(sizes && { sizes }),
-            ...(colors && { colors }),
-            ...(isActive !== undefined && { isActive }),
-            ...(isNewArrival !== undefined && { isNewArrival }),
-            ...(isHeroProduct !== undefined && { isHeroProduct }),
-            ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
-            ...(isHeroProduct === false && { heroImageUrl: null }),
-            updatedAt: new Date(),
-          })
+          .set(updateData)
           .where(eq(products.id, productId))
           .returning();
 
@@ -147,21 +180,7 @@ export async function PATCH(
     } else {
       [updatedProduct] = await db
         .update(products)
-        .set({
-          ...(title && { title: title.trim(), slug }),
-          ...(description && { description: description.trim() }),
-          ...(price && { price }),
-          ...(discountedPrice && { discountedPrice }),
-          ...(imagesUrl && { imagesUrl }),
-          ...(sizes && { sizes }),
-          ...(colors && { colors }),
-          ...(isActive !== undefined && { isActive }),
-          ...(isNewArrival !== undefined && { isNewArrival }),
-          ...(isHeroProduct !== undefined && { isHeroProduct }),
-          ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
-          ...(isHeroProduct === false && { heroImageUrl: null }),
-          updatedAt: new Date(),
-        })
+        .set(updateData)
         .where(eq(products.id, productId))
         .returning();
     }
@@ -197,20 +216,18 @@ export async function DELETE(
       return notFound("Product not found");
     }
 
-    const imageUrls = [
-      ...foundProduct.imagesUrl,
-      ...(foundProduct.heroImageUrl ? [foundProduct.heroImageUrl] : []),
+    const imagePublicIds = [
+      ...foundProduct.imagesPublicId,
+      ...(foundProduct.heroImagePublicId
+        ? [foundProduct.heroImagePublicId]
+        : []),
     ];
 
-    const publicIds = imageUrls.map((url) => extractPublicId(url));
-
     try {
-      await Promise.all(publicIds.map((id) => deleteProductImage(id)));
+      await Promise.all(imagePublicIds.map((id) => deleteProductImage(id)));
     } catch (error) {
       console.error("Failed to delete images from Cloudinary", error);
     }
-
-    await db.delete(products).where(eq(products.id, productId));
 
     await db.delete(products).where(eq(products.id, productId));
 
