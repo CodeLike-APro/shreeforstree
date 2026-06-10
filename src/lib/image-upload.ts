@@ -57,7 +57,7 @@ export async function uploadProductImage(
         }
         resolve({
           publicId: result.public_id,
-          url: result.url,
+          url: result.secure_url,
           width: result.width,
           height: result.height,
         });
