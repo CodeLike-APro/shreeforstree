@@ -8,6 +8,13 @@
       "when": 1780992509526,
       "tag": "0000_early_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781072277193,
+      "tag": "0001_fair_sersi",
+      "breakpoints": true
     }
   ]
 }
