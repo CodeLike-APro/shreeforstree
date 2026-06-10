@@ -67,6 +67,9 @@ export async function POST(request: Request) {
       .returning();
     return created("Category created successfully", newCategory);
   } catch (error) {
-    return internalServerError("Error creating category", error);
+    return internalServerError(
+      "Error creating category",
+      error instanceof Error ? error.message : error,
+    );
   }
 }
