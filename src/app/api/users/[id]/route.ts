@@ -4,8 +4,9 @@ import {
   internalServerError,
   notFound,
   ok,
+  unauthorized,
 } from "@/lib/api-response";
-import { adminCheck, getCurrentUser } from "@/lib/auth-utils";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { account, session, user } from "@/lib/db/schema/auth.schema";
 import { updateUserSchema } from "@/lib/validators/user.validators";
@@ -20,10 +21,12 @@ export async function GET(
     const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !("id" in currentUser)) {
-      return badRequest("Please login to get your account details");
+      return unauthorized("Please login to get your account details");
     }
 
-    if (currentUser.id !== id && !(await adminCheck(request))) {
+    const isAdmin = currentUser.role === "admin";
+
+    if (currentUser.id !== id && !isAdmin) {
       return forbidden("You can only view your own account details");
     }
 
@@ -50,10 +53,12 @@ export async function PATCH(
     const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !("id" in currentUser)) {
-      return badRequest("Please login to update your account");
+      return unauthorized("Please login to update your account");
     }
 
-    if (currentUser.id !== id && !(await adminCheck(request))) {
+    const isAdmin = currentUser.role === "admin";
+
+    if (currentUser.id !== id && !isAdmin) {
       return forbidden("You can only update your own account");
     }
 
@@ -99,10 +104,12 @@ export async function DELETE(
     const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !("id" in currentUser)) {
-      return badRequest("Please login to delete your account");
+      return unauthorized("Please login to delete your account");
     }
 
-    if (currentUser.id !== id && !(await adminCheck(request))) {
+    const isAdmin = currentUser.role === "admin";
+
+    if (currentUser.id !== id && !isAdmin) {
       return forbidden("You can only delete your own account");
     }
 
@@ -125,12 +132,10 @@ export async function DELETE(
           image: null,
           deletedAt: new Date(),
         })
-        .where(eq(user.id, id))
-        .returning();
+        .where(eq(user.id, id));
 
       await tx.delete(account).where(eq(account.userId, id)).returning();
       await tx.delete(session).where(eq(session.userId, id)).returning();
-      return;
     });
 
     return ok("User deleted successfully");
