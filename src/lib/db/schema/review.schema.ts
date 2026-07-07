@@ -22,6 +22,8 @@ export const reviews = pgTable(
       .references(() => products.id, { onDelete: "cascade" }),
     rating: integer("rating").notNull(),
     comments: text("comments"),
+    imagesUrl: text("review_images_url").array(),
+    imagesPath: text("review_images_path").array(),
     isVerified: boolean("is_verified").notNull().default(false),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at")
