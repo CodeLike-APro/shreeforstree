@@ -13,9 +13,9 @@ export const createProductSchema = z4
     imagesUrl: z4
       .array(z4.string().min(1, "Image URL is required"))
       .min(1, "At least one image URL is required"),
-    imagesPublicId: z4
-      .array(z4.string().min(1, "Image public ID is required"))
-      .min(1, "At least one image public ID is required"),
+    imagesPath: z4
+      .array(z4.string().min(1, "Image path is required"))
+      .min(1, "At least one image path is required"),
     sizes: z4
       .array(z4.enum(PRODUCT_SIZES))
       .min(1, "At least one size is required"),
@@ -26,10 +26,7 @@ export const createProductSchema = z4
     isNewArrival: z4.boolean().optional(),
     isHeroProduct: z4.boolean().optional(),
     heroImageUrl: z4.string().min(1, "Hero image URL is required").optional(),
-    heroImagePublicId: z4
-      .string()
-      .min(1, "Hero image public ID is required")
-      .optional(),
+    heroImagePath: z4.string().min(1, "Hero image path is required").optional(),
     categoryIds: z4.array(z4.uuid()).min(1),
   })
   .superRefine((data, ctx) => {
@@ -41,12 +38,11 @@ export const createProductSchema = z4
           message: "Hero image URL is required when isHeroProduct is true",
         });
       }
-      if (!data.heroImagePublicId) {
+      if (!data.heroImagePath) {
         ctx.addIssue({
           code: "custom",
-          path: ["heroImagePublicId"],
-          message:
-            "Hero image public ID is required when isHeroProduct is true",
+          path: ["heroImagePath"],
+          message: "Hero image path is required when isHeroProduct is true",
         });
       }
     } else {
@@ -59,12 +55,12 @@ export const createProductSchema = z4
         });
       }
 
-      if (data.heroImagePublicId) {
+      if (data.heroImagePath) {
         ctx.addIssue({
           code: "custom",
-          path: ["heroImagePublicId"],
+          path: ["heroImagePath"],
           message:
-            "Hero image public ID must not be provided when isHeroProduct is false",
+            "Hero image path must not be provided when isHeroProduct is false",
         });
       }
     }
@@ -89,9 +85,9 @@ export const updateProductSchema = z4
       .array(z4.string().min(1, "Image URL is required"))
       .min(1, "At least one image URL is required")
       .optional(),
-    imagesPublicId: z4
-      .array(z4.string().min(1, "Image public ID is required"))
-      .min(1, "At least one image public ID is required")
+    imagesPath: z4
+      .array(z4.string().min(1, "Image path is required"))
+      .min(1, "At least one image path is required")
       .optional(),
     sizes: z4
       .array(z4.enum(PRODUCT_SIZES))
@@ -105,10 +101,7 @@ export const updateProductSchema = z4
     isNewArrival: z4.boolean().optional(),
     isHeroProduct: z4.boolean().optional(),
     heroImageUrl: z4.string().min(1, "Hero image URL is required").optional(),
-    heroImagePublicId: z4
-      .string()
-      .min(1, "Hero image public ID is required")
-      .optional(),
+    heroImagePath: z4.string().min(1, "Hero image path is required").optional(),
     categoryIds: z4.array(z4.uuid()).min(1).optional(),
   })
   .superRefine((data, ctx) => {
@@ -121,12 +114,11 @@ export const updateProductSchema = z4
         });
       }
 
-      if (!data.heroImagePublicId) {
+      if (!data.heroImagePath) {
         ctx.addIssue({
           code: "custom",
-          path: ["heroImagePublicId"],
-          message:
-            "Hero image public ID is required when isHeroProduct is true",
+          path: ["heroImagePath"],
+          message: "Hero image path is required when isHeroProduct is true",
         });
       }
     } else {
@@ -138,12 +130,12 @@ export const updateProductSchema = z4
             "Hero image URL must not be provided when isHeroProduct is false",
         });
       }
-      if (data.heroImagePublicId) {
+      if (data.heroImagePath) {
         ctx.addIssue({
           code: "custom",
-          path: ["heroImagePublicId"],
+          path: ["heroImagePath"],
           message:
-            "Hero image public ID must not be provided when isHeroProduct is false",
+            "Hero image path must not be provided when isHeroProduct is false",
         });
       }
     }
