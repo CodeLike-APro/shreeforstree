@@ -54,6 +54,7 @@ CREATE TABLE "user" (
 	"email" text NOT NULL,
 	"email_verified" boolean DEFAULT false NOT NULL,
 	"image" text,
+	"image_path" text,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
 	"role" text DEFAULT 'customer' NOT NULL,
@@ -93,7 +94,7 @@ CREATE TABLE "categories" (
 	"slug" text NOT NULL,
 	"description" text,
 	"category_image_url" text,
-	"category_image_public_id" text,
+	"category_image_path" text,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -148,21 +149,29 @@ CREATE TABLE "product_categories" (
 	CONSTRAINT "product_categories_product_id_category_id_pk" PRIMARY KEY("product_id","category_id")
 );
 --> statement-breakpoint
+CREATE TABLE "product_media" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"product_id" uuid NOT NULL,
+	"type" text NOT NULL,
+	"url" text NOT NULL,
+	"path" text NOT NULL,
+	"sort_order" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "products" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" text NOT NULL,
 	"description" text NOT NULL,
 	"price" numeric(10, 2) NOT NULL,
 	"discounted_price" numeric(10, 2),
-	"images_url" text[] NOT NULL,
-	"images_public_id" text[] NOT NULL,
 	"sizes" "product_size"[] NOT NULL,
 	"colors" text[] NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"is_new_arrival" boolean DEFAULT false NOT NULL,
 	"is_hero_product" boolean DEFAULT false NOT NULL,
 	"hero_image_url" text,
-	"hero_image_public_id" text,
+	"hero_image_path" text,
 	"slug" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -175,6 +184,8 @@ CREATE TABLE "reviews" (
 	"product_id" uuid NOT NULL,
 	"rating" integer NOT NULL,
 	"comments" text,
+	"review_images_url" text[],
+	"review_images_path" text[],
 	"is_verified" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
@@ -199,6 +210,7 @@ ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_orders_id_fk" FOR
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_category_id_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."categories"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "product_media" ADD CONSTRAINT "product_media_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "reviews" ADD CONSTRAINT "reviews_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "wishlist" ADD CONSTRAINT "wishlist_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

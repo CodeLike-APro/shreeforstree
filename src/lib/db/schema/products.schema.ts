@@ -9,6 +9,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { productCategories } from "./productCategory.schema";
+import { productMedia } from "./productMedia.schema";
 
 export const PRODUCT_SIZES = [
   "XS",
@@ -29,10 +30,6 @@ export const products = pgTable("products", {
   description: text("description").notNull(),
   price: numeric("price", { precision: 10, scale: 2 }).notNull(),
   discountedPrice: numeric("discounted_price", { precision: 10, scale: 2 }),
-  imagesUrl: text("images_url").array().notNull(),
-  imagesPath: text("images_path").array().notNull(),
-  videoUrl: text("video_url").array(),
-  videoPath: text("video_path").array(),
   sizes: productSizeEnum("sizes").array().notNull(),
   colors: text("colors").array().notNull(),
   isActive: boolean("is_active").notNull().default(true),
@@ -50,4 +47,5 @@ export const products = pgTable("products", {
 
 export const productRelations = relations(products, ({ many }) => ({
   categories: many(productCategories),
+  productMedia: many(productMedia),
 }));

@@ -7,6 +7,7 @@ export * from "./order.schema";
 export * from "./orderItem.schema";
 export * from "./payment.schema";
 export * from "./productCategory.schema";
+export * from "./productMedia.schema";
 export * from "./products.schema";
 export * from "./review.schema";
 export * from "./wishlist.schema";

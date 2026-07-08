@@ -1,5 +1,5 @@
 {
-  "id": "017eaef6-cb85-43c8-a8e3-283012948180",
+  "id": "ff12faca-947e-4da4-8bbf-d9371a742109",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -383,6 +383,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "image_path": {
+          "name": "image_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -667,8 +673,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "category_image_public_id": {
-          "name": "category_image_public_id",
+        "category_image_path": {
+          "name": "category_image_path",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1083,6 +1089,78 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.product_media": {
+      "name": "product_media",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "product_id": {
+          "name": "product_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "path": {
+          "name": "path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "product_media_product_id_products_id_fk": {
+          "name": "product_media_product_id_products_id_fk",
+          "tableFrom": "product_media",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.products": {
       "name": "products",
       "schema": "",
@@ -1117,18 +1195,6 @@
           "type": "numeric(10, 2)",
           "primaryKey": false,
           "notNull": false
-        },
-        "images_url": {
-          "name": "images_url",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "images_public_id": {
-          "name": "images_public_id",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": true
         },
         "sizes": {
           "name": "sizes",
@@ -1170,8 +1236,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "hero_image_public_id": {
-          "name": "hero_image_public_id",
+        "hero_image_path": {
+          "name": "hero_image_path",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -1245,6 +1311,18 @@
         "comments": {
           "name": "comments",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_images_url": {
+          "name": "review_images_url",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "review_images_path": {
+          "name": "review_images_path",
+          "type": "text[]",
           "primaryKey": false,
           "notNull": false
         },
