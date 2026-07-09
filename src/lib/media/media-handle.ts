@@ -104,10 +104,8 @@ export async function uploadFile({ file, folder }: UploadOptions) {
   }
 }
 
-export async function uploadFiles(
-  files: { file: Buffer | string; folder: string }[],
-) {
-  return Promise.all(files.map(uploadFile));
+export async function uploadFiles(files: (Buffer | string)[], folder: string) {
+  return Promise.all(files.map((file) => uploadFile({ file, folder })));
 }
 export async function deleteFile(path: string) {
   const sftp = await connect();
