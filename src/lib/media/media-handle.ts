@@ -56,6 +56,14 @@ type UploadOptions = {
   folder: string;
 };
 
+export async function buildPublicUrl(path: string) {
+  const baseUrl = process.env.MEDIA_BASE_URL;
+  const mediaRoot = process.env.MEDIA_ROOT!;
+  const relativePath = path.replace(mediaRoot, "").replace(/\\/g, "/");
+  const publicUrl = `${baseUrl}${relativePath}`;
+  return publicUrl;
+}
+
 export async function uploadFile({ file, folder }: UploadOptions) {
   const sftp = await connect();
 
@@ -81,11 +89,13 @@ export async function uploadFile({ file, folder }: UploadOptions) {
       await sftp.mkdir(remoteDir, true);
     }
     await sftp.put(processedFile, `${remoteDir}/${uploadFileName}`);
+    const publicUrl = await buildPublicUrl(`${remoteDir}/${uploadFileName}`);
 
     return {
       path: `${remoteDir}/${uploadFileName}`,
       fileName: uploadFileName,
       mime: result.mime,
+      publicUrl,
     };
   } catch (error) {
     throw internalServerError("Failed to save file", error);
@@ -94,22 +104,16 @@ export async function uploadFile({ file, folder }: UploadOptions) {
   }
 }
 
-type UploadedFile = Awaited<ReturnType<typeof uploadFile>>;
-
 export async function uploadFiles(
   files: { file: Buffer | string; folder: string }[],
 ) {
-  const results: UploadedFile[] = [];
-  for (const file of files) {
-    const result = await uploadFile(file);
-    results.push(result);
-  }
-  return results;
+  return Promise.all(files.map(uploadFile));
 }
 export async function deleteFile(path: string) {
   const sftp = await connect();
   try {
-    if (await sftp.exists(path)) {
+    const exists = await sftp.exists(path);
+    if (exists === "-") {
       await sftp.delete(path);
     }
   } catch (error) {
@@ -118,4 +122,6 @@ export async function deleteFile(path: string) {
     await sftp.end();
   }
 }
-export async function buildPublicUrl() {}
+export async function deleteFiles(paths: string[]) {
+  await Promise.all(paths.map((path) => deleteFile(path)));
+}
