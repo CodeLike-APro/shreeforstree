@@ -26,20 +26,10 @@ const generateFileName = () => {
   return newFileName;
 };
 
-export async function detectMediaType(inputData: Buffer | string) {
+export async function detectMediaType(inputData: File) {
   let mimeType = null;
 
-  if (typeof inputData === "string") {
-    const match = inputData.match(/^data:(.*?);base64,/);
-    if (match) {
-      mimeType = match[1];
-    }
-  } else if (Buffer.isBuffer(inputData)) {
-    const typeInfo = await fileTypeFromBuffer(inputData);
-    if (typeInfo) {
-      mimeType = typeInfo.mime;
-    }
-  }
+  mimeType = inputData.type;
 
   const isImage = mimeType ? mimeType.startsWith("image/") : false;
   const isVideo = mimeType ? mimeType.startsWith("video/") : false;
@@ -52,7 +42,7 @@ export async function detectMediaType(inputData: Buffer | string) {
 }
 
 type UploadOptions = {
-  file: Buffer | string;
+  file: File;
   folder: string;
 };
 
@@ -104,7 +94,7 @@ export async function uploadFile({ file, folder }: UploadOptions) {
   }
 }
 
-export async function uploadFiles(files: (Buffer | string)[], folder: string) {
+export async function uploadFiles(files: File[], folder: string) {
   return Promise.all(files.map((file) => uploadFile({ file, folder })));
 }
 export async function deleteFile(path: string) {

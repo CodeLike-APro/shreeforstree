@@ -5,16 +5,12 @@ interface UploadOptions {
   maxHeight?: number;
 }
 
-export async function optimizeImage(
-  file: Buffer | string,
-  options: UploadOptions = {},
-) {
+export async function optimizeImage(file: File, options: UploadOptions = {}) {
   const { maxWidth = 1200, maxHeight = 1500 } = options;
 
-  const buffer: Buffer =
-    typeof file === "string"
-      ? Buffer.from(file.replace(/^data:image\/\w+;base64,/, ""), "base64")
-      : file;
+  const arrayBuffer = await file.arrayBuffer();
+
+  const buffer = Buffer.from(arrayBuffer);
 
   const optimized = await sharp(buffer)
     .resize(maxWidth, maxHeight, {
@@ -27,6 +23,6 @@ export async function optimizeImage(
   return optimized;
 }
 
-export async function optimizeVideo(file: Buffer | string) {
-  return file;
+export async function optimizeVideo(file: File): Promise<Buffer> {
+  return Buffer.from(await file.arrayBuffer());
 }
