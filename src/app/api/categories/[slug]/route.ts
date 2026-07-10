@@ -62,16 +62,20 @@ export async function PATCH(
       ? await uploadFiles(files, `categories/${slug}`)
       : null;
 
-    //TODO: Add delete removed files
-
     let categoryImageUrl;
     let categoryImagePath;
 
     if (uploadedFileData && uploadedFileData.length > 0) {
-      uploadedFileData.map((file) => ({
-        categoryImageUrl: file.publicUrl,
-        categoryImagePath: file.path,
-      }));
+      const [uploadedFile] = uploadedFileData;
+      categoryImageUrl = uploadedFile.publicUrl;
+      categoryImagePath = uploadedFile.path;
+
+      if (
+        category.categoryImagePath &&
+        category.categoryImagePath !== categoryImagePath
+      ) {
+        await deleteFile(category.categoryImagePath);
+      }
     }
 
     const updatedCategory = await db

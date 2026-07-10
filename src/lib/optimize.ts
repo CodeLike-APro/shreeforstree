@@ -5,6 +5,8 @@ interface UploadOptions {
   maxHeight?: number;
 }
 
+//TODO: Add support for video optimization and dimensions for images
+
 export async function optimizeImage(file: File, options: UploadOptions = {}) {
   const { maxWidth = 1200, maxHeight = 1500 } = options;
 
