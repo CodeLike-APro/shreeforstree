@@ -12,10 +12,10 @@ const connect = async (): Promise<Client> => {
       privateKey: process.env.HOSTINGER_SFTP_PRIVATE_KEY!.replace(/\\n/g, "\n"),
       passphrase: process.env.HOSTINGER_SFTP_PASSPHRASE,
     });
-  } catch (err) {
+  } catch (error) {
     await sftp.end().catch(() => {});
 
-    throw internalServerError("Failed to connect to SFTP server", err);
+    throw internalServerError("Failed to connect to SFTP server", error);
   }
   return sftp;
 };
