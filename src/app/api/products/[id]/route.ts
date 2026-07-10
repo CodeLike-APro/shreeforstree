@@ -10,7 +10,7 @@ import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { productCategories } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
-import { deleteProductImage } from "@/lib/image-upload";
+import { uploadFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import { NextRequest } from "next/server";
@@ -25,7 +25,7 @@ export async function GET(
 
     const product = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
-      with: { categories: { with: { category: true } } },
+      with: { categories: { with: { category: true } }, productMedia: true },
     });
 
     if (!product) {
@@ -50,8 +50,21 @@ export async function PATCH(
     }
 
     const { id: productId } = await params;
-    const body = await request.json();
-    const result = await updateProductSchema.safeParseAsync(body);
+    const formData = await request.formData();
+    const data = {
+      title: formData.get("title"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      discountedPrice: formData.get("discountedPrice"),
+      sizes: formData.getAll("sizes"),
+      colors: formData.getAll("colors"),
+      isActive: formData.get("isActive") === "true",
+      isNewArrival: formData.get("isNewArrival") === "true",
+      isHeroProduct: formData.get("isHeroProduct") === "true",
+      categoryIds: formData.getAll("categoryIds"),
+    };
+    const files = formData.getAll("files") as File[];
+    const result = await updateProductSchema.safeParseAsync(data);
 
     if (!result.success) {
       return badRequest(
@@ -65,15 +78,11 @@ export async function PATCH(
       description,
       price,
       discountedPrice,
-      imagesUrl,
-      imagesPublicId,
       sizes,
       colors,
       isActive,
       isNewArrival,
       isHeroProduct,
-      heroImageUrl,
-      heroImagePublicId,
       categoryIds,
     } = result.data;
 
@@ -83,6 +92,7 @@ export async function PATCH(
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: { productMedia: true, categories: { with: { category: true } } },
     });
 
     if (!foundProduct) {
@@ -100,61 +110,20 @@ export async function PATCH(
       }
     }
 
-    if (isHeroProduct === false && foundProduct.heroImagePublicId) {
-      try {
-        await deleteProductImage(foundProduct.heroImagePublicId);
-      } catch (error) {
-        console.error("Failed to delete hero image from Cloudinary", error);
-        // continue anyway
-      }
-    }
-
-    if (imagesPublicId) {
-      const removedImages = foundProduct.imagesPublicId.filter(
-        (publicId) => !imagesPublicId.includes(publicId),
-      );
-      try {
-        await Promise.all(
-          removedImages.map((publicId) => deleteProductImage(publicId)),
-        );
-      } catch (error) {
-        console.error("Failed to delete removed images from Cloudinary", error);
-      }
-    }
-
-    if (
-      heroImageUrl &&
-      foundProduct.heroImagePublicId &&
-      heroImagePublicId !== foundProduct.heroImagePublicId
-    ) {
-      try {
-        await deleteProductImage(foundProduct.heroImagePublicId);
-      } catch (error) {
-        internalServerError(
-          "Failed to delete old hero image from Cloudinary",
-          error,
-        );
-      }
-    }
-
-    let updatedProduct: typeof foundProduct | undefined;
+    const uploadedFilesData = await uploadFiles(files, `products/${productId}`);
 
     const updateData = {
       ...(title && { title: title.trim(), slug }),
       ...(description && { description: description.trim() }),
       ...(price && { price }),
       ...(discountedPrice && { discountedPrice }),
-      ...(imagesUrl && { imagesUrl }),
-      ...(imagesPublicId && { imagesPublicId }),
+
       ...(sizes && { sizes }),
       ...(colors && { colors }),
       ...(isActive !== undefined && { isActive }),
       ...(isNewArrival !== undefined && { isNewArrival }),
       ...(isHeroProduct !== undefined && { isHeroProduct }),
-      ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
-      ...(heroImagePublicId && {
-        heroImagePublicId: heroImagePublicId.trim(),
-      }),
+
       ...(isHeroProduct === false && {
         heroImageUrl: null,
         heroImagePublicId: null,
@@ -163,11 +132,10 @@ export async function PATCH(
 
     if (categoryIds) {
       await db.transaction(async (tx) => {
-        [updatedProduct] = await tx
+        await tx
           .update(products)
           .set(updateData)
-          .where(eq(products.id, productId))
-          .returning();
+          .where(eq(products.id, productId));
 
         await tx
           .delete(productCategories)
@@ -178,12 +146,23 @@ export async function PATCH(
           .values(categoryIds.map((categoryId) => ({ productId, categoryId })));
       });
     } else {
-      [updatedProduct] = await db
+      await db
         .update(products)
         .set(updateData)
-        .where(eq(products.id, productId))
-        .returning();
+        .where(eq(products.id, productId));
     }
+
+    const updatedProduct = await db.query.products.findFirst({
+      where: (products, { eq }) => eq(products.id, productId),
+      with: {
+        productMedia: true,
+        categories: {
+          with: {
+            category: true,
+          },
+        },
+      },
+    });
 
     if (!updatedProduct) {
       return internalServerError("Failed to update product");
@@ -214,19 +193,6 @@ export async function DELETE(
 
     if (!foundProduct) {
       return notFound("Product not found");
-    }
-
-    const imagePublicIds = [
-      ...foundProduct.imagesPublicId,
-      ...(foundProduct.heroImagePublicId
-        ? [foundProduct.heroImagePublicId]
-        : []),
-    ];
-
-    try {
-      await Promise.all(imagePublicIds.map((id) => deleteProductImage(id)));
-    } catch (error) {
-      console.error("Failed to delete images from Cloudinary", error);
     }
 
     await db.delete(products).where(eq(products.id, productId));
