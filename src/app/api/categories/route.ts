@@ -12,6 +12,7 @@ import { eq } from "drizzle-orm";
 import { adminCheck } from "@/lib/auth-utils";
 import slugify from "slugify";
 import { createCategorySchema } from "@/lib/validators/category.validators";
+import { uploadFiles } from "@/lib/media/media-handle";
 
 export async function GET(request: Request) {
   try {
@@ -32,8 +33,17 @@ export async function POST(request: Request) {
       return forbidden("Unauthorized access");
     }
 
-    const body = await request.json();
-    const result = await createCategorySchema.safeParseAsync(body);
+    const formData = await request.formData();
+
+    const data = {
+      title: formData.get("title"),
+      description: formData.get("description"),
+      isActive: formData.get("isActive") === "true",
+    };
+
+    const files = formData.get("files") as File[] | null;
+
+    const result = await createCategorySchema.safeParseAsync(data);
 
     if (!result.success) {
       return badRequest(
@@ -42,7 +52,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, description = "", categoryImageUrl = "" } = result.data;
+    const { name, description = "" } = result.data;
 
     const slug = slugify(name.trim(), { lower: true, strict: true });
 
@@ -56,13 +66,28 @@ export async function POST(request: Request) {
       );
     }
 
+    const uploadedFileData = files
+      ? await uploadFiles(files, `categories/${slug}`)
+      : null;
+
+    let categoryImageUrl;
+    let categoryImagePath;
+
+    if (uploadedFileData && uploadedFileData.length > 0) {
+      uploadedFileData.map((file) => ({
+        categoryImageUrl: file.publicUrl,
+        categoryImagePath: file.path,
+      }));
+    }
+
     const [newCategory] = await db
       .insert(categories)
       .values({
         name: name.trim(),
         slug: slug,
         description: description.trim(),
-        categoryImageUrl: categoryImageUrl.trim(),
+        categoryImageUrl: categoryImageUrl,
+        categoryImagePath: categoryImagePath,
       })
       .returning();
     return created("Category created successfully", newCategory);

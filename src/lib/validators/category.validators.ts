@@ -3,36 +3,14 @@ import z4 from "zod/v4";
 export const createCategorySchema = z4.object({
   name: z4.string().min(1, "Category name is required"),
   description: z4.string().min(1).optional(),
-  categoryImageUrl: z4.string().min(1).optional(),
+  isActive: z4.boolean().optional(),
 });
 
 export const updateCategorySchema = z4
   .object({
     name: z4.string().min(1).optional(),
     description: z4.string().min(1).optional(),
-    categoryImageUrl: z4.string().min(1).optional(),
-    categoryImagePath: z4.string().min(1).optional(),
     isActive: z4.boolean().optional(),
-  })
-  .superRefine((data, ctx) => {
-    const hasImageUrl = !!data.categoryImageUrl;
-    const hasImagePath = !!data.categoryImagePath;
-
-    if (hasImageUrl !== hasImagePath) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["categoryImageUrl"],
-        message:
-          "categoryImageUrl and categoryImagePath must be provided together",
-      });
-
-      ctx.addIssue({
-        code: "custom",
-        path: ["categoryImagePath"],
-        message:
-          "categoryImageUrl and categoryImagePath must be provided together",
-      });
-    }
   })
   .refine(
     (data) =>
