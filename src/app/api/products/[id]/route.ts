@@ -112,6 +112,8 @@ export async function PATCH(
 
     const uploadedFilesData = await uploadFiles(files, `products/${productId}`);
 
+    //TODO: Add delete removed files, and sort order of files
+
     const updateData = {
       ...(title && { title: title.trim(), slug }),
       ...(description && { description: description.trim() }),
@@ -194,6 +196,8 @@ export async function DELETE(
     if (!foundProduct) {
       return notFound("Product not found");
     }
+
+    //TODO: Delete product media files from cloud storage if any
 
     await db.delete(products).where(eq(products.id, productId));
 

@@ -150,6 +150,12 @@ export async function POST(request: NextRequest) {
         `products/${product.id}`,
       );
 
+      if (!uploadedFIlesData || uploadedFIlesData.length === 0) {
+        throw internalServerError("Failed to upload media files");
+      }
+
+      //TODO: Add sort order of files
+
       await tx
         .insert(productMedia)
         .values(

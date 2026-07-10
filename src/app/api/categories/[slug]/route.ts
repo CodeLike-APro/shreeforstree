@@ -62,6 +62,8 @@ export async function PATCH(
       ? await uploadFiles(files, `categories/${slug}`)
       : null;
 
+    //TODO: Add delete removed files
+
     let categoryImageUrl;
     let categoryImagePath;
 
@@ -129,7 +131,7 @@ export async function DELETE(
       await deleteFile(category.categoryImagePath);
     }
     await db.delete(categories).where(eq(categories.slug, categorySlug));
-  
+
     return ok("Category deleted successfully", category);
   } catch (error) {
     return internalServerError("Error deleting category", error);
