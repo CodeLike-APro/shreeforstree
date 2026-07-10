@@ -8,9 +8,10 @@ import {
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { productCategories } from "@/lib/db/schema";
+import { productCategories, productMedia } from "@/lib/db/schema";
 import { categories } from "@/lib/db/schema/category.schema";
 import { products } from "@/lib/db/schema/products.schema";
+import { uploadFiles } from "@/lib/media/media-handle";
 import { createProductSchema } from "@/lib/validators/product.validators";
 import { and, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
@@ -68,9 +69,32 @@ export async function POST(request: NextRequest) {
       return forbidden("Unauthorized access");
     }
 
-    const body = await request.json();
+    const formData = await request.formData();
+    const data = {
+      title: formData.get("title"),
+      description: formData.get("description"),
+      price: formData.get("price"),
+      discountedPrice: formData.get("discountedPrice"),
+      sizes: formData.getAll("sizes"),
+      colors: formData.getAll("colors"),
+      isActive: formData.get("isActive") === "true",
+      isNewArrival: formData.get("isNewArrival") === "true",
+      isHeroProduct: formData.get("isHeroProduct") === "true",
+      categoryIds: formData.getAll("categoryIds"),
+    };
+    const files = formData.getAll("files") as File[];
 
-    const result = await createProductSchema.safeParseAsync(body);
+    if (files.length === 0) {
+      throw badRequest("At least one media file is required");
+    }
+
+    const hasImage = files.some((file) => file.type.startsWith("image/"));
+
+    if (!hasImage) {
+      throw badRequest("At least one image is required");
+    }
+
+    const result = await createProductSchema.safeParseAsync(data);
 
     if (!result.success) {
       return badRequest(
@@ -84,15 +108,11 @@ export async function POST(request: NextRequest) {
       description,
       price,
       discountedPrice,
-      imagesUrl,
-      imagesPublicId,
       sizes,
       colors,
       isActive,
       isNewArrival,
       isHeroProduct,
-      heroImageUrl,
-      heroImagePublicId,
       categoryIds,
     } = result.data;
 
@@ -116,17 +136,32 @@ export async function POST(request: NextRequest) {
           description: description.trim(),
           price,
           discountedPrice,
-          imagesUrl,
-          imagesPublicId,
           sizes,
           colors,
           isActive,
           isNewArrival,
           isHeroProduct,
-          heroImageUrl: heroImageUrl?.trim() || null,
-          heroImagePublicId: heroImagePublicId?.trim() || null,
           slug,
         })
+        .returning();
+
+      const uploadedFIlesData = await uploadFiles(
+        files,
+        `products/${product.id}`,
+      );
+
+      await tx
+        .insert(productMedia)
+        .values(
+          uploadedFIlesData.map((file, index) => ({
+            productId: product.id,
+            type: file.type,
+            url: file.publicUrl,
+            path: file.path,
+            sortOrder: index,
+            isHero: index === 0 && isHeroProduct ? true : false,
+          })),
+        )
         .returning();
 
       if (categoryIds.length) {
@@ -141,6 +176,10 @@ export async function POST(request: NextRequest) {
     });
     return created("Product created successfully", newProduct);
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
+
     return internalServerError(
       "Error creating product",
       error instanceof Error ? error.message : error,
