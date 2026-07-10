@@ -115,13 +115,13 @@ export async function PATCH(
     //TODO: Add delete removed files, and sort order of files
 
     const updateData = {
-      ...(title && { title: title.trim(), slug }),
-      ...(description && { description: description.trim() }),
-      ...(price && { price }),
-      ...(discountedPrice && { discountedPrice }),
+      ...(title !== undefined && { title: title.trim(), slug }),
+      ...(description !== undefined && { description: description.trim() }),
+      ...(price !== undefined && { price }),
+      ...(discountedPrice !== undefined && { discountedPrice }),
 
-      ...(sizes && { sizes }),
-      ...(colors && { colors }),
+      ...(sizes !== undefined && { sizes }),
+      ...(colors !== undefined && { colors }),
       ...(isActive !== undefined && { isActive }),
       ...(isNewArrival !== undefined && { isNewArrival }),
       ...(isHeroProduct !== undefined && { isHeroProduct }),
