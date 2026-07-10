@@ -35,8 +35,6 @@ export const products = pgTable("products", {
   isActive: boolean("is_active").notNull().default(true),
   isNewArrival: boolean("is_new_arrival").notNull().default(false),
   isHeroProduct: boolean("is_hero_product").notNull().default(false),
-  heroImageUrl: text("hero_image_url"),
-  heroImagePath: text("hero_image_path"),
   slug: text("slug").notNull().unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")

@@ -1,4 +1,11 @@
-import { integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { products } from "./products.schema";
 import { relations } from "drizzle-orm";
 
@@ -15,7 +22,7 @@ export const productMedia = pgTable("product_media", {
   path: text("path").notNull(),
 
   sortOrder: integer("sort_order").notNull().default(0),
-
+  isHero: boolean("is_hero").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
