@@ -10,7 +10,7 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { updateAddressSchema } from "@/lib/validators/address.validators";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 const getAddressById = async (
   params: Promise<{ id: string }>,
@@ -18,8 +18,12 @@ const getAddressById = async (
 ) => {
   const { id } = await params;
   const currentUser = await getCurrentUser(request);
+
   if (!currentUser || !("id" in currentUser)) {
-    throw unauthorized("Please login to get your address details");
+    return {
+      success: false as const,
+      response: unauthorized("Please login to get your address details"),
+    };
   }
 
   const address = await db.query.addresses.findFirst({
@@ -27,16 +31,19 @@ const getAddressById = async (
   });
 
   if (!address) {
-    throw notFound("Address not found");
+    return { success: false as const, response: notFound("Address not found") };
   }
 
   const isAdmin = currentUser.role === "admin";
 
   if (currentUser.id !== address.userId && !isAdmin) {
-    throw forbidden("You can only view your own address details");
+    return {
+      success: false as const,
+      response: forbidden("You can only view your own address details"),
+    };
   }
 
-  return { address, currentUser, isAdmin };
+  return { success: true as const, address, currentUser, isAdmin };
 };
 
 export async function GET(
@@ -44,10 +51,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { address } = await getAddressById(params, request);
+    const response = await getAddressById(params, request);
+    if (!response.success) return response.response;
+
+    const { address } = response;
     return ok("Address fetched successfully", address);
   } catch (error) {
-    if (error instanceof Response) return error;
     return internalServerError("Failed to fetch address", error);
   }
 }
@@ -58,6 +67,7 @@ export async function PATCH(
 ) {
   try {
     const response = await getAddressById(params, request);
+    if (!response.success) return response.response;
 
     const { address, currentUser } = response;
 
@@ -100,7 +110,7 @@ export async function PATCH(
           ...(fullName !== undefined && { fullName }),
           ...(phone !== undefined && { phone }),
           ...(addressLine1 !== undefined && { addressLine1 }),
-          ...(addressLine2 && { addressLine2 }),
+          ...(addressLine2 !== undefined && { addressLine2 }),
           ...(city !== undefined && { city }),
           ...(state !== undefined && { state }),
           ...(pincode !== undefined && { pincode }),
@@ -114,7 +124,6 @@ export async function PATCH(
     });
     return ok("Address updated successfully", updatedAddress);
   } catch (error) {
-    if (error instanceof Response) return error;
     return internalServerError("Failed to update address", error);
   }
 }
@@ -124,13 +133,32 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { address } = await getAddressById(params, request);
+    const response = await getAddressById(params, request);
+    if (!response.success) return response.response;
+
+    const { address } = response;
+    if (address.isDefault) {
+      const nextAddress = await db.query.addresses.findFirst({
+        where: (addresses, { eq, ne }) =>
+          and(
+            eq(addresses.userId, address.userId),
+            ne(addresses.id, address.id),
+          ),
+        orderBy: (addresses, { desc }) => desc(addresses.createdAt),
+      });
+
+      if (nextAddress) {
+        await db
+          .update(addresses)
+          .set({ isDefault: true })
+          .where(eq(addresses.id, nextAddress.id));
+      }
+    }
 
     await db.delete(addresses).where(eq(addresses.id, address.id));
 
     return ok("Address deleted successfully");
   } catch (error) {
-    if (error instanceof Response) return error;
     return internalServerError("Failed to delete address", error);
   }
 }

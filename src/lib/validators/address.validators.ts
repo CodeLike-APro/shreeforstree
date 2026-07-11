@@ -9,7 +9,11 @@ export const createAddressSchema = z4.object({
   city: z4.string().min(1, "City is required"),
   state: z4.string().min(1, "State is required"),
   pincode: z4.string().min(1, "Pincode is required"),
-  country: z4.string().min(1, "Country is required").default("India"),
+  country: z4
+    .string()
+    .min(1, "Country is required")
+    .optional()
+    .default("India"),
   isDefault: z4.boolean().optional().default(true),
 });
 

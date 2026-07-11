@@ -1,5 +1,6 @@
 import {
   badRequest,
+  created,
   forbidden,
   internalServerError,
   ok,
@@ -11,40 +12,30 @@ import { addresses } from "@/lib/db/schema";
 import { createAddressSchema } from "@/lib/validators/address.validators";
 import { eq } from "drizzle-orm";
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(request: Request) {
   try {
-    const { id } = await params;
     const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !("id" in currentUser)) {
       return unauthorized("Please login to get your address details");
     }
 
-    const isAdmin = currentUser?.role === "admin";
-
-    if (currentUser.id !== id && !isAdmin) {
-      return forbidden("You can only view your own address details");
-    }
-
-    const addresses = await db.query.addresses.findMany({
-      where: (address, { eq }) => eq(address.userId, id),
+    const userAddresses = await db.query.addresses.findMany({
+      where: (addresses, { eq }) => eq(addresses.userId, currentUser.id),
+      orderBy: (addresses, { desc }) => [
+        desc(addresses.isDefault),
+        desc(addresses.createdAt),
+      ],
     });
 
-    return ok("Address fetched successfully", addresses);
+    return ok("Address fetched successfully", userAddresses);
   } catch (error) {
     return internalServerError("Failed to fetch address", error);
   }
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function POST(request: Request) {
   try {
-    const { id } = await params;
     const currentUser = await getCurrentUser(request);
 
     if (!currentUser || !("id" in currentUser)) {
@@ -53,7 +44,7 @@ export async function POST(
 
     const isAdmin = currentUser.role === "admin";
 
-    if (currentUser.id !== id && !isAdmin) {
+    if (!isAdmin) {
       return forbidden("You can only view & update your own address details");
     }
 
@@ -84,12 +75,12 @@ export async function POST(
       await tx
         .update(addresses)
         .set({ isDefault: false })
-        .where(eq(addresses.userId, id));
+        .where(eq(addresses.userId, currentUser.id));
 
       const address = await tx
         .insert(addresses)
         .values({
-          userId: id,
+          userId: currentUser.id,
           label: label.trim(),
           fullName: fullName.trim(),
           phone: phone.trim(),
@@ -98,14 +89,14 @@ export async function POST(
           city: city.trim(),
           state: state.trim(),
           pincode: pincode.trim(),
-          country: country.trim(),
+          ...(country ? { country: country.trim() } : {}),
           isDefault,
         })
         .returning();
       return address;
     });
 
-    return ok("Address created successfully", newAddress);
+    return created("Address created successfully", newAddress);
   } catch (error) {
     return internalServerError("Failed to create address", error);
   }
