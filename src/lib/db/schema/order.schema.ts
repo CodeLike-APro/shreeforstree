@@ -24,18 +24,24 @@ export const orderStatusEnum = pgEnum("order_status", [
 
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "restrict" }),
+  userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
   totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
   paymentStatus: paymentStatusEnum("payment_status")
     .notNull()
     .default("pending"),
   orderStatus: orderStatusEnum("order_status").notNull().default("not_placed"),
   trackingNumber: text("tracking_number").unique(),
-  addressId: uuid("address_id")
-    .notNull()
-    .references(() => addresses.id, { onDelete: "restrict" }),
+  addressId: uuid("address_id").references(() => addresses.id, {
+    onDelete: "set null",
+  }),
+  shippingFullName: text().notNull(),
+  shippingPhone: text().notNull(),
+  shippingAddressLine1: text().notNull(),
+  shippingAddressLine2: text(),
+  shippingCity: text().notNull(),
+  shippingState: text().notNull(),
+  shippingPincode: text().notNull(),
+  shippingCountry: text().notNull(),
   estimatedDelivery: timestamp("estimated_delivery"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
