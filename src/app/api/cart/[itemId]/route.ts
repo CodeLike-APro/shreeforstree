@@ -18,24 +18,28 @@ const assertOwnsCartItem = async (
   sessionId: string,
   tx?: Tx,
 ) => {
-  const executor = tx ?? db;
+  try {
+    const executor = tx ?? db;
 
-  const item = await executor.query.cartItems.findFirst({
-    where: (cartItems, { eq }) => eq(cartItems.id, itemId),
-    with: { cart: true },
-  });
+    const item = await executor.query.cartItems.findFirst({
+      where: (cartItems, { eq }) => eq(cartItems.id, itemId),
+      with: { cart: true },
+    });
 
-  if (!item) {
-    throw notFound("Cart item not found");
+    if (!item) {
+      throw notFound("Cart item not found");
+    }
+    const ownsCart =
+      item.cart.userId === currentUser?.id || item.cart.sessionId === sessionId;
+
+    if (!ownsCart) {
+      throw forbidden("You can only modify your own cart");
+    }
+
+    return item;
+  } catch (error) {
+    return internalServerError("Failed to assert cart item ownership", error);
   }
-  const ownsCart =
-    item.cart.userId === currentUser?.id || item.cart.sessionId === sessionId;
-
-  if (!ownsCart) {
-    throw forbidden("You can only modify your own cart");
-  }
-
-  return item;
 };
 
 export async function PATCH(
