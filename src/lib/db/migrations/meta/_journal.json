@@ -29,6 +29,13 @@
       "when": 1783863215456,
       "tag": "0003_curious_christian_walker",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783940513843,
+      "tag": "0004_shallow_ultimo",
+      "breakpoints": true
     }
   ]
 }
