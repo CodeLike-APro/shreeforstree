@@ -1,4 +1,4 @@
-import Client from "ssh2-sftp-client";
+import Client from "pure-js-sftp";
 import { internalServerError } from "../api-response";
 import { optimizeImage, optimizeVideo } from "../optimize";
 
@@ -6,9 +6,9 @@ const connect = async (): Promise<Client> => {
   const sftp = new Client();
   try {
     await sftp.connect({
-      host: process.env.HOSTINGER_SFTP_HOST,
+      host: process.env.HOSTINGER_SFTP_HOST!,
       port: Number(process.env.HOSTINGER_SFTP_PORT),
-      username: process.env.HOSTINGER_SFTP_USER,
+      username: process.env.HOSTINGER_SFTP_USER!,
       privateKey: process.env.HOSTINGER_SFTP_PRIVATE_KEY!.replace(/\\n/g, "\n"),
       passphrase: process.env.HOSTINGER_SFTP_PASSPHRASE,
     });

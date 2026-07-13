@@ -1,4 +1,5 @@
 allowBuilds:
+  bcrypt: true
   cpu-features: true
   esbuild: true
   sharp: true
