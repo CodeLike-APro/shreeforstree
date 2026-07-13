@@ -13,8 +13,11 @@ export async function GET(request: Request) {
     }
 
     const searchParams = new URL(request.url).searchParams;
-    const page = parseInt(searchParams.get("page") || "1") || 1;
-    const limit = parseInt(searchParams.get("limit") || "10") || 10;
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
+    const limit = Math.max(
+      1,
+      parseInt(searchParams.get("limit") ?? "10") || 10,
+    );
     const offset = (page - 1) * limit;
 
     const countResult = await db
