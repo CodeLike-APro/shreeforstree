@@ -7,6 +7,7 @@ import {
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { getOrCreateCart, getSessionId } from "@/lib/cart-utils";
+import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema/cartItem.schema";
 import { addCartItemSchema } from "@/lib/validators/cart.validators";
@@ -23,7 +24,16 @@ export async function GET(request: Request) {
     const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
 
     if (!cart.cartItems || cart.cartItems.length === 0) {
-      return ok("No items in cart", { items: [], total: 0.0 });
+      return ok("No items in cart", {
+        cartId: cart.id,
+        items: [],
+        originalPriceTotal: "0.00",
+        discountedPriceTotal: "0.00",
+        discountAmount: "0.00",
+        shippingCharge: "0.00",
+        amountToFreeShipping: String(FREE_SHIPPING_THRESHOLD),
+        total: "0.00",
+      });
     }
 
     const cartItems = await db.query.cartItems.findMany({
@@ -42,6 +52,8 @@ export async function GET(request: Request) {
               columns: {
                 url: true,
               },
+              orderBy: (media, { asc }) => asc(media.sortOrder),
+              limit: 1,
             },
           },
         },
@@ -63,20 +75,41 @@ export async function GET(request: Request) {
       (item) => item.product.isActive,
     );
 
-    const total = activeCartItems.reduce((sum, item) => {
-      const price = item.product.discountedPrice ?? item.product.price;
-      return sum + Number(price) * item.quantity;
+    const originalPriceTotal = activeCartItems.reduce((sum, item) => {
+      const originalAmount = Number(item.product.price) * item.quantity;
+      return sum + originalAmount;
     }, 0.0);
+
+    const discountedPriceTotal = activeCartItems.reduce((sum, item) => {
+      const discountedAmount =
+        Number(item.product.discountedPrice ?? item.product.price) *
+        item.quantity;
+      return sum + discountedAmount;
+    }, 0.0);
+
+    const discountAmount = originalPriceTotal - discountedPriceTotal;
+
+    const amountToFreeShipping =
+      discountedPriceTotal >= FREE_SHIPPING_THRESHOLD
+        ? 0
+        : FREE_SHIPPING_THRESHOLD - discountedPriceTotal;
+
+    const shippingCharge =
+      discountedPriceTotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_CHARGE;
+
+    const total = discountedPriceTotal + shippingCharge;
 
     return ok("Cart fetched successfully", {
       cartId: cart.id,
       items: activeCartItems,
+      originalPriceTotal: String(originalPriceTotal),
+      discountedPriceTotal: String(discountedPriceTotal),
+      shippingCharge: String(shippingCharge),
+      discountAmount: String(discountAmount),
+      amountToFreeShipping: String(amountToFreeShipping),
       total: String(total),
     });
   } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
     return internalServerError("Failed to get cart", error);
   }
 }
@@ -110,11 +143,15 @@ export async function POST(request: Request) {
       return notFound("Product not found");
     }
 
-    if (color && !foundProduct.colors.includes(color)) {
+    if (!foundProduct.sizes.includes(size)) {
+      return badRequest(`Size ${size} is not available for this product`);
+    }
+
+    if (!foundProduct.colors.includes(color)) {
       return badRequest(`Color ${color} is not available for this product`);
     }
 
-    await db.transaction(async (tx) => {
+    const updatedCart = await db.transaction(async (tx) => {
       const cart = await getOrCreateCart(
         currentUser?.id ?? null,
         sessionId,
@@ -133,28 +170,36 @@ export async function POST(request: Request) {
 
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
+
         if (newQuantity > 10) {
-          throw new Error(
-            `Cannot add more than 10 items of the same product, color, and size`,
-          );
+          // throwing Response objects is caught below and returned directly
+          throw badRequest("Maximum quantity for a single item is 10");
         }
 
-        await tx
+        const [updatedItem] = await tx
           .update(cartItems)
           .set({ quantity: newQuantity })
-          .where(eq(cartItems.id, existingItem.id));
-      } else {
-        await tx.insert(cartItems).values({
+          .where(eq(cartItems.id, existingItem.id))
+          .returning();
+
+        return updatedItem;
+      }
+
+      const [newItem] = await tx
+        .insert(cartItems)
+        .values({
           cartId: cart.id,
           productId,
           quantity,
           color,
           size,
-        });
-      }
+        })
+        .returning();
+
+      return newItem;
     });
 
-    return ok("Item added to cart successfully");
+    return ok("Item added to cart successfully", updatedCart);
   } catch (error) {
     if (error instanceof Response) {
       return error;
@@ -188,9 +233,6 @@ export async function DELETE(request: Request) {
 
     return ok("Cart cleared successfully", { clearedCart });
   } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
     return internalServerError("Failed to clear cart", error);
   }
 }
