@@ -25,6 +25,19 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  originalAmount: numeric("original_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  discountAmount: numeric("discount_amount", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
+  itemsTotal: numeric("items_total", { precision: 10, scale: 2 }).notNull(),
+  shippingCharges: numeric("shipping_charges", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   totalAmount: numeric("total_amount", { precision: 10, scale: 2 }).notNull(),
   paymentStatus: paymentStatusEnum("payment_status")
     .notNull()
