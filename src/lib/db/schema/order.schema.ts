@@ -1,4 +1,5 @@
 import {
+  boolean,
   numeric,
   pgEnum,
   pgTable,
@@ -43,18 +44,19 @@ export const orders = pgTable("orders", {
     .notNull()
     .default("pending"),
   orderStatus: orderStatusEnum("order_status").notNull().default("not_placed"),
+  refundRequired: boolean("refund_required").notNull().default(false),
   trackingNumber: text("tracking_number").unique(),
   addressId: uuid("address_id").references(() => addresses.id, {
     onDelete: "set null",
   }),
-  shippingFullName: text().notNull(),
-  shippingPhone: text().notNull(),
-  shippingAddressLine1: text().notNull(),
-  shippingAddressLine2: text(),
-  shippingCity: text().notNull(),
-  shippingState: text().notNull(),
-  shippingPincode: text().notNull(),
-  shippingCountry: text().notNull(),
+  shippingFullName: text("shipping_full_name").notNull(),
+  shippingPhone: text("shipping_phone").notNull(),
+  shippingAddressLine1: text("shipping_address_line1").notNull(),
+  shippingAddressLine2: text("shipping_address_line2"),
+  shippingCity: text("shipping_city").notNull(),
+  shippingState: text("shipping_state").notNull(),
+  shippingPincode: text("shipping_pincode").notNull(),
+  shippingCountry: text("shipping_country").notNull(),
   estimatedDelivery: timestamp("estimated_delivery"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")

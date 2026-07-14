@@ -36,6 +36,13 @@
       "when": 1783940513843,
       "tag": "0004_shallow_ultimo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1784020104611,
+      "tag": "0005_majestic_firebird",
+      "breakpoints": true
     }
   ]
 }
