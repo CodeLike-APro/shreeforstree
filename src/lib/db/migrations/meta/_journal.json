@@ -43,6 +43,13 @@
       "when": 1784020104611,
       "tag": "0005_majestic_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784027130800,
+      "tag": "0006_clever_corsair",
+      "breakpoints": true
     }
   ]
 }
