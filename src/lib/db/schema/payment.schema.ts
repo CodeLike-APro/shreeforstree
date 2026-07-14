@@ -9,13 +9,6 @@ import {
 import { orders } from "./order.schema";
 import { relations } from "drizzle-orm";
 
-export const paymentMethodEnum = pgEnum("payment_method", [
-  "UPI",
-  "card",
-  "netbanking",
-  "wallet",
-]);
-
 export const paymentStatusEnum = pgEnum("payment_status", [
   "pending",
   "success",
@@ -31,7 +24,7 @@ export const payments = pgTable("payments", {
   razorpayOrderId: text("razorpay_order_id").notNull(),
   provider: text("provider").notNull().default("razorpay"),
   transactionId: text("transaction_id"),
-  method: paymentMethodEnum("method"),
+  method: text("method"),
   status: paymentStatusEnum("status").notNull().default("pending"),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
