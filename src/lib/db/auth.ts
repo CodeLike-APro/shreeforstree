@@ -44,6 +44,12 @@ export const auth = betterAuth({
         input: true,
         nullable: true,
       },
+      image_path: {
+        type: "string",
+        defaultValue: null,
+        input: true,
+        nullable: true,
+      },
     },
   },
 });
