@@ -2,6 +2,21 @@ import Client from "pure-js-sftp";
 import { internalServerError } from "../api-response";
 import { optimizeImage, optimizeVideo } from "../optimize";
 
+type UploadedFile = {
+  publicUrl: string;
+  path: string;
+  fileName: string;
+  mime: string | null;
+  type: "image" | "video";
+};
+
+type UploadOptions = {
+  sftp: Client;
+  file: File;
+  folder: string;
+  skipMediaFolder?: boolean;
+};
+
 const connect = async (): Promise<Client> => {
   const sftp = new Client();
   try {
@@ -42,12 +57,6 @@ export async function detectMediaType(inputData: File) {
   };
 }
 
-type UploadOptions = {
-  sftp: Client;
-  file: File;
-  folder: string;
-};
-
 export async function buildPublicUrl(path: string) {
   const baseUrl = process.env.MEDIA_BASE_URL;
   const mediaRoot = process.env.FILE_ROOT!;
@@ -59,18 +68,11 @@ export async function buildPublicUrl(path: string) {
   return publicUrl;
 }
 
-type UploadedFile = {
-  publicUrl: string;
-  path: string;
-  fileName: string;
-  mime: string | null;
-  type: "image" | "video";
-};
-
 export async function uploadFile({
   sftp,
   file,
   folder,
+  skipMediaFolder,
 }: UploadOptions): Promise<UploadedFile> {
   try {
     const result = await detectMediaType(file);
@@ -88,7 +90,9 @@ export async function uploadFile({
     const uploadFileName = generateFileName();
 
     const mediaFolder = result.isImage ? "images" : "videos";
-    const remoteDir = `${process.env.FILE_ROOT!}/${folder}/${mediaFolder}`;
+    const remoteDir = skipMediaFolder
+      ? `${process.env.FILE_ROOT!}/${folder}`
+      : `${process.env.FILE_ROOT!}/${folder}/${mediaFolder}`;
 
     await sftp.put(processedFile, `${remoteDir}/${uploadFileName}`);
 
@@ -105,6 +109,23 @@ export async function uploadFile({
     throw internalServerError("Failed to save file", error);
   }
 }
+
+export async function uploadSingleFile(
+  file: File,
+  folder: string,
+): Promise<UploadedFile> {
+  const sftp = await connect();
+  const remoteDir = `${process.env.FILE_ROOT!}/${folder}`;
+  try {
+    if (!(await sftp.exists(remoteDir))) {
+      await sftp.mkdir(remoteDir, true);
+    }
+    return await uploadFile({ sftp, file, folder, skipMediaFolder: true });
+  } finally {
+    await sftp.end();
+  }
+}
+
 export async function uploadFiles(
   files: File[],
   folder: string,
@@ -141,6 +162,7 @@ export async function uploadFiles(
     await sftp.end();
   }
 }
+
 export async function deleteFile(path: string) {
   const sftp = await connect();
   try {
@@ -155,5 +177,15 @@ export async function deleteFile(path: string) {
   }
 }
 export async function deleteFiles(paths: string[]) {
-  await Promise.all(paths.map((path) => deleteFile(path)));
+  const sftp = await connect();
+  try {
+    await Promise.all(
+      paths.map(async (path) => {
+        const exists = await sftp.exists(path);
+        if (exists === "-") await sftp.delete(path);
+      }),
+    );
+  } finally {
+    await sftp.end();
+  }
 }
