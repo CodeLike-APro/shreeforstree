@@ -57,6 +57,13 @@
       "when": 1784036166507,
       "tag": "0007_narrow_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784097764878,
+      "tag": "0008_lyrical_centennial",
+      "breakpoints": true
     }
   ]
 }

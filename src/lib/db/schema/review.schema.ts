@@ -1,9 +1,11 @@
 import {
   boolean,
+  check,
   integer,
   pgTable,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth.schema";
@@ -32,7 +34,11 @@ export const reviews = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => ({
-    validRating: sql`CHECK (${t.rating} >= 1 AND ${t.rating} <= 5)`,
+    validRating: check(
+      "valid_rating",
+      sql`${t.rating} >= 1 AND ${t.rating} <= 5`,
+    ),
+    uniqueUserProduct: unique().on(t.userId, t.productId),
   }),
 );
 
