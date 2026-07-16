@@ -8,11 +8,11 @@ import {
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { productCategories } from "@/lib/db/schema";
+import { productCategories, productMedia } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
-import { uploadFiles } from "@/lib/media/media-handle";
+import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
@@ -21,14 +21,24 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const isAdmin = await adminCheck(request);
     const { id: productId } = await params;
 
     const product = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
-      with: { categories: { with: { category: true } }, productMedia: true },
+      with: {
+        categories: { with: { category: true } },
+        productMedia: {
+          orderBy: (media, { asc }) => asc(media.sortOrder),
+        },
+      },
     });
 
     if (!product) {
+      return notFound("Product not found");
+    }
+
+    if (!isAdmin && !product.isActive) {
       return notFound("Product not found");
     }
 
@@ -50,21 +60,8 @@ export async function PATCH(
     }
 
     const { id: productId } = await params;
-    const formData = await request.formData();
-    const data = {
-      title: formData.get("title"),
-      description: formData.get("description"),
-      price: formData.get("price"),
-      discountedPrice: formData.get("discountedPrice"),
-      sizes: formData.getAll("sizes"),
-      colors: formData.getAll("colors"),
-      isActive: formData.get("isActive") === "true",
-      isNewArrival: formData.get("isNewArrival") === "true",
-      isHeroProduct: formData.get("isHeroProduct") === "true",
-      categoryIds: formData.getAll("categoryIds"),
-    };
-    const files = formData.getAll("files") as File[];
-    const result = await updateProductSchema.safeParseAsync(data);
+    const body = await request.json();
+    const result = await updateProductSchema.safeParseAsync(body);
 
     if (!result.success) {
       return badRequest(
@@ -84,6 +81,7 @@ export async function PATCH(
       isNewArrival,
       isHeroProduct,
       categoryIds,
+      media,
     } = result.data;
 
     const slug = title
@@ -110,35 +108,56 @@ export async function PATCH(
       }
     }
 
-    const uploadedFilesData = await uploadFiles(files, `products/${productId}`);
+    const existingPaths =
+      media && media.length > 0
+        ? new Set(foundProduct.productMedia.map((media) => media.path))
+        : new Set<string>();
 
-    //TODO: Add delete removed files, and sort order of files
+    const incomingPaths =
+      media && media.length > 0
+        ? new Set(media.map((media) => media.path))
+        : new Set<string>();
+
+    const toInsert =
+      media?.filter((media) => !existingPaths.has(media.path)) || [];
+
+    const toUpdateSortOrder = media?.filter((media) =>
+      existingPaths.has(media.path),
+    );
+
+    const toDelete = Array.from(existingPaths).filter(
+      (media) => !incomingPaths.has(media),
+    );
+
+    try {
+      await deleteFiles(toDelete);
+    } catch (error) {
+      console.error("Failed to delete media files", error);
+    }
+
+    if (toDelete.length > 0) {
+      await db.delete(productMedia).where(inArray(productMedia.path, toDelete));
+    }
 
     const updateData = {
       ...(title !== undefined && { title: title.trim(), slug }),
       ...(description !== undefined && { description: description.trim() }),
       ...(price !== undefined && { price }),
       ...(discountedPrice !== undefined && { discountedPrice }),
-
       ...(sizes !== undefined && { sizes }),
       ...(colors !== undefined && { colors }),
       ...(isActive !== undefined && { isActive }),
       ...(isNewArrival !== undefined && { isNewArrival }),
       ...(isHeroProduct !== undefined && { isHeroProduct }),
-
-      ...(isHeroProduct === false && {
-        heroImageUrl: null,
-        heroImagePublicId: null,
-      }),
     };
 
-    if (categoryIds) {
-      await db.transaction(async (tx) => {
-        await tx
-          .update(products)
-          .set(updateData)
-          .where(eq(products.id, productId));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(products)
+        .set(updateData)
+        .where(eq(products.id, productId));
 
+      if (categoryIds) {
         await tx
           .delete(productCategories)
           .where(eq(productCategories.productId, productId));
@@ -146,13 +165,34 @@ export async function PATCH(
         await tx
           .insert(productCategories)
           .values(categoryIds.map((categoryId) => ({ productId, categoryId })));
-      });
-    } else {
-      await db
-        .update(products)
-        .set(updateData)
-        .where(eq(products.id, productId));
-    }
+      }
+
+      if (toInsert.length > 0) {
+        await tx.insert(productMedia).values(
+          toInsert.map((file) => ({
+            productId,
+            type: file.type,
+            url: file.url,
+            path: file.path,
+            sortOrder: file.sortOrder,
+          })),
+        );
+      }
+
+      if (toUpdateSortOrder && toUpdateSortOrder.length > 0) {
+        for (const media of toUpdateSortOrder) {
+          await tx
+            .update(productMedia)
+            .set({ sortOrder: media.sortOrder })
+            .where(
+              and(
+                eq(productMedia.productId, productId),
+                eq(productMedia.path, media.path),
+              ),
+            );
+        }
+      }
+    });
 
     const updatedProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
@@ -191,13 +231,28 @@ export async function DELETE(
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: { productMedia: { columns: { path: true } } },
     });
 
     if (!foundProduct) {
       return notFound("Product not found");
     }
 
-    //TODO: Delete product media files from cloud storage if any
+    const hasOrders = await db.query.orderItems.findFirst({
+      where: (oi, { eq }) => eq(oi.productId, productId),
+    });
+    if (hasOrders)
+      return badRequest(
+        "Cannot delete product with existing orders. Set isActive to false instead.",
+      );
+
+    if (foundProduct.productMedia.length > 0) {
+      try {
+        await deleteFiles(foundProduct.productMedia.map((m) => m.path));
+      } catch (error) {
+        console.error("Failed to delete product media files", error);
+      }
+    }
 
     await db.delete(products).where(eq(products.id, productId));
 

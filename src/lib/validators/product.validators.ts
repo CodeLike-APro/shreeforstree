@@ -38,8 +38,17 @@ export const updateProductSchema = z4
     isActive: z4.boolean().optional(),
     isNewArrival: z4.boolean().optional(),
     isHeroProduct: z4.boolean().optional(),
-
     categoryIds: z4.array(z4.uuid()).min(1).optional(),
+    media: z4
+      .array(
+        z4.object({
+          url: z4.string().min(1),
+          path: z4.string().min(1),
+          type: z4.enum(["image", "video"]),
+          sortOrder: z4.number().int().min(0).max(9),
+        }),
+      )
+      .optional(),
   })
   .refine(
     (data) =>
