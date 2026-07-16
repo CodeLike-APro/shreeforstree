@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     const result = await adminMediaUploadSchema.safeParseAsync({
       type: formData.get("type"),
       productId: formData.get("productId") ?? undefined,
-      categoryId: formData.get("categoryId") ?? undefined,
+      categorySlug: formData.get("categorySlug") ?? undefined,
     });
 
     if (!result.success) {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { type, productId, categoryId } = result.data;
+    const { type, productId, categorySlug } = result.data;
 
     const files = formData
       .getAll("files")
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       }
 
       const existing = await db.query.categories.findFirst({
-        where: (category, { eq }) => eq(category.id, categoryId!),
+        where: (category, { eq }) => eq(category.slug, categorySlug!),
         columns: { categoryImagePath: true },
       });
 
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const folder = `categories/${categoryId!}/category-image`;
+      const folder = `categories/${categorySlug!}/category-image`;
 
       const uploaded = await uploadSingleFile(files[0], folder);
 
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
           categoryImageUrl: uploaded.publicUrl,
           categoryImagePath: uploaded.path,
         })
-        .where(eq(categories.id, categoryId!))
+        .where(eq(categories.slug, categorySlug!))
         .returning({
           categoryImageUrl: categories.categoryImageUrl,
           categoryImagePath: categories.categoryImagePath,
