@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         try {
           await deleteFiles([existing.imagePath]);
         } catch (error) {
-          internalServerError(`Failed to delete old avatar: ${error}`);
+          console.error(`Failed to delete old avatar: ${error}`);
         }
       }
       const uploaded = await uploadSingleFile(files[0], folder);

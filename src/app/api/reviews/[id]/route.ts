@@ -45,7 +45,7 @@ export async function DELETE(
       try {
         await deleteFiles(review.imagesPath);
       } catch (error) {
-        internalServerError("Failed to delete review images", error);
+        console.error("Failed to delete review images", error);
       }
     }
 
