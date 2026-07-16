@@ -70,9 +70,9 @@ export async function PATCH(
       return notFound("User not found");
     }
 
-    const { phone } = await request.json();
+    const body = await request.json();
 
-    const result = await updateUserSchema.safeParseAsync({ phone });
+    const result = await updateUserSchema.safeParseAsync(body);
 
     if (!result.success) {
       return badRequest(
@@ -81,10 +81,20 @@ export async function PATCH(
       );
     }
 
+    const { name, phone, role, image, imagePath } = result.data;
+
+    if (role !== undefined) {
+      if (!isAdmin) return forbidden("Only admins can update user role");
+    }
+
     const updatedUser = await db
       .update(user)
       .set({
+        ...(name && { name: name.trim() }),
         ...(phone && { phone: phone.trim() }),
+        ...(role !== undefined && { role }),
+        ...(image && { image: image.trim() }),
+        ...(imagePath && { imagePath: imagePath.trim() }),
       })
       .where(eq(user.id, id))
       .returning();
@@ -134,8 +144,8 @@ export async function DELETE(
         })
         .where(eq(user.id, id));
 
-      await tx.delete(account).where(eq(account.userId, id)).returning();
-      await tx.delete(session).where(eq(session.userId, id)).returning();
+      await tx.delete(account).where(eq(account.userId, id));
+      await tx.delete(session).where(eq(session.userId, id));
     });
 
     return ok("User deleted successfully");
