@@ -29,7 +29,7 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: "string",
-        defaultValue: "customer",
+        defaultValue: "user",
         input: false, // not settable by user
       },
       deletedAt: {
