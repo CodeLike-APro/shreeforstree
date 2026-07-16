@@ -1,2 +1,0 @@
-ALTER TABLE "reviews" ADD CONSTRAINT "reviews_user_id_product_id_unique" UNIQUE("user_id","product_id");--> statement-breakpoint
-ALTER TABLE "reviews" ADD CONSTRAINT "valid_rating" CHECK ("reviews"."rating" >= 1 AND "reviews"."rating" <= 5);

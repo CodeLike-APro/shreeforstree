@@ -1,1 +1,0 @@
-ALTER TABLE "product_media" ADD COLUMN "is_hero" boolean DEFAULT false NOT NULL;

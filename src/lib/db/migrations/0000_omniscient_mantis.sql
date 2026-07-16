@@ -1,5 +1,4 @@
 CREATE TYPE "public"."order_status" AS ENUM('not_placed', 'placed', 'confirmed', 'shipped', 'delivered', 'cancelled', 'returned');--> statement-breakpoint
-CREATE TYPE "public"."payment_method" AS ENUM('UPI', 'card', 'netbanking', 'wallet');--> statement-breakpoint
 CREATE TYPE "public"."payment_status" AS ENUM('pending', 'success', 'failed', 'refunded');--> statement-breakpoint
 CREATE TYPE "public"."product_size" AS ENUM('XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', 'Free Size');--> statement-breakpoint
 CREATE TABLE "addresses" (
@@ -104,12 +103,25 @@ CREATE TABLE "categories" (
 --> statement-breakpoint
 CREATE TABLE "orders" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" text NOT NULL,
+	"user_id" text,
+	"original_amount" numeric(10, 2) NOT NULL,
+	"discount_amount" numeric(10, 2) NOT NULL,
+	"items_total" numeric(10, 2) NOT NULL,
+	"shipping_charges" numeric(10, 2) NOT NULL,
 	"total_amount" numeric(10, 2) NOT NULL,
 	"payment_status" "payment_status" DEFAULT 'pending' NOT NULL,
 	"order_status" "order_status" DEFAULT 'not_placed' NOT NULL,
+	"refund_required" boolean DEFAULT false NOT NULL,
 	"tracking_number" text,
-	"address_id" uuid NOT NULL,
+	"address_id" uuid,
+	"shipping_full_name" text NOT NULL,
+	"shipping_phone" text NOT NULL,
+	"shipping_address_line1" text NOT NULL,
+	"shipping_address_line2" text,
+	"shipping_city" text NOT NULL,
+	"shipping_state" text NOT NULL,
+	"shipping_pincode" text NOT NULL,
+	"shipping_country" text NOT NULL,
 	"estimated_delivery" timestamp,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -135,8 +147,8 @@ CREATE TABLE "payments" (
 	"order_id" uuid NOT NULL,
 	"razorpay_order_id" text NOT NULL,
 	"provider" text DEFAULT 'razorpay' NOT NULL,
-	"transaction_id" text NOT NULL,
-	"method" "payment_method" NOT NULL,
+	"transaction_id" text,
+	"method" text,
 	"status" "payment_status" DEFAULT 'pending' NOT NULL,
 	"amount" numeric(10, 2) NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
@@ -156,6 +168,7 @@ CREATE TABLE "product_media" (
 	"url" text NOT NULL,
 	"path" text NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
+	"is_hero" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -170,8 +183,6 @@ CREATE TABLE "products" (
 	"is_active" boolean DEFAULT true NOT NULL,
 	"is_new_arrival" boolean DEFAULT false NOT NULL,
 	"is_hero_product" boolean DEFAULT false NOT NULL,
-	"hero_image_url" text,
-	"hero_image_path" text,
 	"slug" text NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL,
@@ -188,7 +199,9 @@ CREATE TABLE "reviews" (
 	"review_images_path" text[],
 	"is_verified" boolean DEFAULT false NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "reviews_user_id_product_id_unique" UNIQUE("user_id","product_id"),
+	CONSTRAINT "valid_rating" CHECK ("reviews"."rating" >= 1 AND "reviews"."rating" <= 5)
 );
 --> statement-breakpoint
 CREATE TABLE "wishlist" (
@@ -204,8 +217,8 @@ ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fk" FOREIGN KEY ("
 ALTER TABLE "carts" ADD CONSTRAINT "carts_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_cart_id_carts_id_fk" FOREIGN KEY ("cart_id") REFERENCES "public"."carts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "orders" ADD CONSTRAINT "orders_address_id_addresses_id_fk" FOREIGN KEY ("address_id") REFERENCES "public"."addresses"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "orders" ADD CONSTRAINT "orders_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "orders" ADD CONSTRAINT "orders_address_id_addresses_id_fk" FOREIGN KEY ("address_id") REFERENCES "public"."addresses"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "order_items" ADD CONSTRAINT "order_items_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "payments" ADD CONSTRAINT "payments_order_id_orders_id_fk" FOREIGN KEY ("order_id") REFERENCES "public"."orders"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "product_categories" ADD CONSTRAINT "product_categories_product_id_products_id_fk" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
