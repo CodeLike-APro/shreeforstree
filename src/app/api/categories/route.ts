@@ -12,7 +12,7 @@ import { eq } from "drizzle-orm";
 import { adminCheck } from "@/lib/auth-utils";
 import slugify from "slugify";
 import { createCategorySchema } from "@/lib/validators/category.validators";
-import { uploadFiles } from "@/lib/media/media-handle";
+import { uploadSingleFile } from "@/lib/media/media-handle";
 
 export async function GET(request: Request) {
   try {
@@ -34,14 +34,15 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
+    const isActiveRaw = formData.get("isActive");
 
     const data = {
-      title: formData.get("title"),
+      name: formData.get("name"),
       description: formData.get("description"),
-      isActive: formData.get("isActive") === "true",
+      isActive: isActiveRaw !== null ? isActiveRaw === "true" : undefined,
     };
 
-    const files = formData.get("files") as File[] | null;
+    const file = formData.get("files") as File | null;
 
     const result = await createCategorySchema.safeParseAsync(data);
 
@@ -66,28 +67,21 @@ export async function POST(request: Request) {
       );
     }
 
-    const uploadedFileData = files
-      ? await uploadFiles(files, `categories/${slug}`)
+    const uploaded = file
+      ? await uploadSingleFile(file, `categories/${slug}/category-image`)
       : null;
 
-    let categoryImageUrl;
-    let categoryImagePath;
-
-    if (uploadedFileData && uploadedFileData.length > 0) {
-      uploadedFileData.map((file) => ({
-        categoryImageUrl: file.publicUrl,
-        categoryImagePath: file.path,
-      }));
+    if (file && !uploaded) {
+      return internalServerError("Failed to upload category image");
     }
-
     const [newCategory] = await db
       .insert(categories)
       .values({
         name: name.trim(),
         slug: slug,
         description: description.trim(),
-        categoryImageUrl: categoryImageUrl,
-        categoryImagePath: categoryImagePath,
+        categoryImageUrl: uploaded?.publicUrl || null,
+        categoryImagePath: uploaded?.path || null,
       })
       .returning();
     return created("Category created successfully", newCategory);

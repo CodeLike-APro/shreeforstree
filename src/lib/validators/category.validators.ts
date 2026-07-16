@@ -11,7 +11,18 @@ export const updateCategorySchema = z4
     name: z4.string().min(1).optional(),
     description: z4.string().min(1).optional(),
     isActive: z4.boolean().optional(),
+    categoryImageUrl: z4.string().min(1).optional(),
+    categoryImagePath: z4.string().min(1).optional(),
   })
+  .refine(
+    ({ categoryImageUrl, categoryImagePath }) =>
+      !!categoryImageUrl === !!categoryImagePath,
+    {
+      message:
+        "Category Image URL and Category Image Path must have the same number of items.",
+      path: ["categoryImageUrl"],
+    },
+  )
   .refine(
     (data) =>
       Object.keys(data).some(

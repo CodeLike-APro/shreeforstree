@@ -9,7 +9,7 @@ import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { productCategories } from "@/lib/db/schema";
 import { categories } from "@/lib/db/schema/category.schema";
-import { deleteFile, uploadFiles } from "@/lib/media/media-handle";
+import { deleteFile } from "@/lib/media/media-handle";
 import { updateCategorySchema } from "@/lib/validators/category.validators";
 import { eq } from "drizzle-orm/sql/expressions/conditions";
 import slugify from "slugify";
@@ -26,16 +26,9 @@ export async function PATCH(
     }
 
     const { slug: categorySlug } = await params;
-    const formData = await request.formData();
+    const body = await request.json();
 
-    const data = {
-      title: formData.get("title"),
-      description: formData.get("description"),
-      isActive: formData.get("isActive") === "true",
-    };
-
-    const files = formData.get("files") as File[] | null;
-    const result = await updateCategorySchema.safeParseAsync(data);
+    const result = await updateCategorySchema.safeParseAsync(body);
 
     if (!result.success) {
       return badRequest(
@@ -44,7 +37,8 @@ export async function PATCH(
       );
     }
 
-    const { name, description, isActive } = result.data;
+    const { name, description, isActive, categoryImageUrl, categoryImagePath } =
+      result.data;
 
     const slug = name
       ? slugify(name.trim(), { lower: true, strict: true })
@@ -58,38 +52,12 @@ export async function PATCH(
       return notFound("Category not found");
     }
 
-    const uploadedFileData = files
-      ? await uploadFiles(files, `categories/${slug}`)
-      : null;
-
-    let categoryImageUrl;
-    let categoryImagePath;
-
-    if (uploadedFileData && uploadedFileData.length > 0) {
-      const [uploadedFile] = uploadedFileData;
-      categoryImageUrl = uploadedFile.publicUrl;
-      categoryImagePath = uploadedFile.path;
-
-      if (
-        category.categoryImagePath &&
-        category.categoryImagePath !== categoryImagePath
-      ) {
-        await deleteFile(category.categoryImagePath);
-      }
-    }
-
     const updatedCategory = await db
       .update(categories)
       .set({
         ...(name && { name: name.trim(), slug }),
         ...(description && { description: description.trim() }),
-        ...(categoryImageUrl
-          ? {
-              categoryImageUrl: categoryImageUrl,
-              categoryImagePath: categoryImagePath,
-            }
-          : {}),
-
+        ...(categoryImageUrl ? { categoryImageUrl, categoryImagePath } : {}),
         ...(isActive !== undefined && { isActive }),
         updatedAt: new Date(),
       })
@@ -132,7 +100,11 @@ export async function DELETE(
       return badRequest("Cannot delete category with linked products");
     }
     if (category.categoryImagePath) {
-      await deleteFile(category.categoryImagePath);
+      try {
+        await deleteFile(category.categoryImagePath);
+      } catch (error) {
+        console.error("Failed to delete category image", error);
+      }
     }
     await db.delete(categories).where(eq(categories.slug, categorySlug));
 
