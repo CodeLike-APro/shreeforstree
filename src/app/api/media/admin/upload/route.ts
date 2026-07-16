@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
         try {
           await deleteFiles([existing.categoryImagePath]);
         } catch (error) {
-          console.error(`Failed to delete old category image: ${error}`);
+          internalServerError(`Failed to delete old category image: ${error}`);
         }
       }
 
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         try {
           await deleteFiles([existing.path]);
         } catch (error) {
-          console.error(`Failed to delete old hero image: ${error}`);
+          internalServerError(`Failed to delete old hero image: ${error}`);
         }
       }
 
