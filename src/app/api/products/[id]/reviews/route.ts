@@ -157,7 +157,9 @@ export async function POST(
       );
     }
 
-    const { rating, comments, imagesUrl, imagesPath } = result.data;
+    const { rating, imagesUrl, imagesPath } = result.data;
+
+    const comments = result.data.comments?.trim() ?? "";
 
     const [newReview] = await db
       .insert(reviews)
