@@ -94,7 +94,7 @@ export async function PATCH(
         ...(phone && { phone: phone.trim() }),
         ...(role !== undefined && { role }),
         ...(image && { image: image.trim() }),
-        ...(imagePath && { imagePath: imagePath.trim() }),
+        ...(imagePath && { image_path: imagePath.trim() }),
       })
       .where(eq(user.id, id))
       .returning();

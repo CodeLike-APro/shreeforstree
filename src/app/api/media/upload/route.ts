@@ -71,12 +71,12 @@ export async function POST(request: NextRequest) {
 
       const existing = await db.query.user.findFirst({
         where: (user, { eq }) => eq(user.id, currentUser.id),
-        columns: { imagePath: true },
+        columns: { image_path: true },
       });
 
-      if (existing?.imagePath) {
+      if (existing?.image_path) {
         try {
-          await deleteFiles([existing.imagePath]);
+          await deleteFiles([existing.image_path]);
         } catch (error) {
           console.error(`Failed to delete old avatar: ${error}`);
         }
@@ -85,9 +85,9 @@ export async function POST(request: NextRequest) {
 
       const [updatedUser] = await db
         .update(user)
-        .set({ image: uploaded.publicUrl, imagePath: uploaded.path })
+        .set({ image: uploaded.publicUrl, image_path: uploaded.path })
         .where(eq(user.id, currentUser.id))
-        .returning({ image: user.image, imagePath: user.imagePath });
+        .returning({ image: user.image, image_path: user.image_path });
 
       return created("Avatar uploaded successfully", updatedUser);
     }
