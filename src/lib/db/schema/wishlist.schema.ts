@@ -21,9 +21,7 @@ export const wishlist = pgTable(
     addedAt: timestamp("added_at").notNull().defaultNow(),
   },
 
-  (wl) => ({
-    pk: primaryKey({ columns: [wl.userId, wl.productId] }),
-  }),
+  (wl) => [primaryKey({ columns: [wl.userId, wl.productId] })],
 );
 
 export const wishlistRelations = relations(wishlist, ({ one }) => ({

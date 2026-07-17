@@ -33,13 +33,10 @@ export const reviews = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => ({
-    validRating: check(
-      "valid_rating",
-      sql`${t.rating} >= 1 AND ${t.rating} <= 5`,
-    ),
-    uniqueUserProduct: unique().on(t.userId, t.productId),
-  }),
+  (t) => [
+    check("valid_rating", sql`${t.rating} >= 1 AND ${t.rating} <= 5`),
+    unique().on(t.userId, t.productId),
+  ],
 );
 
 export const reviewRelations = relations(reviews, ({ one }) => ({
