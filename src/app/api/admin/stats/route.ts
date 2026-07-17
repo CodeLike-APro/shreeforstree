@@ -27,9 +27,10 @@ export async function GET(request: NextRequest) {
     if (!isAdmin) {
       return forbidden("Unauthorized access");
     }
-    const period = request.nextUrl.searchParams.get("period") ?? "month";
+    const periodParam = request.nextUrl.searchParams.get("period") ?? "month";
     const fromParam = request.nextUrl.searchParams.get("from");
     const toParam = request.nextUrl.searchParams.get("to");
+    const period = fromParam && toParam ? "custom" : periodParam;
 
     let startDate: Date;
     let endDate: Date = new Date();
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
         return badRequest("Start date must be before end date");
       }
     } else {
-      const days = PERIODS[period] ?? 30;
+      const days = PERIODS[periodParam] ?? 30;
       startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
     }
@@ -196,6 +197,10 @@ export async function GET(request: NextRequest) {
 
     return ok("Stats fetched successfully", {
       period,
+      dateRange: {
+        from: startDate.toISOString(),
+        to: endDate.toISOString(),
+      },
       revenue: {
         total: parseFloat(totalRevenue ?? "0"),
         period: parseFloat(periodRevenue ?? "0"),
