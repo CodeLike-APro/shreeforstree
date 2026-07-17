@@ -1,4 +1,4 @@
-import Client from "pure-js-sftp";
+import type SftpClient from "ssh2-sftp-client";
 import { internalServerError } from "../api-response";
 import { optimizeImage, optimizeVideo } from "../optimize";
 
@@ -11,14 +11,16 @@ type UploadedFile = {
 };
 
 type UploadOptions = {
-  sftp: Client;
+  sftp: SftpClient;
   file: File;
   folder: string;
   skipMediaFolder?: boolean;
 };
 
-const connect = async (): Promise<Client> => {
+const connect = async (): Promise<SftpClient> => {
+  const { default: Client } = await import("ssh2-sftp-client");
   const sftp = new Client();
+
   try {
     await sftp.connect({
       host: process.env.HOSTINGER_SFTP_HOST!,
@@ -29,11 +31,30 @@ const connect = async (): Promise<Client> => {
     });
   } catch (error) {
     await sftp.end().catch(() => {});
-
     throw internalServerError("Failed to connect to SFTP server", error);
   }
   return sftp;
 };
+
+async function cleanupEmptyFolders(sftp: SftpClient, filePath: string) {
+  const fileRoot = process.env.FILE_ROOT!;
+  let currentDir = filePath.substring(0, filePath.lastIndexOf("/"));
+
+  while (
+    currentDir &&
+    currentDir !== fileRoot &&
+    currentDir.startsWith(fileRoot)
+  ) {
+    const contents = await sftp.list(currentDir).catch(() => null);
+
+    if (!contents || contents.length === 0) {
+      await sftp.rmdir(currentDir).catch(() => {});
+      currentDir = currentDir.substring(0, currentDir.lastIndexOf("/"));
+    } else {
+      break; // folder has content, stop climbing
+    }
+  }
+}
 
 const generateFileName = () => {
   const uniqueSuffix = crypto.randomUUID();
@@ -42,22 +63,7 @@ const generateFileName = () => {
   return newFileName;
 };
 
-export async function detectMediaType(inputData: File) {
-  let mimeType = null;
-
-  mimeType = inputData.type;
-
-  const isImage = mimeType ? mimeType.startsWith("image/") : false;
-  const isVideo = mimeType ? mimeType.startsWith("video/") : false;
-
-  return {
-    isImage,
-    isVideo,
-    mime: mimeType,
-  };
-}
-
-export async function buildPublicUrl(path: string) {
+async function buildPublicUrl(path: string) {
   const baseUrl = process.env.MEDIA_BASE_URL;
   const mediaRoot = process.env.FILE_ROOT!;
   const relativePath = path
@@ -68,7 +74,7 @@ export async function buildPublicUrl(path: string) {
   return publicUrl;
 }
 
-export async function uploadFile({
+async function uploadFile({
   sftp,
   file,
   folder,
@@ -108,6 +114,21 @@ export async function uploadFile({
   } catch (error) {
     throw internalServerError("Failed to save file", error);
   }
+}
+
+export async function detectMediaType(inputData: File) {
+  let mimeType = null;
+
+  mimeType = inputData.type;
+
+  const isImage = mimeType ? mimeType.startsWith("image/") : false;
+  const isVideo = mimeType ? mimeType.startsWith("video/") : false;
+
+  return {
+    isImage,
+    isVideo,
+    mime: mimeType,
+  };
 }
 
 export async function uploadSingleFile(
@@ -169,6 +190,7 @@ export async function deleteFile(path: string) {
     const exists = await sftp.exists(path);
     if (exists === "-") {
       await sftp.delete(path);
+      await cleanupEmptyFolders(sftp, path);
     }
   } catch (error) {
     throw internalServerError("Failed to delete file", error);
@@ -177,15 +199,23 @@ export async function deleteFile(path: string) {
   }
 }
 export async function deleteFiles(paths: string[]) {
-  const sftp = await connect();
+  if (paths.length === 0) return;
   try {
-    await Promise.all(
-      paths.map(async (path) => {
-        const exists = await sftp.exists(path);
-        if (exists === "-") await sftp.delete(path);
-      }),
-    );
-  } finally {
-    await sftp.end();
+    const sftp = await connect();
+    try {
+      await Promise.all(
+        paths.map(async (path) => {
+          const exists = await sftp.exists(path);
+          if (exists === "-") {
+            await sftp.delete(path);
+            await cleanupEmptyFolders(sftp, path);
+          }
+        }),
+      );
+    } finally {
+      await sftp.end();
+    }
+  } catch (error) {
+    console.error("Failed to delete files", error);
   }
 }

@@ -139,78 +139,87 @@ export async function PATCH(
       await db.delete(productMedia).where(inArray(productMedia.path, toDelete));
     }
 
-    const updateData = {
-      ...(title !== undefined && { title: title.trim(), slug }),
-      ...(description !== undefined && { description: description.trim() }),
-      ...(price !== undefined && { price }),
-      ...(discountedPrice !== undefined && { discountedPrice }),
-      ...(sizes !== undefined && { sizes }),
-      ...(colors !== undefined && { colors }),
-      ...(isActive !== undefined && { isActive }),
-      ...(isNewArrival !== undefined && { isNewArrival }),
-      ...(isHeroProduct !== undefined && { isHeroProduct }),
-    };
+    try {
+      const updateData = {
+        ...(title !== undefined && { title: title.trim(), slug }),
+        ...(description !== undefined && { description: description.trim() }),
+        ...(price !== undefined && { price }),
+        ...(discountedPrice !== undefined && { discountedPrice }),
+        ...(sizes !== undefined && { sizes }),
+        ...(colors !== undefined && { colors }),
+        ...(isActive !== undefined && { isActive }),
+        ...(isNewArrival !== undefined && { isNewArrival }),
+        ...(isHeroProduct !== undefined && { isHeroProduct }),
+      };
 
-    await db.transaction(async (tx) => {
-      await tx
-        .update(products)
-        .set(updateData)
-        .where(eq(products.id, productId));
-
-      if (categoryIds) {
-        await tx
-          .delete(productCategories)
-          .where(eq(productCategories.productId, productId));
-
-        await tx
-          .insert(productCategories)
-          .values(categoryIds.map((categoryId) => ({ productId, categoryId })));
-      }
-
-      if (toInsert.length > 0) {
-        await tx.insert(productMedia).values(
-          toInsert.map((file) => ({
-            productId,
-            type: file.type,
-            url: file.url,
-            path: file.path,
-            sortOrder: file.sortOrder,
-          })),
-        );
-      }
-
-      if (toUpdateSortOrder && toUpdateSortOrder.length > 0) {
-        for (const media of toUpdateSortOrder) {
+      await db.transaction(async (tx) => {
+        if (Object.keys(updateData).length > 0) {
           await tx
-            .update(productMedia)
-            .set({ sortOrder: media.sortOrder })
-            .where(
-              and(
-                eq(productMedia.productId, productId),
-                eq(productMedia.path, media.path),
-              ),
+            .update(products)
+            .set(updateData)
+            .where(eq(products.id, productId));
+        }
+
+        if (categoryIds) {
+          await tx
+            .delete(productCategories)
+            .where(eq(productCategories.productId, productId));
+
+          await tx
+            .insert(productCategories)
+            .values(
+              categoryIds.map((categoryId) => ({ productId, categoryId })),
             );
         }
-      }
-    });
 
-    const updatedProduct = await db.query.products.findFirst({
-      where: (products, { eq }) => eq(products.id, productId),
-      with: {
-        productMedia: true,
-        categories: {
-          with: {
-            category: true,
+        if (toInsert.length > 0) {
+          await tx.insert(productMedia).values(
+            toInsert.map((file) => ({
+              productId,
+              type: file.type,
+              url: file.url,
+              path: file.path,
+              sortOrder: file.sortOrder,
+            })),
+          );
+        }
+
+        if (toUpdateSortOrder && toUpdateSortOrder.length > 0) {
+          for (const media of toUpdateSortOrder) {
+            await tx
+              .update(productMedia)
+              .set({ sortOrder: media.sortOrder })
+              .where(
+                and(
+                  eq(productMedia.productId, productId),
+                  eq(productMedia.path, media.path),
+                ),
+              );
+          }
+        }
+      });
+
+      const updatedProduct = await db.query.products.findFirst({
+        where: (products, { eq }) => eq(products.id, productId),
+        with: {
+          productMedia: true,
+          categories: {
+            with: {
+              category: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    if (!updatedProduct) {
-      return internalServerError("Failed to update product");
+      if (!updatedProduct) {
+        return internalServerError("Failed to update product");
+      }
+
+      return ok("Product updated successfully", updatedProduct);
+    } catch (error) {
+      console.error("Failed to update product", error);
+      return internalServerError("Failed to update product", error);
     }
-
-    return ok("Product updated successfully", updatedProduct);
   } catch (error) {
     return internalServerError("Failed to update product", error);
   }
