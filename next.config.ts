@@ -11,9 +11,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
-// next.config.js
-module.exports = {
+  serverExternalPackages: ["ssh2", "ssh2-sftp-client"],
   allowedDevOrigins: ["192.168.1.7"],
 };
 
