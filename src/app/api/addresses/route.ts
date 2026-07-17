@@ -1,18 +1,18 @@
 import {
   badRequest,
   created,
-  forbidden,
   internalServerError,
-  ok,
+  paginated,
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { createAddressSchema } from "@/lib/validators/address.validators";
-import { eq } from "drizzle-orm";
+import { and, count, eq, SQL } from "drizzle-orm";
+import { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser(request);
 
@@ -20,15 +20,49 @@ export async function GET(request: Request) {
       return unauthorized("Please login to get your address details");
     }
 
+    const searchParams = request.nextUrl.searchParams;
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
+    const limit = Math.max(
+      1,
+      parseInt(searchParams.get("limit") ?? "10") || 10,
+    );
+    const offset = (page - 1) * limit;
+
+    const isAdmin = currentUser.role === "admin";
+    const userId = searchParams.get("userId");
+
+    const conditions: SQL[] = [];
+
+    if (isAdmin) {
+      if (userId) {
+        conditions.push(eq(addresses.userId, userId));
+      }
+    } else {
+      conditions.push(eq(addresses.userId, currentUser.id));
+    }
+
+    const countResult = await db
+      .select({ count: count() })
+      .from(addresses)
+      .where(conditions.length ? and(...conditions) : undefined);
+
     const userAddresses = await db.query.addresses.findMany({
-      where: (addresses, { eq }) => eq(addresses.userId, currentUser.id),
+      where: conditions.length ? and(...conditions) : undefined,
       orderBy: (addresses, { desc }) => [
         desc(addresses.isDefault),
         desc(addresses.createdAt),
       ],
+      limit,
+      offset,
     });
 
-    return ok("Address fetched successfully", userAddresses);
+    return paginated(
+      "Address fetched successfully",
+      userAddresses,
+      countResult[0].count,
+      page,
+      limit,
+    );
   } catch (error) {
     return internalServerError("Failed to fetch address", error);
   }
@@ -40,12 +74,6 @@ export async function POST(request: Request) {
 
     if (!currentUser || !("id" in currentUser)) {
       return unauthorized("Please login to get your address details");
-    }
-
-    const isAdmin = currentUser.role === "admin";
-
-    if (!isAdmin) {
-      return forbidden("You can only view & update your own address details");
     }
 
     const body = await request.json();
