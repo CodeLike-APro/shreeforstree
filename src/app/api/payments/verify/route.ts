@@ -80,6 +80,9 @@ export async function POST(request: Request) {
       return badRequest("Payment verification failed");
     }
 
+    if (payment.orderId !== order.id)
+      return badRequest("Payment does not belong to this order");
+
     const paymentdetails = await razorpay.payments.fetch(razorpayPaymentId);
 
     const updatedPaymentsAndOrders = await db.transaction(async (tx) => {

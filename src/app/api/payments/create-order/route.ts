@@ -12,6 +12,7 @@ import { db } from "@/lib/db";
 import { payments } from "@/lib/db/schema";
 import { razorpay } from "@/lib/razorpay";
 import { createPaymentOrderSchema } from "@/lib/validators/payment.validator";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
@@ -71,14 +72,29 @@ export async function POST(request: Request) {
       receipt: order.id,
     });
 
-    await db.insert(payments).values({
-      orderId: order.id,
-      razorpayOrderId: razorpayOrder.id,
-      status: "pending",
-      amount: order.totalAmount,
-      provider: "razorpay",
-      transactionId: null,
-    });
+    if (existingPayment) {
+      // reuse the existing row (orderId is unique) instead of inserting a
+      // second one, which would violate the unique constraint
+      await db
+        .update(payments)
+        .set({
+          razorpayOrderId: razorpayOrder.id,
+          status: "pending",
+          amount: order.totalAmount,
+          transactionId: null,
+          method: null,
+        })
+        .where(eq(payments.id, existingPayment.id));
+    } else {
+      await db.insert(payments).values({
+        orderId: order.id,
+        razorpayOrderId: razorpayOrder.id,
+        status: "pending",
+        amount: order.totalAmount,
+        provider: "razorpay",
+        transactionId: null,
+      });
+    }
 
     const returnData = {
       razorpayOrderId: razorpayOrder.id,
