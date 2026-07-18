@@ -27,7 +27,7 @@ export const updateAddressSchema = z4
     city: z4.string().min(1).optional(),
     state: z4.string().min(1).optional(),
     pincode: z4.string().min(1).optional(),
-    country: z4.string().min(1).default("India").optional(),
+    country: z4.string().min(1).optional().default("India"),
     isDefault: z4.boolean().optional(),
   })
   .refine(

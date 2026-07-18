@@ -9,6 +9,7 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { account, session, user } from "@/lib/db/schema/auth.schema";
+import { deleteFile } from "@/lib/media/media-handle";
 import { updateUserSchema } from "@/lib/validators/user.validators";
 import { eq } from "drizzle-orm";
 
@@ -131,6 +132,8 @@ export async function DELETE(
       return notFound("User not found");
     }
 
+    const imagePath = foundUser.image_path;
+
     await db.transaction(async (tx) => {
       await tx
         .update(user)
@@ -140,9 +143,18 @@ export async function DELETE(
           email: `deleted_${foundUser.id}@deleted.local`,
           emailVerified: false,
           image: null,
+          image_path: null,
           deletedAt: new Date(),
         })
         .where(eq(user.id, id));
+
+      try {
+        if (imagePath) {
+          await deleteFile(imagePath);
+        }
+      } catch (error) {
+        console.error("Failed to delete user image", error);
+      }
 
       await tx.delete(account).where(eq(account.userId, id));
       await tx.delete(session).where(eq(session.userId, id));
