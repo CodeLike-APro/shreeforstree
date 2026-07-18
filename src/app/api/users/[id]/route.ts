@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { account, session, user } from "@/lib/db/schema/auth.schema";
 import { deleteFile } from "@/lib/media/media-handle";
+import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { updateUserSchema } from "@/lib/validators/user.validators";
 import { eq } from "drizzle-orm";
 
@@ -88,6 +89,12 @@ export async function PATCH(
       if (!isAdmin) return forbidden("Only admins can update user role");
     }
 
+    // imagePath is later passed to deleteFile on avatar replacement/account
+    // deletion — restrict it to the target user's own avatar folder
+    if (imagePath !== undefined && !isOwnedMediaPath(imagePath, `avatars/${id}`)) {
+      return badRequest("imagePath must point to this user's avatar folder");
+    }
+
     const updatedUser = await db
       .update(user)
       .set({
@@ -148,17 +155,19 @@ export async function DELETE(
         })
         .where(eq(user.id, id));
 
-      try {
-        if (imagePath) {
-          await deleteFile(imagePath);
-        }
-      } catch (error) {
-        console.error("Failed to delete user image", error);
-      }
-
       await tx.delete(account).where(eq(account.userId, id));
       await tx.delete(session).where(eq(session.userId, id));
     });
+
+    // storage cleanup only after the anonymization committed; failures must
+    // never block the account deletion
+    try {
+      if (imagePath) {
+        await deleteFile(imagePath);
+      }
+    } catch (error) {
+      console.error("Failed to delete user image", error);
+    }
 
     return ok("User deleted successfully");
   } catch (error) {
