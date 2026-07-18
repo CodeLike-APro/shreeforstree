@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
                   columns: {
                     url: true,
                   },
+                  where: (media, { eq }) => eq(media.isHero, false),
                   orderBy: (media, { asc }) => asc(media.sortOrder),
                   limit: 1,
                 },
@@ -230,7 +231,11 @@ export async function POST(request: NextRequest) {
         size: item.size,
         color: item.color,
         quantity: item.quantity,
-        priceAtPurchase: item.product.discountedPrice ?? item.product.price,
+        // same effective-price rule as calculateAmounts: a zero/absent
+        // discountedPrice falls back to the full price
+        priceAtPurchase: (
+          Number(item.product.discountedPrice) || Number(item.product.price)
+        ).toFixed(2),
       }));
 
       await tx.insert(orderItems).values(orderItemsData).returning();

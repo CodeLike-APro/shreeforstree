@@ -1,5 +1,6 @@
 import {
   badRequest,
+  conflict,
   forbidden,
   internalServerError,
   notFound,
@@ -10,7 +11,7 @@ import { VALID_ORDER_TRANSITIONS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema/order.schema";
 import { updateOrderSchema } from "@/lib/validators/order.validators";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
@@ -65,8 +66,17 @@ export async function PATCH(
         ...((orderStatus === "cancelled" || orderStatus === "returned") &&
           order.paymentStatus === "success" && { refundRequired: true }),
       })
-      .where(eq(orders.id, orderId))
+      // optimistic guard: only apply if the status is still the one the
+      // transition was validated against, so concurrent updates can't
+      // produce an invalid state
+      .where(and(eq(orders.id, orderId), eq(orders.orderStatus, order.orderStatus)))
       .returning();
+
+    if (!updatedOrder) {
+      return conflict(
+        "Order status was changed by another request, please retry",
+      );
+    }
 
     return ok("Order status updated successfully", updatedOrder);
   } catch (error) {
