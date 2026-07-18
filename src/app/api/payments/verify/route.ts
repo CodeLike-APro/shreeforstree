@@ -56,6 +56,10 @@ export async function POST(request: Request) {
       );
     }
 
+    if (payment.orderId !== order.id) {
+      return badRequest("Payment does not belong to this order");
+    }
+
     if (payment.status === "success") {
       return badRequest("Payment has already been verified");
     }
@@ -79,9 +83,6 @@ export async function POST(request: Request) {
         .where(eq(payments.id, payment.id));
       return badRequest("Payment verification failed");
     }
-
-    if (payment.orderId !== order.id)
-      return badRequest("Payment does not belong to this order");
 
     const paymentdetails = await razorpay.payments.fetch(razorpayPaymentId);
 

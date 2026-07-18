@@ -86,14 +86,28 @@ export async function POST(request: Request) {
         })
         .where(eq(payments.id, existingPayment.id));
     } else {
-      await db.insert(payments).values({
-        orderId: order.id,
-        razorpayOrderId: razorpayOrder.id,
-        status: "pending",
-        amount: order.totalAmount,
-        provider: "razorpay",
-        transactionId: null,
-      });
+      // upsert on the unique orderId so a concurrent request that inserted
+      // first doesn't turn into a unique-constraint 500
+      await db
+        .insert(payments)
+        .values({
+          orderId: order.id,
+          razorpayOrderId: razorpayOrder.id,
+          status: "pending",
+          amount: order.totalAmount,
+          provider: "razorpay",
+          transactionId: null,
+        })
+        .onConflictDoUpdate({
+          target: payments.orderId,
+          set: {
+            razorpayOrderId: razorpayOrder.id,
+            status: "pending",
+            amount: order.totalAmount,
+            transactionId: null,
+            method: null,
+          },
+        });
     }
 
     const returnData = {
