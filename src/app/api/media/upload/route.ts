@@ -1,13 +1,14 @@
 import {
   badRequest,
   created,
+  forbidden,
   internalServerError,
   ok,
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
+import { orderItems, orders, user } from "@/lib/db/schema";
 import {
   deleteFiles,
   detectMediaType,
@@ -15,7 +16,7 @@ import {
   uploadSingleFile,
 } from "@/lib/media/media-handle";
 import { mediaUploadSchema } from "@/lib/validators/media.validators";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { NextRequest } from "next/server";
 
 const MAX_FILES: Record<"avatar" | "review", number> = {
@@ -74,13 +75,9 @@ export async function POST(request: NextRequest) {
         columns: { image_path: true },
       });
 
-      if (existing?.image_path) {
-        try {
-          await deleteFiles([existing.image_path]);
-        } catch (error) {
-          console.error(`Failed to delete old avatar: ${error}`);
-        }
-      }
+      // upload the replacement and point the DB at it first — only then
+      // delete the old file, so a failed upload can't leave the stored
+      // image/image_path referencing a deleted file
       const uploaded = await uploadSingleFile(files[0], folder);
 
       const [updatedUser] = await db
@@ -89,7 +86,32 @@ export async function POST(request: NextRequest) {
         .where(eq(user.id, currentUser.id))
         .returning({ image: user.image, image_path: user.image_path });
 
+      if (existing?.image_path && existing.image_path !== uploaded.path) {
+        await deleteFiles([existing.image_path]);
+      }
+
       return created("Avatar uploaded successfully", updatedUser);
+    }
+
+    // mirror the review-creation eligibility rule so users can't fill
+    // storage with images for products they never purchased
+    const validOrder = await db
+      .select({ id: orders.id })
+      .from(orders)
+      .innerJoin(orderItems, eq(orderItems.orderId, orders.id))
+      .where(
+        and(
+          eq(orders.userId, currentUser.id),
+          eq(orderItems.productId, productId!),
+          inArray(orders.orderStatus, ["delivered", "returned"]),
+        ),
+      )
+      .limit(1);
+
+    if (validOrder.length === 0) {
+      return forbidden(
+        "You can only upload review images for products you have purchased and received",
+      );
     }
 
     const folder = `reviews/${currentUser.id}/${productId}`;

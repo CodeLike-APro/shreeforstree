@@ -110,6 +110,18 @@ export async function POST(request: NextRequest) {
       return ok("Category image uploaded successfully", updatedCategory);
     }
 
+    // product-hero and product-gallery both target a product folder and (for
+    // hero) a productMedia row — verify the product exists before touching
+    // storage so a bad productId can't create orphan files
+    const product = await db.query.products.findFirst({
+      where: (products, { eq }) => eq(products.id, productId!),
+      columns: { id: true },
+    });
+
+    if (!product) {
+      return notFound("Product not found");
+    }
+
     if (type === "product-hero") {
       const mediaTypes = await Promise.all(
         files.map((f) => detectMediaType(f)),
@@ -125,14 +137,6 @@ export async function POST(request: NextRequest) {
           and(eq(pm.productId, productId!), eq(pm.isHero, true)),
         columns: { path: true, id: true },
       });
-
-      if (existing?.path) {
-        try {
-          await deleteFiles([existing.path]);
-        } catch (error) {
-          console.error(`Failed to delete old hero image: ${error}`);
-        }
-      }
 
       const folder = `products/${productId!}/hero-image`;
       const uploaded = await uploadSingleFile(files[0], folder);
@@ -162,6 +166,12 @@ export async function POST(request: NextRequest) {
               url: productMedia.url,
               type: productMedia.type,
             });
+
+      // delete the replaced file only after the new upload and DB update
+      // succeeded, so a failed upload can't orphan the DB reference
+      if (existing?.path && existing.path !== uploaded.path) {
+        await deleteFiles([existing.path]);
+      }
 
       return ok("Hero image uploaded successfully", updatedHeroImage);
     }
