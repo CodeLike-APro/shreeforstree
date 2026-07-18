@@ -7,7 +7,11 @@ import {
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { getOrCreateCart, getSessionId } from "@/lib/cart-utils";
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
+import {
+  FREE_SHIPPING_THRESHOLD,
+  MAX_CART_ITEMS,
+  SHIPPING_CHARGE,
+} from "@/lib/constants";
 import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema/cartItem.schema";
 import { addCartItemSchema } from "@/lib/validators/cart.validators";
@@ -102,14 +106,17 @@ export async function GET(request: Request) {
     return ok("Cart fetched successfully", {
       cartId: cart.id,
       items: activeCartItems,
-      originalPriceTotal: String(originalPriceTotal),
-      discountedPriceTotal: String(discountedPriceTotal),
-      shippingCharge: String(shippingCharge),
-      discountAmount: String(discountAmount),
-      amountToFreeShipping: String(amountToFreeShipping),
-      total: String(total),
+      originalPriceTotal: String(originalPriceTotal.toFixed(2)),
+      discountedPriceTotal: String(discountedPriceTotal.toFixed(2)),
+      shippingCharge: String(shippingCharge.toFixed(2)),
+      discountAmount: String(discountAmount.toFixed(2)),
+      amountToFreeShipping: String(amountToFreeShipping.toFixed(2)),
+      total: String(total.toFixed(2)),
     });
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
     return internalServerError("Failed to get cart", error);
   }
 }
@@ -171,9 +178,11 @@ export async function POST(request: Request) {
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;
 
-        if (newQuantity > 10) {
+        if (newQuantity > MAX_CART_ITEMS) {
           // throwing Response objects is caught below and returned directly
-          throw badRequest("Maximum quantity for a single item is 10");
+          throw badRequest(
+            `Maximum quantity for a single item is ${MAX_CART_ITEMS}`,
+          );
         }
 
         const [updatedItem] = await tx
@@ -233,6 +242,9 @@ export async function DELETE(request: Request) {
 
     return ok("Cart cleared successfully", { clearedCart });
   } catch (error) {
+    if (error instanceof Response) {
+      return error;
+    }
     return internalServerError("Failed to clear cart", error);
   }
 }

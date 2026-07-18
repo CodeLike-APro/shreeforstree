@@ -6,6 +6,7 @@ import {
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { getSessionId } from "@/lib/cart-utils";
+import { MAX_CART_ITEMS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { carts } from "@/lib/db/schema/cart.schema";
 import { cartItems } from "@/lib/db/schema/cartItem.schema";
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
         if (existingItem) {
           const newQuantity = Math.min(
             existingItem.quantity + guestItem.quantity,
-            10,
+            MAX_CART_ITEMS,
           );
 
           await tx

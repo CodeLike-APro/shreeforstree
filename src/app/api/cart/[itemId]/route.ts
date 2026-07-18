@@ -27,13 +27,13 @@ const assertOwnsCartItem = async (
     });
 
     if (!item) {
-      throw notFound("Cart item not found");
+      return notFound("Cart item not found");
     }
     const ownsCart =
       item.cart.userId === currentUser?.id || item.cart.sessionId === sessionId;
 
     if (!ownsCart) {
-      throw forbidden("You can only modify your own cart");
+      return forbidden("You can only modify your own cart");
     }
 
     return item;
@@ -60,7 +60,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const result = updateCartItemSchema.safeParse(body);
+    const result = await updateCartItemSchema.safeParseAsync(body);
 
     if (!result.success) {
       return badRequest(
@@ -72,8 +72,15 @@ export async function PATCH(
     const { quantity } = result.data;
 
     const updatedItem = await db.transaction(async (tx) => {
-      await assertOwnsCartItem(itemId, currentUser, sessionId, tx);
-
+      const ownership = await assertOwnsCartItem(
+        itemId,
+        currentUser,
+        sessionId,
+        tx,
+      );
+      if (ownership instanceof Response) {
+        return ownership;
+      }
       const [updatedItem] = await tx
         .update(cartItems)
         .set({
@@ -86,9 +93,6 @@ export async function PATCH(
     });
     return ok("Cart item updated successfully", updatedItem);
   } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
     return internalServerError("Failed to update cart item", error);
   }
 }
@@ -109,7 +113,11 @@ export async function DELETE(
       return badRequest("Item ID is required");
     }
 
-    await assertOwnsCartItem(itemId, currentUser, sessionId);
+    const ownership = await assertOwnsCartItem(itemId, currentUser, sessionId);
+
+    if (ownership instanceof Response) {
+      return ownership;
+    }
 
     const [deletedItem] = await db
       .delete(cartItems)
@@ -118,9 +126,6 @@ export async function DELETE(
 
     return ok("Cart item deleted successfully", deletedItem);
   } catch (error) {
-    if (error instanceof Response) {
-      return error;
-    }
     return internalServerError("Failed to delete cart item", error);
   }
 }
