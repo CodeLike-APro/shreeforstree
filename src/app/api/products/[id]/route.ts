@@ -8,7 +8,7 @@ import {
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { productCategories, productMedia } from "@/lib/db/schema";
+import { orderItems, productCategories, productMedia } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
@@ -178,12 +178,6 @@ export async function PATCH(
           );
         }
 
-        try {
-          await deleteFiles(toDelete);
-        } catch (error) {
-          console.error("Failed to delete media files", error);
-        }
-
         if (toDelete.length > 0) {
           await tx
             .delete(productMedia)
@@ -204,6 +198,31 @@ export async function PATCH(
           }
         }
       });
+
+      // storage cleanup happens after the transaction committed, and skips
+      // any file whose URL is still referenced by an order-item snapshot
+      if (toDelete.length > 0) {
+        const urlByPath = new Map(
+          foundProduct.productMedia.map((m) => [m.path, m.url]),
+        );
+        const deletedUrls = toDelete
+          .map((path) => urlByPath.get(path))
+          .filter((url): url is string => url !== undefined);
+
+        const referencedItems = deletedUrls.length
+          ? await db
+              .select({ url: orderItems.productImageUrl })
+              .from(orderItems)
+              .where(inArray(orderItems.productImageUrl, deletedUrls))
+          : [];
+        const referencedUrls = new Set(referencedItems.map((r) => r.url));
+
+        const filesToRemove = toDelete.filter(
+          (path) => !referencedUrls.has(urlByPath.get(path) ?? ""),
+        );
+
+        await deleteFiles(filesToRemove);
+      }
 
       const updatedProduct = await db.query.products.findFirst({
         where: (products, { eq }) => eq(products.id, productId),
@@ -261,15 +280,13 @@ export async function DELETE(
         "Cannot delete product with existing orders. Set isActive to false instead.",
       );
 
-    if (foundProduct.productMedia.length > 0) {
-      try {
-        await deleteFiles(foundProduct.productMedia.map((m) => m.path));
-      } catch (error) {
-        console.error("Failed to delete product media files", error);
-      }
-    }
-
+    // delete the DB record first — if that fails the product must keep its
+    // media; storage cleanup afterwards is non-blocking
     await db.delete(products).where(eq(products.id, productId));
+
+    if (foundProduct.productMedia.length > 0) {
+      await deleteFiles(foundProduct.productMedia.map((m) => m.path));
+    }
 
     return ok("Product deleted successfully");
   } catch (error) {

@@ -10,9 +10,11 @@ import {
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { isUniqueViolation } from "@/lib/db/errors";
 import { orderItems } from "@/lib/db/schema";
 import { orders } from "@/lib/db/schema/order.schema";
 import { reviews } from "@/lib/db/schema/review.schema";
+import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { createReviewSchema } from "@/lib/validators/review.validators";
 import { and, avg, count, eq, inArray, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
@@ -159,22 +161,43 @@ export async function POST(
 
     const { rating, imagesUrl, imagesPath } = result.data;
 
+    // imagesPath is later passed to deleteFiles on review deletion — restrict
+    // it to this user's own review upload folder for this product
+    if (
+      imagesPath?.some(
+        (path) =>
+          !isOwnedMediaPath(path, `reviews/${currentUser.id}/${productId}`),
+      )
+    ) {
+      return badRequest(
+        "imagesPath entries must point to your own review uploads for this product",
+      );
+    }
+
     const comments = result.data.comments?.trim() || null;
 
-    const [newReview] = await db
-      .insert(reviews)
-      .values({
-        userId: currentUser.id,
-        productId,
-        rating,
-        comments,
-        imagesUrl,
-        imagesPath,
-        isVerified: true,
-      })
-      .returning();
+    try {
+      const [newReview] = await db
+        .insert(reviews)
+        .values({
+          userId: currentUser.id,
+          productId,
+          rating,
+          comments,
+          imagesUrl,
+          imagesPath,
+          isVerified: true,
+        })
+        .returning();
 
-    return created("Review created successfully", newReview);
+      return created("Review created successfully", newReview);
+    } catch (error) {
+      // unique (userId, productId) violation from a concurrent submission
+      if (isUniqueViolation(error)) {
+        return conflict("You have already reviewed this product");
+      }
+      throw error;
+    }
   } catch (error) {
     return internalServerError(
       "An error occurred while creating the review",

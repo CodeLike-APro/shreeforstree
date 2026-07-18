@@ -172,9 +172,11 @@ export async function POST(request: NextRequest) {
     };
     const files = formData.getAll("files") as File[];
 
-    const sortOrders = formData
-      .getAll("sortOrders")
-      .map((order) => parseInt(order as string, 10));
+    const sortOrders = formData.getAll("sortOrders").map((order) => {
+      const parsed = parseInt(order as string, 10);
+      // NaN survives `?? index` fallback below — normalize to undefined
+      return Number.isNaN(parsed) ? undefined : parsed;
+    });
 
     if (files.length === 0) {
       return badRequest("At least one media file is required");

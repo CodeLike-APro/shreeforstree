@@ -41,18 +41,16 @@ export async function DELETE(
       return forbidden("You do not have permission to delete this review");
     }
 
-    if (review.imagesPath && review.imagesPath.length > 0) {
-      try {
-        await deleteFiles(review.imagesPath);
-      } catch (error) {
-        console.error("Failed to delete review images", error);
-      }
-    }
-
     const deletedReview = await db
       .delete(reviews)
       .where(eq(reviews.id, reviewId))
       .returning();
+
+    // storage cleanup after the DB delete succeeded — if the delete had
+    // failed, the review must keep its images
+    if (review.imagesPath && review.imagesPath.length > 0) {
+      await deleteFiles(review.imagesPath);
+    }
 
     return ok("Review deleted successfully", deletedReview);
   } catch (error) {
