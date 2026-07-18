@@ -22,6 +22,13 @@
       "when": 1784354961594,
       "tag": "0002_easy_the_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1784365551446,
+      "tag": "0003_bright_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

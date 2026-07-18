@@ -1,0 +1,3 @@
+CREATE UNIQUE INDEX "carts_user_id_unique" ON "carts" USING btree ("user_id") WHERE "carts"."user_id" is not null;--> statement-breakpoint
+CREATE UNIQUE INDEX "carts_session_id_unique" ON "carts" USING btree ("session_id") WHERE "carts"."user_id" is null;--> statement-breakpoint
+ALTER TABLE "cart_items" ADD CONSTRAINT "cart_items_cart_id_product_id_color_size_unique" UNIQUE("cart_id","product_id","color","size");
