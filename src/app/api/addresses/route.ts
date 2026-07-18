@@ -100,10 +100,12 @@ export async function POST(request: Request) {
     } = result.data;
 
     const newAddress = await db.transaction(async (tx) => {
-      await tx
-        .update(addresses)
-        .set({ isDefault: false })
-        .where(eq(addresses.userId, currentUser.id));
+      if (isDefault) {
+        await tx
+          .update(addresses)
+          .set({ isDefault: false })
+          .where(eq(addresses.userId, currentUser.id));
+      }
 
       const address = await tx
         .insert(addresses)
