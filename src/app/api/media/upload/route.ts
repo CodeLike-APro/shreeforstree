@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
 
-    const result = mediaUploadSchema.safeParse({
+    const result = await mediaUploadSchema.safeParseAsync({
       type: formData.get("type"),
       productId: formData.get("productId") ?? undefined,
     });

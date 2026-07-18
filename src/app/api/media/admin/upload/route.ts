@@ -2,6 +2,7 @@ import {
   badRequest,
   forbidden,
   internalServerError,
+  notFound,
   ok,
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
@@ -15,7 +16,7 @@ import {
   uploadSingleFile,
 } from "@/lib/media/media-handle";
 import { adminMediaUploadSchema } from "@/lib/validators/media.validators";
-import { eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { NextRequest } from "next/server";
 
 const MAX_FILES: Record<
@@ -75,10 +76,14 @@ export async function POST(request: NextRequest) {
 
       const existing = await db.query.categories.findFirst({
         where: (category, { eq }) => eq(category.slug, categorySlug!),
-        columns: { categoryImagePath: true },
+        columns: { id: true, categoryImagePath: true },
       });
 
-      if (existing?.categoryImagePath) {
+      if (!existing) {
+        return notFound("Category not found");
+      }
+
+      if (existing.categoryImagePath) {
         try {
           await deleteFiles([existing.categoryImagePath]);
         } catch (error) {
@@ -86,7 +91,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const folder = `categories/${categorySlug!}/category-image`;
+      const folder = `categories/${existing.id}/category-image`;
 
       const uploaded = await uploadSingleFile(files[0], folder);
 
@@ -96,7 +101,7 @@ export async function POST(request: NextRequest) {
           categoryImageUrl: uploaded.publicUrl,
           categoryImagePath: uploaded.path,
         })
-        .where(eq(categories.slug, categorySlug!))
+        .where(eq(categories.id, existing.id))
         .returning({
           categoryImageUrl: categories.categoryImageUrl,
           categoryImagePath: categories.categoryImagePath,
@@ -159,6 +164,25 @@ export async function POST(request: NextRequest) {
             });
 
       return ok("Hero image uploaded successfully", updatedHeroImage);
+    }
+
+    const [{ count: existingMediaCount }] = await db
+      .select({
+        count: count(),
+      })
+      .from(productMedia)
+      .where(
+        and(
+          eq(productMedia.productId, productId!),
+          eq(productMedia.isHero, false),
+        ),
+      );
+
+    const totalMediaCount = existingMediaCount + files.length;
+    if (totalMediaCount > MAX_FILES["product-gallery"]) {
+      return badRequest(
+        `You can upload at most ${MAX_FILES["product-gallery"]} files for product gallery`,
+      );
     }
 
     const folder = `products/${productId}`;
