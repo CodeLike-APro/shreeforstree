@@ -18,7 +18,7 @@ import {
 } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
-import { NextRequest } from "next/dist/server/web/spec-extension/request";
+import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {

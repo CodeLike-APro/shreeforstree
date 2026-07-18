@@ -62,7 +62,7 @@ export async function PATCH(
       .update(orders)
       .set({
         orderStatus,
-        ...(orderStatus === "cancelled" &&
+        ...((orderStatus === "cancelled" || orderStatus === "returned") &&
           order.paymentStatus === "success" && { refundRequired: true }),
       })
       .where(eq(orders.id, orderId))

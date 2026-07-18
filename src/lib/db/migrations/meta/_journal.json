@@ -15,6 +15,13 @@
       "when": 1784215315825,
       "tag": "0001_flat_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784354961594,
+      "tag": "0002_easy_the_fury",
+      "breakpoints": true
     }
   ]
 }
