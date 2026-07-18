@@ -205,7 +205,7 @@ export async function GET(request: NextRequest) {
         total: parseFloat(totalRevenue ?? "0"),
         period: parseFloat(periodRevenue ?? "0"),
         totalDiscount: parseFloat(totalDiscount ?? "0"),
-        periodDiscount,
+        periodDiscount: parseFloat(periodDiscount ?? "0"),
         averageOrderValue: parseFloat(averageOrderValue ?? "0"),
       },
       orders: {
