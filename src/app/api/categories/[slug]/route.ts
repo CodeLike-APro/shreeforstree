@@ -1,5 +1,6 @@
 import {
   badRequest,
+  conflict,
   forbidden,
   internalServerError,
   notFound,
@@ -50,6 +51,17 @@ export async function PATCH(
 
     if (!category) {
       return notFound("Category not found");
+    }
+
+    if (slug) {
+      const existingCategory = await db.query.categories.findFirst({
+        where: (categories, { and, eq, ne }) =>
+          and(eq(categories.slug, slug), ne(categories.id, category.id)),
+      });
+
+      if (existingCategory) {
+        return conflict("A category with the same title already exists.");
+      }
     }
 
     const updatedCategory = await db

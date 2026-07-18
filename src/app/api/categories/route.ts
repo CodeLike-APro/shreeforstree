@@ -12,7 +12,7 @@ import { eq } from "drizzle-orm";
 import { adminCheck } from "@/lib/auth-utils";
 import slugify from "slugify";
 import { createCategorySchema } from "@/lib/validators/category.validators";
-import { uploadSingleFile } from "@/lib/media/media-handle";
+import { deleteFile, uploadSingleFile } from "@/lib/media/media-handle";
 
 export async function GET(request: Request) {
   try {
@@ -67,24 +67,37 @@ export async function POST(request: Request) {
       );
     }
 
+    const newCategoryId = crypto.randomUUID();
+
     const uploaded = file
-      ? await uploadSingleFile(file, `categories/${slug}/category-image`)
+      ? await uploadSingleFile(
+          file,
+          `categories/${newCategoryId}/category-image`,
+        )
       : null;
 
     if (file && !uploaded) {
       return internalServerError("Failed to upload category image");
     }
-    const [newCategory] = await db
-      .insert(categories)
-      .values({
-        name: name.trim(),
-        slug: slug,
-        description: description.trim(),
-        categoryImageUrl: uploaded?.publicUrl || null,
-        categoryImagePath: uploaded?.path || null,
-      })
-      .returning();
-    return created("Category created successfully", newCategory);
+    try {
+      const [newCategory] = await db
+        .insert(categories)
+        .values({
+          id: newCategoryId,
+          name: name.trim(),
+          slug: slug,
+          description: description.trim(),
+          categoryImageUrl: uploaded?.publicUrl || null,
+          categoryImagePath: uploaded?.path || null,
+        })
+        .returning();
+      return created("Category created successfully", newCategory);
+    } catch (error) {
+      if (uploaded && uploaded.path) {
+        await deleteFile(uploaded.path);
+      }
+      return internalServerError("Error creating category", error);
+    }
   } catch (error) {
     return internalServerError(
       "Error creating category",
