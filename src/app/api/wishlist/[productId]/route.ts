@@ -23,7 +23,7 @@ export async function DELETE(
 
     const { productId: body } = await params;
 
-    const isProductIdValid = z4.uuid().safeParse(body);
+    const isProductIdValid = await z4.uuid().safeParseAsync(body);
 
     if (!isProductIdValid.success) {
       return badRequest("Invalid product ID");

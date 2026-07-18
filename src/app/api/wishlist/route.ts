@@ -9,7 +9,7 @@ import {
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { productMedia, products, wishlist } from "@/lib/db/schema";
+import { products, wishlist } from "@/lib/db/schema";
 import { addWishlistSchema } from "@/lib/validators/wishlist.validators";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -22,28 +22,55 @@ export async function GET(request: Request) {
 
     const wishlistItems = await db
       .select({
-        productId: wishlist.productId,
-        title: products.title,
-        price: products.price,
-        discountedPrice: products.discountedPrice,
-        slug: products.slug,
-        imageUrl: productMedia.url,
+        addedAt: wishlist.addedAt,
+        product: {
+          id: products.id,
+          title: products.title,
+          price: products.price,
+          discountedPrice: products.discountedPrice,
+          slug: products.slug,
+        },
       })
       .from(wishlist)
-      .innerJoin(products, eq(wishlist.productId, products.id))
-      .leftJoin(
-        productMedia,
-        and(
-          eq(productMedia.productId, products.id),
-          eq(productMedia.sortOrder, 0),
-        ),
+      .innerJoin(
+        products,
+        and(eq(products.id, wishlist.productId), eq(products.isActive, true)),
       )
-      .where(
-        and(eq(wishlist.userId, currentUser.id), eq(products.isActive, true)),
-      )
+      .where(eq(wishlist.userId, currentUser.id))
       .orderBy(desc(wishlist.addedAt));
 
-    return ok("Wishlist fetched successfully", wishlistItems);
+    if (wishlistItems.length === 0) {
+      return ok("Wishlist fetched successfully", []);
+    }
+
+    const productIds = wishlistItems.map((item) => item.product.id);
+
+    // fetch top 3 gallery images per product, same shape as GET /api/products
+    const productsMedia = await db.query.products.findMany({
+      where: (products, { inArray }) => inArray(products.id, productIds),
+      columns: { id: true },
+      with: {
+        productMedia: {
+          where: (media, { eq }) => eq(media.isHero, false),
+          orderBy: (media, { asc }) => asc(media.sortOrder),
+          limit: 3,
+        },
+      },
+    });
+
+    const mediaByProductId = new Map(
+      productsMedia.map((p) => [p.id, p.productMedia]),
+    );
+
+    const itemsWithMedia = wishlistItems.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        productMedia: mediaByProductId.get(item.product.id) ?? [],
+      },
+    }));
+
+    return ok("Wishlist fetched successfully", itemsWithMedia);
   } catch (error) {
     return internalServerError(
       "Something went wrong while fetching your wishlist",
@@ -61,10 +88,13 @@ export async function POST(request: Request) {
 
     const body = await request.json();
 
-    const result = addWishlistSchema.safeParse(body);
+    const result = await addWishlistSchema.safeParseAsync(body);
 
     if (!result.success) {
-      return badRequest("Invalid request body");
+      return badRequest(
+        "Invalid request body",
+        result.error.flatten((issue) => issue.message).fieldErrors,
+      );
     }
 
     const { productId } = result.data;
