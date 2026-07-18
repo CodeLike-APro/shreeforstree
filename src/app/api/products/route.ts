@@ -13,7 +13,7 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import { createProductSchema } from "@/lib/validators/product.validators";
-import { and, count, eq, SQL, desc } from "drizzle-orm";
+import { and, count, eq, SQL, desc, sql } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get("categories");
     const isNewArrival = searchParams.get("isNewArrival");
     const isHeroProduct = searchParams.get("isHeroProduct");
+    const search = searchParams.get("search");
+    let tsquery: string | null = null;
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
     const limit = Math.max(
       1,
@@ -40,6 +42,13 @@ export async function GET(request: NextRequest) {
     if (isHeroProduct === "true") {
       conditions.push(eq(products.isHeroProduct, true));
     }
+    if (search && search.trim().length > 0) {
+      const words = search.trim().split(/\s+/).filter(Boolean);
+      tsquery = words.map((w) => `${w}:*`).join(" | ");
+      conditions.push(
+        sql`product_search_vector(${products.title}, ${products.description}, ${products.keywords}) @@ to_tsquery('english', ${tsquery})`,
+      );
+    }
 
     const isAdmin = await adminCheck(request);
 
@@ -49,7 +58,69 @@ export async function GET(request: NextRequest) {
 
     let countResult: { count: number }[];
     let allProducts: Awaited<ReturnType<typeof db.query.products.findMany>>;
-    if (category) {
+
+    if (search && tsquery) {
+      // COUNT
+      countResult = await db
+        .select({ count: count() })
+        .from(products)
+        .leftJoin(
+          productCategories,
+          eq(products.id, productCategories.productId),
+        )
+        .leftJoin(categories, eq(categories.id, productCategories.categoryId))
+        .where(conditions.length ? and(...conditions) : undefined);
+
+      // RANKED IDs
+      const rankedIds = await db
+        .select({
+          id: products.id,
+          rank: sql<number>`ts_rank(...)`.as("rank"),
+        })
+        .from(products)
+        .leftJoin(
+          productCategories,
+          eq(products.id, productCategories.productId),
+        )
+        .leftJoin(categories, eq(categories.id, productCategories.categoryId))
+        .where(conditions.length ? and(...conditions) : undefined)
+        .orderBy(desc(sql`rank`))
+        .limit(limit)
+        .offset(offset);
+
+      if (rankedIds.length === 0) {
+        allProducts = [];
+      } else {
+        const rankMap = new Map(rankedIds.map((r, i) => [r.id, i]));
+
+        allProducts = await db.query.products.findMany({
+          where: (products, { inArray }) =>
+            inArray(
+              products.id,
+              rankedIds.map((r) => r.id),
+            ),
+          with: {
+            productMedia: {
+              where: (media, { eq }) => eq(media.isHero, false),
+              orderBy: (media, { asc }) => asc(media.sortOrder),
+              limit: 3,
+            },
+            categories: {
+              with: {
+                category: {
+                  columns: { name: true },
+                },
+              },
+            },
+          },
+        });
+
+        // Re-sort by rank order from ranked query
+        allProducts.sort(
+          (a, b) => (rankMap.get(a.id) ?? 0) - (rankMap.get(b.id) ?? 0),
+        );
+      }
+    } else if (category) {
       countResult = await db
         .select({ count: count() })
         .from(products)

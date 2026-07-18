@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1784210639659,
-      "tag": "0000_omniscient_mantis",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1784215315825,
-      "tag": "0001_flat_krista_starr",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1784354961594,
-      "tag": "0002_easy_the_fury",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1784365551446,
-      "tag": "0003_bright_bloodstorm",
+      "when": 1784372695481,
+      "tag": "0000_clammy_microchip",
       "breakpoints": true
     }
   ]

@@ -36,6 +36,7 @@ export const products = pgTable("products", {
   isNewArrival: boolean("is_new_arrival").notNull().default(false),
   isHeroProduct: boolean("is_hero_product").notNull().default(false),
   slug: text("slug").notNull().unique(),
+  keywords: text("keywords").array().default([]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
     .notNull()

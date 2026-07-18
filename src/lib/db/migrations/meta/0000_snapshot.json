@@ -1,5 +1,5 @@
 {
-  "id": "51943ea7-ac70-448c-b72e-fba489fb924a",
+  "id": "31d861dd-1d4c-4a96-b834-1e868a3c28f7",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -408,7 +408,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'customer'"
+          "default": "'user'"
         },
         "deleted_at": {
           "name": "deleted_at",
@@ -531,7 +531,40 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "carts_user_id_unique": {
+          "name": "carts_user_id_unique",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"carts\".\"user_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "carts_session_id_unique": {
+          "name": "carts_session_id_unique",
+          "columns": [
+            {
+              "expression": "session_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"carts\".\"user_id\" is null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "carts_user_id_user_id_fk": {
           "name": "carts_user_id_user_id_fk",
@@ -633,7 +666,18 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "cart_items_cart_id_product_id_color_size_unique": {
+          "name": "cart_items_cart_id_product_id_color_size_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "cart_id",
+            "product_id",
+            "color",
+            "size"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1006,6 +1050,19 @@
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
+        },
+        "order_items_product_id_products_id_fk": {
+          "name": "order_items_product_id_products_id_fk",
+          "tableFrom": "order_items",
+          "tableTo": "products",
+          "columnsFrom": [
+            "product_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -1102,7 +1159,15 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "payments_order_id_unique": {
+          "name": "payments_order_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "order_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1320,6 +1385,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "keywords": {
+          "name": "keywords",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'{}'"
         },
         "created_at": {
           "name": "created_at",
