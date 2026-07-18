@@ -117,7 +117,7 @@ export async function POST(
 
     const body = await request.json();
 
-    const result = createReviewSchema.safeParse(body);
+    const result = await createReviewSchema.safeParseAsync(body);
 
     if (!result.success) {
       return badRequest(
@@ -159,7 +159,7 @@ export async function POST(
 
     const { rating, imagesUrl, imagesPath } = result.data;
 
-    const comments = result.data.comments?.trim() ?? null;
+    const comments = result.data.comments?.trim() || null;
 
     const [newReview] = await db
       .insert(reviews)

@@ -4,8 +4,8 @@ export const createReviewSchema = z4
   .object({
     rating: z4.number().int().min(1).max(5),
     comments: z4.string().min(1).max(500).optional(),
-    imagesUrl: z4.array(z4.string().min(1)).optional(),
-    imagesPath: z4.array(z4.string().min(1)).optional(),
+    imagesUrl: z4.array(z4.string().min(1)).max(5).optional(),
+    imagesPath: z4.array(z4.string().min(1)).max(5).optional(),
   })
   .refine(
     ({ imagesUrl, imagesPath }) =>
