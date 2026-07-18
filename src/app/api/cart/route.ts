@@ -6,7 +6,7 @@ import {
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
-import { getOrCreateCart, getSessionId } from "@/lib/cart-utils";
+import { getOrCreateCart, getSessionId, upsertCartItem } from "@/lib/cart-utils";
 import {
   FREE_SHIPPING_THRESHOLD,
   MAX_CART_ITEMS,
@@ -56,6 +56,7 @@ export async function GET(request: Request) {
               columns: {
                 url: true,
               },
+              where: (media, { eq }) => eq(media.isHero, false),
               orderBy: (media, { asc }) => asc(media.sortOrder),
               limit: 1,
             },
@@ -158,57 +159,27 @@ export async function POST(request: Request) {
       return badRequest(`Color ${color} is not available for this product`);
     }
 
-    const updatedCart = await db.transaction(async (tx) => {
+    const updatedItem = await db.transaction(async (tx) => {
       const cart = await getOrCreateCart(
         currentUser?.id ?? null,
         sessionId,
         tx,
       );
 
-      const existingItem = await tx.query.cartItems.findFirst({
-        where: (cartItems, { and, eq }) =>
-          and(
-            eq(cartItems.cartId, cart.id),
-            eq(cartItems.productId, productId),
-            eq(cartItems.color, color),
-            eq(cartItems.size, size),
-          ),
+      // atomic upsert against the (cartId, productId, color, size) unique
+      // constraint — closes the race where two concurrent adds of the same
+      // line item both saw no existing row and both inserted
+      return upsertCartItem(tx, {
+        cartId: cart.id,
+        productId,
+        color,
+        size,
+        quantity,
+        maxQuantity: MAX_CART_ITEMS,
       });
-
-      if (existingItem) {
-        const newQuantity = existingItem.quantity + quantity;
-
-        if (newQuantity > MAX_CART_ITEMS) {
-          // throwing Response objects is caught below and returned directly
-          throw badRequest(
-            `Maximum quantity for a single item is ${MAX_CART_ITEMS}`,
-          );
-        }
-
-        const [updatedItem] = await tx
-          .update(cartItems)
-          .set({ quantity: newQuantity })
-          .where(eq(cartItems.id, existingItem.id))
-          .returning();
-
-        return updatedItem;
-      }
-
-      const [newItem] = await tx
-        .insert(cartItems)
-        .values({
-          cartId: cart.id,
-          productId,
-          quantity,
-          color,
-          size,
-        })
-        .returning();
-
-      return newItem;
     });
 
-    return ok("Item added to cart successfully", updatedCart);
+    return ok("Item added to cart successfully", updatedItem);
   } catch (error) {
     if (error instanceof Response) {
       return error;
