@@ -213,7 +213,6 @@ CREATE TABLE "wishlist" (
 	"added_at" timestamp DEFAULT now() NOT NULL,
 	CONSTRAINT "wishlist_user_id_product_id_pk" PRIMARY KEY("user_id","product_id")
 );
-
 --> statement-breakpoint
 ALTER TABLE "addresses" ADD CONSTRAINT "addresses_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -238,18 +237,3 @@ CREATE INDEX "session_userId_idx" ON "session" USING btree ("user_id");--> state
 CREATE INDEX "verification_identifier_idx" ON "verification" USING btree ("identifier");--> statement-breakpoint
 CREATE UNIQUE INDEX "carts_user_id_unique" ON "carts" USING btree ("user_id") WHERE "carts"."user_id" is not null;--> statement-breakpoint
 CREATE UNIQUE INDEX "carts_session_id_unique" ON "carts" USING btree ("session_id") WHERE "carts"."user_id" is null;
-CREATE UNIQUE INDEX "carts_session_id_unique" ON "carts" USING btree ("session_id") WHERE "carts"."user_id" is null;--> statement-breakpoint
-CREATE OR REPLACE FUNCTION product_search_vector(title text, description text, keywords text[])
-RETURNS tsvector
-LANGUAGE sql
-IMMUTABLE
-AS $$
-  SELECT to_tsvector('english', 
-    coalesce(title, '') || ' ' || 
-    coalesce(description, '') || ' ' || 
-    coalesce(array_to_string(keywords, ' '), '')
-  )
-$$;
-
-CREATE INDEX products_search_idx ON products 
-USING GIN (product_search_vector(title, description, keywords));
