@@ -109,12 +109,16 @@ export async function PATCH(
     }
 
     const existingPaths =
-      media && media.length > 0
-        ? new Set(foundProduct.productMedia.map((media) => media.path))
+      media !== undefined
+        ? new Set(
+            foundProduct.productMedia
+              .filter((media) => !media.isHero)
+              .map((media) => media.path),
+          )
         : new Set<string>();
 
     const incomingPaths =
-      media && media.length > 0
+      media !== undefined
         ? new Set(media.map((media) => media.path))
         : new Set<string>();
 
@@ -128,16 +132,6 @@ export async function PATCH(
     const toDelete = Array.from(existingPaths).filter(
       (media) => !incomingPaths.has(media),
     );
-
-    try {
-      await deleteFiles(toDelete);
-    } catch (error) {
-      console.error("Failed to delete media files", error);
-    }
-
-    if (toDelete.length > 0) {
-      await db.delete(productMedia).where(inArray(productMedia.path, toDelete));
-    }
 
     try {
       const updateData = {
@@ -182,6 +176,18 @@ export async function PATCH(
               sortOrder: file.sortOrder,
             })),
           );
+        }
+
+        try {
+          await deleteFiles(toDelete);
+        } catch (error) {
+          console.error("Failed to delete media files", error);
+        }
+
+        if (toDelete.length > 0) {
+          await tx
+            .delete(productMedia)
+            .where(inArray(productMedia.path, toDelete));
         }
 
         if (toUpdateSortOrder && toUpdateSortOrder.length > 0) {

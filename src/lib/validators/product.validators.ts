@@ -48,6 +48,7 @@ export const updateProductSchema = z4
           sortOrder: z4.number().int().min(0).max(9),
         }),
       )
+      .max(10, "You can upload at most 10 media files")
       .optional(),
   })
   .refine(

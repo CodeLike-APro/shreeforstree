@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
             ),
           with: {
             productMedia: {
+              where: (media, { eq }) => eq(media.isHero, false),
               orderBy: (media, { asc }) => asc(media.sortOrder),
               limit: 3,
             },
@@ -110,6 +111,7 @@ export async function GET(request: NextRequest) {
         where: conditions.length ? and(...conditions) : undefined,
         with: {
           productMedia: {
+            where: (media, { eq }) => eq(media.isHero, false),
             orderBy: (media, { asc }) => asc(media.sortOrder),
             limit: 3,
           },
