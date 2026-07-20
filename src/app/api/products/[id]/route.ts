@@ -80,8 +80,17 @@ export async function PATCH(
       isActive,
       isNewArrival,
       isHeroProduct,
+      fabric,
+      work,
+      silhouette,
+      lining,
+      sleeveType,
+      neckline,
+      length,
+      careInstructions,
       categoryIds,
       media,
+      fabricMedia,
     } = result.data;
 
     const slug = title
@@ -112,7 +121,7 @@ export async function PATCH(
       media !== undefined
         ? new Set(
             foundProduct.productMedia
-              .filter((media) => !media.isHero)
+              .filter((media) => !media.isHero && !media.isFabricSwatch)
               .map((media) => media.path),
           )
         : new Set<string>();
@@ -133,6 +142,32 @@ export async function PATCH(
       (media) => !incomingPaths.has(media),
     );
 
+    const existingFabricPaths =
+      fabricMedia !== undefined
+        ? new Set(
+            foundProduct.productMedia
+              .filter((media) => media.isFabricSwatch)
+              .map((media) => media.path),
+          )
+        : new Set<string>();
+
+    const incomingFabricPaths =
+      fabricMedia !== undefined
+        ? new Set(fabricMedia.map((media) => media.path))
+        : new Set<string>();
+
+    const fabricToInsert =
+      fabricMedia?.filter((media) => !existingFabricPaths.has(media.path)) ||
+      [];
+
+    const fabricToUpdateSortOrder = fabricMedia?.filter((media) =>
+      existingFabricPaths.has(media.path),
+    );
+
+    const fabricToDelete = Array.from(existingFabricPaths).filter(
+      (media) => !incomingFabricPaths.has(media),
+    );
+
     try {
       const updateData = {
         ...(title !== undefined && { title: title.trim(), slug }),
@@ -144,6 +179,14 @@ export async function PATCH(
         ...(isActive !== undefined && { isActive }),
         ...(isNewArrival !== undefined && { isNewArrival }),
         ...(isHeroProduct !== undefined && { isHeroProduct }),
+        ...(fabric !== undefined && { fabric }),
+        ...(work !== undefined && { work }),
+        ...(silhouette !== undefined && { silhouette }),
+        ...(lining !== undefined && { lining }),
+        ...(sleeveType !== undefined && { sleeveType }),
+        ...(neckline !== undefined && { neckline }),
+        ...(length !== undefined && { length }),
+        ...(careInstructions !== undefined && { careInstructions }),
       };
 
       await db.transaction(async (tx) => {
@@ -197,15 +240,49 @@ export async function PATCH(
               );
           }
         }
+
+        if (fabricToInsert.length > 0) {
+          await tx.insert(productMedia).values(
+            fabricToInsert.map((file) => ({
+              productId,
+              type: file.type,
+              url: file.url,
+              path: file.path,
+              sortOrder: file.sortOrder,
+              isFabricSwatch: true,
+            })),
+          );
+        }
+
+        if (fabricToDelete.length > 0) {
+          await tx
+            .delete(productMedia)
+            .where(inArray(productMedia.path, fabricToDelete));
+        }
+
+        if (fabricToUpdateSortOrder && fabricToUpdateSortOrder.length > 0) {
+          for (const media of fabricToUpdateSortOrder) {
+            await tx
+              .update(productMedia)
+              .set({ sortOrder: media.sortOrder })
+              .where(
+                and(
+                  eq(productMedia.productId, productId),
+                  eq(productMedia.path, media.path),
+                ),
+              );
+          }
+        }
       });
 
       // storage cleanup happens after the transaction committed, and skips
       // any file whose URL is still referenced by an order-item snapshot
-      if (toDelete.length > 0) {
+      const allToDelete = [...toDelete, ...fabricToDelete];
+      if (allToDelete.length > 0) {
         const urlByPath = new Map(
           foundProduct.productMedia.map((m) => [m.path, m.url]),
         );
-        const deletedUrls = toDelete
+        const deletedUrls = allToDelete
           .map((path) => urlByPath.get(path))
           .filter((url): url is string => url !== undefined);
 
@@ -217,7 +294,7 @@ export async function PATCH(
           : [];
         const referencedUrls = new Set(referencedItems.map((r) => r.url));
 
-        const filesToRemove = toDelete.filter(
+        const filesToRemove = allToDelete.filter(
           (path) => !referencedUrls.has(urlByPath.get(path) ?? ""),
         );
 

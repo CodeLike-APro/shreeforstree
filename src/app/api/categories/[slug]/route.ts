@@ -38,8 +38,15 @@ export async function PATCH(
       );
     }
 
-    const { name, description, isActive, categoryImageUrl, categoryImagePath } =
-      result.data;
+    const {
+      name,
+      description,
+      isActive,
+      categoryImageUrl,
+      categoryImagePath,
+      sizeChartImageUrl,
+      sizeChartImagePath,
+    } = result.data;
 
     const slug = name
       ? slugify(name.trim(), { lower: true, strict: true })
@@ -70,6 +77,7 @@ export async function PATCH(
         ...(name && { name: name.trim(), slug }),
         ...(description && { description: description.trim() }),
         ...(categoryImageUrl ? { categoryImageUrl, categoryImagePath } : {}),
+        ...(sizeChartImageUrl ? { sizeChartImageUrl, sizeChartImagePath } : {}),
         ...(isActive !== undefined && { isActive }),
         updatedAt: new Date(),
       })
@@ -111,9 +119,14 @@ export async function DELETE(
     if (linkedProducts.length > 0) {
       return badRequest("Cannot delete category with linked products");
     }
-    if (category.categoryImagePath) {
+    if (category.categoryImagePath || category.sizeChartImagePath) {
       try {
-        await deleteFile(category.categoryImagePath);
+        if (category.categoryImagePath) {
+          await deleteFile(category.categoryImagePath);
+        }
+        if (category.sizeChartImagePath) {
+          await deleteFile(category.sizeChartImagePath);
+        }
       } catch (error) {
         console.error("Failed to delete category image", error);
       }

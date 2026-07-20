@@ -51,7 +51,8 @@ export async function GET(request: Request) {
       columns: { id: true },
       with: {
         productMedia: {
-          where: (media, { eq }) => eq(media.isHero, false),
+          where: (media, { and, eq }) =>
+            and(eq(media.isHero, false), eq(media.isFabricSwatch, false)),
           orderBy: (media, { asc }) => asc(media.sortOrder),
           limit: 3,
         },

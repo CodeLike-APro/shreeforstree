@@ -101,7 +101,8 @@ export async function GET(request: NextRequest) {
             ),
           with: {
             productMedia: {
-              where: (media, { eq }) => eq(media.isHero, false),
+              where: (media, { and, eq }) =>
+                and(eq(media.isHero, false), eq(media.isFabricSwatch, false)),
               orderBy: (media, { asc }) => asc(media.sortOrder),
               limit: 3,
             },
@@ -156,7 +157,8 @@ export async function GET(request: NextRequest) {
             ),
           with: {
             productMedia: {
-              where: (media, { eq }) => eq(media.isHero, false),
+              where: (media, { and, eq }) =>
+                and(eq(media.isHero, false), eq(media.isFabricSwatch, false)),
               orderBy: (media, { asc }) => asc(media.sortOrder),
               limit: 3,
             },
@@ -182,7 +184,8 @@ export async function GET(request: NextRequest) {
         where: conditions.length ? and(...conditions) : undefined,
         with: {
           productMedia: {
-            where: (media, { eq }) => eq(media.isHero, false),
+            where: (media, { and, eq }) =>
+              and(eq(media.isHero, false), eq(media.isFabricSwatch, false)),
             orderBy: (media, { asc }) => asc(media.sortOrder),
             limit: 3,
           },
@@ -239,6 +242,14 @@ export async function POST(request: NextRequest) {
         isNewArrivalRaw !== null ? isNewArrivalRaw === "true" : undefined,
       isHeroProduct:
         isHeroProductRaw !== null ? isHeroProductRaw === "true" : undefined,
+      fabric: formData.get("fabric"),
+      work: formData.getAll("work"),
+      silhouette: formData.get("silhouette"),
+      lining: formData.get("lining"),
+      sleeveType: formData.get("sleeveType"),
+      neckline: formData.get("neckline"),
+      length: formData.get("length"),
+      careInstructions: formData.get("careInstructions"),
       categoryIds: formData.getAll("categoryIds"),
     };
     const files = formData.getAll("files") as File[];
@@ -278,6 +289,14 @@ export async function POST(request: NextRequest) {
       isActive,
       isNewArrival,
       isHeroProduct,
+      fabric,
+      work,
+      silhouette,
+      lining,
+      sleeveType,
+      neckline,
+      length,
+      careInstructions,
       categoryIds,
     } = result.data;
 
@@ -319,6 +338,14 @@ export async function POST(request: NextRequest) {
             isNewArrival,
             isHeroProduct,
             slug,
+            fabric: fabric.trim(),
+            work: work?.map((w) => w.trim()),
+            silhouette: silhouette?.trim(),
+            lining: lining?.trim(),
+            sleeveType: sleeveType?.trim(),
+            neckline: neckline?.trim(),
+            length: length?.trim(),
+            careInstructions: careInstructions?.trim(),
           })
           .returning();
 

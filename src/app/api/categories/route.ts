@@ -68,7 +68,6 @@ export async function POST(request: Request) {
     }
 
     const newCategoryId = crypto.randomUUID();
-
     const uploaded = file
       ? await uploadSingleFile(
           file,

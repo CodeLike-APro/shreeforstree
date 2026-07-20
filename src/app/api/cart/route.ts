@@ -6,7 +6,11 @@ import {
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
-import { getOrCreateCart, getSessionId, upsertCartItem } from "@/lib/cart-utils";
+import {
+  getOrCreateCart,
+  getSessionId,
+  upsertCartItem,
+} from "@/lib/cart-utils";
 import {
   FREE_SHIPPING_THRESHOLD,
   MAX_CART_ITEMS,
@@ -56,7 +60,8 @@ export async function GET(request: Request) {
               columns: {
                 url: true,
               },
-              where: (media, { eq }) => eq(media.isHero, false),
+              where: (media, { and, eq }) =>
+                and(eq(media.isHero, false), eq(media.isFabricSwatch, false)),
               orderBy: (media, { asc }) => asc(media.sortOrder),
               limit: 1,
             },
