@@ -71,7 +71,10 @@ describe("upsertCartItem", () => {
     const returningMock = vi.fn(async () => [
       { id: "item-1", quantity: 5, cartId: "cart-1" },
     ]);
-    const onConflictDoUpdateMock = vi.fn(() => ({ returning: returningMock }));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const onConflictDoUpdateMock = vi.fn((_args: any) => ({
+      returning: returningMock,
+    }));
     const valuesMock = vi.fn(() => ({
       onConflictDoUpdate: onConflictDoUpdateMock,
     }));
