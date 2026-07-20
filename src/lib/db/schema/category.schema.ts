@@ -9,6 +9,8 @@ export const categories = pgTable("categories", {
   description: text("description"),
   categoryImageUrl: text("category_image_url"),
   categoryImagePath: text("category_image_path"),
+  sizeChartImageUrl: text("size_chart_image_url"),
+  sizeChartImagePath: text("size_chart_image_path"),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")

@@ -18,6 +18,14 @@ export const createProductSchema = z4.object({
   isActive: z4.boolean().optional(),
   isNewArrival: z4.boolean().optional(),
   isHeroProduct: z4.boolean().optional(),
+  fabric: z4.string().min(1),
+  work: z4.array(z4.string().min(1)).optional(),
+  silhouette: z4.string().min(1).optional().nullable(),
+  lining: z4.string().min(1).optional().nullable(),
+  sleeveType: z4.string().min(1).optional().nullable(),
+  neckline: z4.string().min(1).optional().nullable(),
+  length: z4.string().min(1).optional().nullable(),
+  careInstructions: z4.string().min(1).optional().nullable(),
   keywords: z4.array(z4.string().min(1)).optional(),
   categoryIds: z4.array(z4.uuid()).min(1),
 });
@@ -39,6 +47,14 @@ export const updateProductSchema = z4
     isActive: z4.boolean().optional(),
     isNewArrival: z4.boolean().optional(),
     isHeroProduct: z4.boolean().optional(),
+    fabric: z4.string().min(1).optional(),
+    work: z4.array(z4.string().min(1)).optional(),
+    silhouette: z4.string().min(1).optional().nullable(),
+    lining: z4.string().min(1).optional().nullable(),
+    sleeveType: z4.string().min(1).optional().nullable(),
+    neckline: z4.string().min(1).optional().nullable(),
+    length: z4.string().min(1).optional().nullable(),
+    careInstructions: z4.string().min(1).optional().nullable(),
     keywords: z4.array(z4.string().min(1)).optional(),
     categoryIds: z4.array(z4.uuid()).min(1).optional(),
     media: z4
@@ -51,6 +67,17 @@ export const updateProductSchema = z4
         }),
       )
       .max(10, "You can upload at most 10 media files")
+      .optional(),
+    fabricMedia: z4
+      .array(
+        z4.object({
+          url: z4.string().min(1),
+          path: z4.string().min(1),
+          type: z4.enum(["image"]),
+          sortOrder: z4.number().int().min(0).max(3),
+        }),
+      )
+      .max(4)
       .optional(),
   })
   .refine(

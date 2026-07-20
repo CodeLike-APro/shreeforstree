@@ -13,14 +13,25 @@ export const updateCategorySchema = z4
     isActive: z4.boolean().optional(),
     categoryImageUrl: z4.string().min(1).optional(),
     categoryImagePath: z4.string().min(1).optional(),
+    sizeChartImageUrl: z4.string().min(1).optional(),
+    sizeChartImagePath: z4.string().min(1).optional(),
   })
   .refine(
     ({ categoryImageUrl, categoryImagePath }) =>
       !!categoryImageUrl === !!categoryImagePath,
     {
       message:
-        "Category Image URL and Category Image Path must have the same number of items.",
+        "categoryImageUrl and categoryImagePath must be provided together.",
       path: ["categoryImageUrl"],
+    },
+  )
+  .refine(
+    ({ sizeChartImageUrl, sizeChartImagePath }) =>
+      !!sizeChartImageUrl === !!sizeChartImagePath,
+    {
+      message:
+        "sizeChartImageUrl and sizeChartImagePath must be provided together.",
+      path: ["sizeChartImageUrl"],
     },
   )
   .refine(

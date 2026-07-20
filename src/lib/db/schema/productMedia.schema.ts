@@ -23,6 +23,7 @@ export const productMedia = pgTable("product_media", {
 
   sortOrder: integer("sort_order").notNull().default(0),
   isHero: boolean("is_hero").notNull().default(false),
+  isFabricSwatch: boolean("is_fabric_swatch").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
