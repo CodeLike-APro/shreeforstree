@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const conditions: SQL[] = [];
+    const slug = searchParams.get("slug");
     const category = searchParams.get("categories");
     const isNewArrival = searchParams.get("isNewArrival");
     const isHeroProduct = searchParams.get("isHeroProduct");
@@ -33,6 +34,9 @@ export async function GET(request: NextRequest) {
     );
     const offset = (page - 1) * limit;
 
+    if (slug) {
+      conditions.push(eq(products.slug, slug));
+    }
     if (category) {
       conditions.push(eq(categories.slug, category));
     }
