@@ -13,7 +13,7 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import { createProductSchema } from "@/lib/validators/product.validators";
-import { and, count, eq, SQL, desc, sql } from "drizzle-orm";
+import { and, count, eq, SQL, desc, sql, inArray } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
@@ -22,6 +22,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const conditions: SQL[] = [];
     const slug = searchParams.get("slug");
+    const fabric = searchParams.get("fabric");
+    const silhouette = searchParams.get("silhouette");
+    const sleeveType = searchParams.get("sleeveType");
+    const work = searchParams.get("work");
     const category = searchParams.get("categories");
     const isNewArrival = searchParams.get("isNewArrival");
     const isHeroProduct = searchParams.get("isHeroProduct");
@@ -34,6 +38,22 @@ export async function GET(request: NextRequest) {
     );
     const offset = (page - 1) * limit;
 
+    if (fabric) {
+      const fabrics = fabric.split(",");
+      conditions.push(inArray(products.fabric, fabrics));
+    }
+    if (silhouette) {
+      const silhouettes = silhouette.split(",");
+      conditions.push(inArray(products.silhouette, silhouettes));
+    }
+    if (sleeveType) {
+      const sleeveTypes = sleeveType.split(",");
+      conditions.push(inArray(products.sleeveType, sleeveTypes));
+    }
+    if (work) {
+      const workItems = work.split(",");
+      conditions.push(sql`${products.work} && ${workItems}`);
+    }
     if (slug) {
       conditions.push(eq(products.slug, slug));
     }
