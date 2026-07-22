@@ -1,64 +1,84 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* ===== Colors (OKLCH) ===== */
+  /* Derived directly from the Shreeforstree logo mark — converted from the
+     original hex values, not eyeballed, so nothing shifts visually */
+  --color-ink: oklch(0.21 0.01 40);
+  --color-ink-05: oklch(0.21 0.01 40 / 0.05);
+  --color-ink-08: oklch(0.21 0.01 40 / 0.08);
+  --color-ink-15: oklch(0.21 0.01 40 / 0.15);
+  --color-ink-25: oklch(0.21 0.01 40 / 0.25);
+  --color-ink-40: oklch(0.21 0.01 40 / 0.4);
+  --color-ink-55: oklch(0.21 0.01 40 / 0.55);
+
+  /* Slightly deeper than --color-ink — used for footer background only */
+  --color-ink-deep: oklch(0.18 0.005 64);
+
+  --color-rose-gold: oklch(0.6 0.086 34);
+  --color-rose-gold-dark: oklch(0.51 0.076 34);
+
+  --color-blush: oklch(0.89 0.043 48);
+  --color-paper: oklch(0.96 0.009 60);
+
+  /* Functional colors — admin dashboards only, never customer-facing UI */
+  --color-sage: oklch(0.59 0.063 137);
+  --color-rust: oklch(0.56 0.137 33);
+
+  /* ===== Typography ===== */
+  --font-display: "Playfair Display", serif;
+  --font-serif-alt: "Cormorant Garamond", serif;
+  --font-body: "Inter", sans-serif;
+  --font-label: "League Spartan", sans-serif;
+
+  /* ===== Radius ===== */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* ===== Shadows ===== */
+  --shadow-card: 0 20px 60px -10px oklch(0 0 0 / 0.15);
+  --shadow-dropdown: 0 8px 24px 0 oklch(0 0 0 / 0.12);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
 
-  /* ── Backgrounds (light, warm, airy) ── */
-  --color-bg-base: oklch(98% 0.01 50); /* warm near-white page bg */
-  --color-bg-surface: oklch(96% 0.02 45); /* cards, product tiles */
-  --color-bg-elevated: oklch(94% 0.02 42); /* modals, drawers */
-  --color-bg-muted: oklch(91% 0.02 40); /* input fields, subtle sections */
+  body {
+    font-family: var(--font-body);
+  }
 
-  /* ── Brand — from logo ── */
-  --color-brand: oklch(55% 0.09 32); /* #AB6B5B terracotta — primary */
-  --color-brand-dark: oklch(
-    37% 0.08 28
-  ); /* #8B4433 mahogany — headings, CTAs */
-  --color-brand-light: oklch(86% 0.05 32); /* #F3D2C2 blush — soft highlights */
-  --color-brand-cream: oklch(
-    92% 0.03 48
-  ); /* #F1DFCF cream — section backgrounds */
-  --color-brand-ember: oklch(
-    50% 0.13 28
-  ); /* #D05046 burnt red — sale badges, alerts */
-  --color-brand-copper: oklch(63% 0.08 34); /* #C47D5F copper — hover states */
-
-  /* ── Text ── */
-  --color-text-primary: oklch(22% 0.04 30); /* deep warm brown, main text */
-  --color-text-secondary: oklch(45% 0.05 32); /* product descriptions, meta */
-  --color-text-muted: oklch(62% 0.04 35); /* placeholders, timestamps */
-  --color-text-on-brand: oklch(
-    98% 0.01 50
-  ); /* white text on terracotta/mahogany */
-
-  /* ── Borders & Dividers ── */
-  --color-border: oklch(88% 0.03 40); /* soft warm border */
-  --color-border-strong: oklch(75% 0.05 35); /* stronger dividers */
-  --color-ring: var(--color-brand); /* focus ring */
-
-  /* ── Semantic ── */
-  --color-success: oklch(62% 0.14 145); /* green for order confirmed etc. */
-  --color-error: var(--color-brand-ember);
-  --color-overlay: oklch(22% 0.04 30 / 50%);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Tracked-out uppercase label style used throughout nav, buttons, eyebrows */
+  .label-caps {
+    font-family: var(--font-label);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Rose-gold running-stitch divider — the signature motif */
+  .stitch-divider {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-rose-gold) 0,
+      var(--color-rose-gold) 6px,
+      transparent 6px,
+      transparent 12px
+    );
+  }
 }
