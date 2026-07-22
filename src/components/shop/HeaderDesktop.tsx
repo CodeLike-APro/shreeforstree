@@ -61,7 +61,10 @@ export default function HeaderDesktop() {
                     : "pointer-events-none w-[30%] opacity-0 transition-all duration-400 ease-in-out"
                 }
               />
-              <SearchIcon onClick={open} className="cursor-pointer" />
+              <SearchIcon
+                onClick={open}
+                className="cursor-pointer stroke-[1.4]"
+              />
 
               <SearchPanel isOpen={isOpen} onClose={close} />
             </div>
