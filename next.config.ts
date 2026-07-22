@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
     ],
   },
   serverExternalPackages: ["ssh2", "ssh2-sftp-client"],
-  allowedDevOrigins: ["192.168.1.7"],
+  allowedDevOrigins: ["192.168.1.7", "192.168.1.5"],
 };
 
 export default nextConfig;
