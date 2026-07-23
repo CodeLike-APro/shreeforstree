@@ -109,10 +109,16 @@ export default function NavMobile() {
     return closest;
   }, [getTabCenter, pillX]);
 
+  // Keep a ref so the resize handler always reads the latest active index
+  const urlIndexRef = useRef(urlIndex);
+  useEffect(() => {
+    urlIndexRef.current = urlIndex;
+  }, [urlIndex]);
+
   // Initial position after mount + keep aligned on resize
   useEffect(() => {
     const place = () => {
-      const cx = getTabCenter(urlIndex);
+      const cx = getTabCenter(urlIndexRef.current);
       pillX.jump(cx);
     };
     const id = requestAnimationFrame(place);
@@ -180,7 +186,7 @@ export default function NavMobile() {
   };
 
   return (
-    <nav className="fixed bottom-5 left-0 right-0 z-50 flex items-center justify-center pointer-events-none">
+    <nav className="fixed bg-linear-to-t from-black/20 to-transparent bottom-0 pb-5 left-0 right-0 z-50 flex items-center justify-center pointer-events-none">
       <motion.div
         ref={navRef}
         onPanStart={handlePanStart}
