@@ -20,7 +20,11 @@ export async function GET(request: Request) {
     const allCategories = isAdmin
       ? await db.select().from(categories)
       : await db.select().from(categories).where(eq(categories.isActive, true));
-    return ok("All categories fetched successfully", allCategories);
+    return ok("All categories fetched successfully", allCategories, {
+      "Cache-Control": isAdmin
+        ? "no-store"
+        : "private, max-age=300, stale-while-revalidate=600",
+    });
   } catch (error) {
     return internalServerError("Failed to fetch categories", error);
   }
