@@ -84,7 +84,7 @@ export function SearchPanel({
           onClick={onClose}
         >
           <div
-            className="h-[60%] w-full bg-paper py-6 px-[15vw] flex flex-col gap-10 overflow-y-auto no-scrollbar"
+            className="h-full md:h-[60%] w-full bg-paper py-6 px-7 md:px-[15vw] flex flex-col gap-10 overflow-y-auto no-scrollbar"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="border-b-2 border-ink flex items-center justify-between gap-6 py-2">
@@ -108,7 +108,7 @@ export function SearchPanel({
                   }
                 }}
                 placeholder="Search the atelier..."
-                className="py-2 leading-5 w-full font-display font-bold text-4xl focus:outline-none focus:ring-0 placeholder-ink-25"
+                className="py-2 leading-5 w-full font-display font-bold text-2xl md:text-4xl focus:outline-none focus:ring-0 placeholder-ink-25"
               />
               <div
                 className="cursor-pointer border-[0.5] border-ink-25 rounded-full p-2.5 group hover:bg-ink transition-all duration-300 ease-in-out "
@@ -121,8 +121,8 @@ export function SearchPanel({
               </div>
             </div>
 
-            <div className="flex gap-12">
-              <div className="flex flex-col gap-6 w-[50%]">
+            <div className="flex flex-col md:flex-row gap-12">
+              <div className="flex flex-col gap-6 md:w-[50%]">
                 <h5 className="text-sm font-label font-semibold uppercase text-rose-gold tracking-[2]">
                   Recent Searches
                 </h5>
@@ -163,7 +163,7 @@ export function SearchPanel({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4 w-[45%]">
+              <div className="flex flex-col gap-4 md:w-[45%]">
                 <h5 className="text-sm font-label font-semibold uppercase text-rose-gold tracking-[2]">
                   Explore by Occasion
                 </h5>
@@ -184,7 +184,7 @@ export function SearchPanel({
                     categories.map((cat: any, idx: number) => (
                       <div
                         key={cat.id || idx}
-                        className="relative aspect-[5/3] w-full overflow-hidden rounded cursor-pointer group"
+                        className="relative aspect-5/3 w-full overflow-hidden rounded cursor-pointer group"
                       >
                         <img
                           src={cat.categoryImageUrl}
@@ -193,7 +193,7 @@ export function SearchPanel({
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                        <h5 className="absolute bottom-2 left-3 text-xl font-display font-semibold text-white tracking-wider">
+                        <h5 className="absolute bottom-2 left-3 text-xl font-display font-semibold text-white lowercase first-letter:uppercase tracking-wider">
                           {cat.name || cat.title}
                         </h5>
                       </div>

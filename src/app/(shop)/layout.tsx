@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 
 const HeaderDesktop = dynamic(() => import("@/components/shop/HeaderDesktop"));
 const HeaderMobile = dynamic(() => import("@/components/shop/HeaderMobile"));
+const NavMobile = dynamic(() => import("@/components/shop/NavMobile"));
 
 export default async function ShopLayout({
   children,
@@ -18,6 +19,7 @@ export default async function ShopLayout({
         {deviceType === "mobile" ? <HeaderMobile /> : <HeaderDesktop />}
       </header>
       <main>{children}</main>
+      {deviceType === "mobile" && <NavMobile />}
     </section>
   );
 }

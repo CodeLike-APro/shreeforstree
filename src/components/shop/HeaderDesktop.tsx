@@ -1,13 +1,6 @@
 "use client";
 import Link from "next/link";
-import {
-  Handbag,
-  HandbagIcon,
-  HeartIcon,
-  SearchIcon,
-  UserIcon,
-} from "lucide-react";
-import { useRef, useState } from "react";
+import { HandbagIcon, HeartIcon, SearchIcon, UserIcon } from "lucide-react";
 import { useSearch } from "./search/useSearch";
 import { SearchPanel } from "./search/searchPanel";
 
@@ -18,10 +11,6 @@ export default function HeaderDesktop() {
     { label: "OUR STORY", href: "/our-story" },
     { label: "CONTACT", href: "/contact" },
   ];
-
-  const containerRef = useRef(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   // Header.tsx
   const { isOpen, open, close } = useSearch();
 
@@ -50,17 +39,6 @@ export default function HeaderDesktop() {
           </div>
           <div className="flex items-center gap-6 mr-6">
             <div className="flex items-center justify-end gap-3">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className={
-                  isSearchOpen
-                    ? "bg-transparent pb-[0.5] border-b border-border focus:outline-none focus:ring-0 transition-all duration-400 ease-in-out w-40 text-sm"
-                    : "pointer-events-none w-[30%] opacity-0 transition-all duration-400 ease-in-out"
-                }
-              />
               <SearchIcon
                 onClick={open}
                 className="cursor-pointer stroke-[1.4]"
