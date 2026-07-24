@@ -3,7 +3,13 @@
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   XIcon,
   UserRoundIcon,
@@ -276,7 +282,7 @@ export default function UserDropdown({
               >
                 <div className="min-w-0">
                   <p className="font-label text-[11px] font-semibold uppercase tracking-[2] text-rose-gold">
-                    {isSignedIn ? "My Account" : "Welcome"}
+                    {isSignedIn ? "My Account" : "Welcome to"}
                   </p>
                   {isPending ? (
                     <div className="mt-2 h-6 w-40 animate-pulse rounded bg-ink-08" />
