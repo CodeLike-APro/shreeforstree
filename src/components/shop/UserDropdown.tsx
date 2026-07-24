@@ -17,8 +17,8 @@ import {
   MapPinIcon,
   LogOutIcon,
   SparklesIcon,
-  ChevronRightIcon,
   UserIcon,
+  ChevronRight,
 } from "lucide-react";
 import {
   AnimatePresence,
@@ -367,7 +367,7 @@ export default function UserDropdown({
                           <span className="flex-1 font-body text-sm text-ink transition-colors group-hover:text-rose-gold">
                             {label}
                           </span>
-                          <ChevronRightIcon
+                          <ChevronRight
                             size={16}
                             className="text-ink-25 transition-all group-hover:translate-x-0.5 group-hover:text-rose-gold"
                           />
@@ -385,13 +385,13 @@ export default function UserDropdown({
                         type="button"
                         onClick={handleSignOut}
                         disabled={signingOut}
-                        className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 hover:bg-rust/10 disabled:opacity-60"
+                        className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-rust transition-colors duration-200 hover:bg-rust/10 disabled:opacity-60"
                       >
                         <LogOutIcon
                           size={18}
-                          className="stroke-[1.5] text-ink-55 transition-colors group-hover:text-rust"
+                          className="stroke-[1.5] transition-colors group-hover:text-rust"
                         />
-                        <span className="flex-1 text-left font-body text-sm text-ink transition-colors group-hover:text-rust">
+                        <span className="flex-1 text-left font-body text-sm transition-colors group-hover:text-rust">
                           {signingOut ? "Signing out…" : "Sign Out"}
                         </span>
                       </button>
