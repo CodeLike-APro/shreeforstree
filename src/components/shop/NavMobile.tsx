@@ -12,14 +12,14 @@ import {
   HandbagIcon,
   HeartIcon,
   HomeIcon,
-  LayoutDashboard,
+  LayoutGrid,
   SearchIcon,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 const TABS = [
   { icon: HomeIcon, label: "Home", href: "/" },
-  { icon: LayoutDashboard, label: "Shop", href: "/shop" },
+  { icon: LayoutGrid, label: "Shop", href: "/shop" },
   { icon: SearchIcon, label: "Search", href: "/search" },
   { icon: HeartIcon, label: "Wishlist", href: "/wishlist" },
   { icon: HandbagIcon, label: "Cart", href: "/cart" },
