@@ -31,7 +31,8 @@
     "slugify": "^1.6.9",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^12.1.1",
-    "zod": "^4.4.3"
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
