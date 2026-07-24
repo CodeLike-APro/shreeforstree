@@ -12,13 +12,13 @@ import {
 } from "react";
 import {
   XIcon,
-  UserRoundIcon,
   PackageIcon,
   HeartIcon,
   MapPinIcon,
   LogOutIcon,
   SparklesIcon,
   ChevronRightIcon,
+  UserIcon,
 } from "lucide-react";
 import {
   AnimatePresence,
@@ -37,7 +37,7 @@ type UserDropdownProps = {
 };
 
 const MENU_ITEMS = [
-  { label: "My Profile", href: "/account", Icon: UserRoundIcon },
+  { label: "My Profile", href: "/account", Icon: UserIcon },
   { label: "My Orders", href: "/orders", Icon: PackageIcon },
   { label: "Wishlist", href: "/wishlist", Icon: HeartIcon },
   { label: "Addresses", href: "/account/addresses", Icon: MapPinIcon },
