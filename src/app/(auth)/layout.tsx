@@ -7,7 +7,6 @@ export default async function ShopLayout({
   children: React.ReactNode;
 }) {
   const headerList = await headers();
-  const deviceType = headerList.get("x-device-type");
   const session = headerList.get("x-session");
   if (session) redirect("/");
   return (

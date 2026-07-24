@@ -3,6 +3,8 @@ import Link from "next/link";
 import { HandbagIcon, HeartIcon, SearchIcon, UserIcon } from "lucide-react";
 import { useSearch } from "./search/useSearch";
 import { SearchPanel } from "./search/searchPanel";
+import UserDropdown from "./UserDropdown";
+import { useRef, useState } from "react";
 
 export default function HeaderDesktop() {
   const navLinks = [
@@ -13,6 +15,8 @@ export default function HeaderDesktop() {
   ];
   // Header.tsx
   const { isOpen, open, close } = useSearch();
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const userTriggerRef = useRef<HTMLDivElement>(null);
 
   return (
     <header className="flex items-center justify-between border-b border-border py-4 px-4 h-17 w-full">
@@ -52,8 +56,16 @@ export default function HeaderDesktop() {
             <div>
               <HandbagIcon className="cursor-pointer stroke-[1.4]" />
             </div>
-            <div>
-              <UserIcon className="cursor-pointer stroke-[1.4]" />
+            <div ref={userTriggerRef} className="relative">
+              <UserIcon
+                className="cursor-pointer stroke-[1.4]"
+                onClick={() => setIsUserDropdownOpen((prev) => !prev)}
+              />
+              <UserDropdown
+                isOpen={isUserDropdownOpen}
+                onClose={() => setIsUserDropdownOpen(false)}
+                triggerRef={userTriggerRef}
+              />
             </div>
           </div>
         </div>
