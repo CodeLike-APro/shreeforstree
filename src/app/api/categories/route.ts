@@ -28,7 +28,11 @@ export async function GET(request: Request) {
         : "private, max-age=300, stale-while-revalidate=600",
     });
   } catch (error) {
-    return internalServerError("Failed to fetch categories", error);
+    console.error(error);
+    return internalServerError(
+      "Failed to fetch categories",
+      error instanceof Error ? error.message : String(error),
+    );
   }
 }
 
