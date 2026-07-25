@@ -3,7 +3,7 @@
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
+import React, {
   useEffect,
   useLayoutEffect,
   useRef,
@@ -29,19 +29,21 @@ import {
   type PanInfo,
 } from "motion/react";
 
+export interface UserDropdownItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
 type UserDropdownProps = {
   isOpen: boolean;
   onClose: () => void;
   /** The element that toggles the dropdown — ignored by the outside-click handler. */
   triggerRef?: RefObject<HTMLElement | null>;
+  items: readonly UserDropdownItem[] | UserDropdownItem[];
+  direction?: "up" | "down";
+  variant?: "default" | "minimal";
 };
-
-const MENU_ITEMS = [
-  { label: "My Profile", href: "/account", Icon: UserIcon },
-  { label: "My Orders", href: "/orders", Icon: PackageIcon },
-  { label: "Wishlist", href: "/wishlist", Icon: HeartIcon },
-  { label: "Addresses", href: "/account/addresses", Icon: MapPinIcon },
-];
 
 /* ─── Motion variants ──────────────────────────────────────────────── */
 
@@ -122,6 +124,9 @@ export default function UserDropdown({
   isOpen,
   onClose,
   triggerRef,
+  items,
+  direction = "down",
+  variant = "default",
 }: UserDropdownProps) {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
@@ -259,7 +264,10 @@ export default function UserDropdown({
             style={isMobile ? { y: dragY } : undefined}
             className={[
               "fixed inset-x-0 bottom-0 z-70 w-full overflow-hidden rounded-t-3xl bg-paper text-ink shadow-2xl ring-1 ring-ink-08",
-              "md:absolute md:inset-x-auto md:bottom-auto md:right-0 md:top-full md:mt-3 md:w-80 md:origin-top-right md:rounded-2xl",
+              "md:absolute md:inset-x-auto md:w-60 md:rounded-2xl",
+              direction === "up"
+                ? "md:bottom-full md:left-0 md:mb-0 md:origin-bottom-left"
+                : "md:bottom-auto md:right-0 md:top-full md:mt-3 md:origin-top-right",
               "transform-gpu will-change-transform",
             ].join(" ")}
           >
@@ -278,22 +286,28 @@ export default function UserDropdown({
               {/* Header */}
               <motion.div
                 variants={staggerItem}
-                className="flex items-start justify-between gap-4 px-6 pt-5 pb-4"
+                className={`flex items-start justify-between gap-4 ${
+                  variant === "minimal" ? "pt-3 pb-0 hidden" : "pt-5 pb-4 px-6"
+                }`}
               >
                 <div className="min-w-0">
-                  <p className="font-label text-[11px] font-semibold uppercase tracking-[2] text-rose-gold">
-                    {isSignedIn ? "My Account" : "Welcome to"}
-                  </p>
-                  {isPending ? (
-                    <div className="mt-2 h-6 w-40 animate-pulse rounded bg-ink-08" />
-                  ) : isSignedIn ? (
-                    <h2 className="mt-1 truncate font-display text-2xl font-bold leading-tight text-ink">
-                      Hello{firstName ? `, ${firstName}` : ""}
-                    </h2>
-                  ) : (
-                    <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-ink">
-                      shreeforstree
-                    </h2>
+                  {variant !== "minimal" && (
+                    <>
+                      <p className="font-label text-[11px] font-semibold uppercase tracking-[2] text-rose-gold">
+                        {isSignedIn ? "My Account" : "Welcome to"}
+                      </p>
+                      {isPending ? (
+                        <div className="mt-2 h-6 w-40 animate-pulse rounded bg-ink-08" />
+                      ) : isSignedIn ? (
+                        <h2 className="mt-1 truncate font-display text-2xl font-bold leading-tight text-ink">
+                          Hello{firstName ? `, ${firstName}` : ""}
+                        </h2>
+                      ) : (
+                        <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-ink">
+                          shreeforstree
+                        </h2>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -313,7 +327,11 @@ export default function UserDropdown({
               {isSignedIn && !isPending && (
                 <motion.div
                   variants={staggerItem}
-                  className="mx-6 mb-1 flex items-center gap-3 rounded-xl bg-ink-05 px-4 py-3"
+                  className={`flex items-center gap-3 rounded-xl ${
+                    variant === "minimal"
+                      ? "px-0 py-2 mb-0 mt-1 mx-3"
+                      : "bg-ink-05 px-4 py-3 mb-1 mx-6"
+                  }`}
                 >
                   {session?.user?.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -341,7 +359,11 @@ export default function UserDropdown({
               )}
 
               {/* Body */}
-              <div className="px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 md:pb-3">
+              <div
+                className={`px-3 pb-[max(1rem,env(safe-area-inset-bottom))] md:pb-3 ${
+                  variant === "minimal" ? "pt-1" : "pt-2"
+                }`}
+              >
                 {isPending ? (
                   <div className="space-y-2 px-3 py-2">
                     {[0, 1, 2].map((i) => (
@@ -353,17 +375,23 @@ export default function UserDropdown({
                   </div>
                 ) : isSignedIn ? (
                   <>
-                    {MENU_ITEMS.map(({ label, href, Icon }) => (
+                    {items.map(({ label, href, icon }) => (
                       <motion.div key={href} variants={staggerItem}>
                         <Link
                           href={href}
                           onClick={onClose}
                           className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 hover:bg-ink-05"
                         >
-                          <Icon
-                            size={18}
-                            className="stroke-[1.5] text-ink-55 transition-colors group-hover:text-rose-gold"
-                          />
+                          {React.isValidElement(icon) &&
+                            React.cloneElement(
+                              icon as React.ReactElement<any>,
+                              {
+                                size: 18,
+                                className: `stroke-[1.5] text-ink-55 transition-colors group-hover:text-rose-gold ${
+                                  (icon.props as any).className || ""
+                                }`,
+                              },
+                            )}
                           <span className="flex-1 font-body text-sm text-ink transition-colors group-hover:text-rose-gold">
                             {label}
                           </span>

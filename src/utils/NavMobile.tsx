@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useEffect, useState } from "react";
+import React, { useRef, useCallback, useEffect, useState } from "react";
 import {
   motion,
   useMotionValue,
@@ -8,22 +8,17 @@ import {
   animate,
   type PanInfo,
 } from "motion/react";
-import {
-  HandbagIcon,
-  HeartIcon,
-  HomeIcon,
-  LayoutGrid,
-  SearchIcon,
-} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-const TABS = [
-  { icon: HomeIcon, label: "Home", href: "/" },
-  { icon: LayoutGrid, label: "Shop", href: "/shop" },
-  { icon: SearchIcon, label: "Search", href: "/search" },
-  { icon: HeartIcon, label: "Wishlist", href: "/wishlist" },
-  { icon: HandbagIcon, label: "Cart", href: "/cart" },
-] as const;
+export interface NavTab {
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+}
+
+export interface NavMobileProps {
+  tabs: readonly NavTab[] | NavTab[];
+}
 
 const PILL_SIZE = 52; // resting pill diameter in px
 const ICON_SIZE = 22;
@@ -32,14 +27,11 @@ const NAV_W = 290;
 const NAV_PAD_X = 12;
 const NAV_BORDER = 1;
 
-// Static center-x of tab 0, matching what getTabCenter() measures after mount.
-// justify-around distributes the leftover content width as equal half-gaps
-// around each tab, so the pill can SSR already sitting on the Home tab.
-const CONTENT_W = NAV_W - 2 * (NAV_PAD_X + NAV_BORDER);
-const HALF_GAP = (CONTENT_W - TABS.length * PILL_SIZE) / (TABS.length * 2);
-const INITIAL_CX = NAV_BORDER + NAV_PAD_X + HALF_GAP + PILL_SIZE / 2;
+export default function NavMobile({ tabs }: NavMobileProps) {
+  const CONTENT_W = NAV_W - 2 * (NAV_PAD_X + NAV_BORDER);
+  const HALF_GAP = (CONTENT_W - tabs.length * PILL_SIZE) / (tabs.length * 2);
+  const INITIAL_CX = NAV_BORDER + NAV_PAD_X + HALF_GAP + PILL_SIZE / 2;
 
-export default function NavMobile() {
   const isDraggingRef = useRef(false);
   const navRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -52,7 +44,7 @@ export default function NavMobile() {
   // URL-derived active tab; falls back to 0 on unknown routes
   const urlIndex = Math.max(
     0,
-    TABS.findIndex((t) =>
+    tabs.findIndex((t) =>
       t.href === "/" ? pathname === "/" : pathname.startsWith(t.href),
     ),
   );
@@ -98,7 +90,7 @@ export default function NavMobile() {
     const current = pillX.get();
     let closest = 0;
     let minDist = Infinity;
-    for (let i = 0; i < TABS.length; i++) {
+    for (let i = 0; i < tabs.length; i++) {
       const cx = getTabCenter(i);
       const d = Math.abs(current - cx);
       if (d < minDist) {
@@ -156,7 +148,7 @@ export default function NavMobile() {
   const handlePan = (_: unknown, info: PanInfo) => {
     // Clamp the pill's center between the first and last tab centers
     const min = getTabCenter(0);
-    const max = getTabCenter(TABS.length - 1);
+    const max = getTabCenter(tabs.length - 1);
     const raw = pillX.get() + info.delta.x;
     pillX.set(Math.max(min, Math.min(max, raw)));
     // Live-highlight the tab the pill is hovering over
@@ -171,7 +163,7 @@ export default function NavMobile() {
     });
     const closest = findClosest();
     snapTo(closest);
-    router.push(TABS[closest].href);
+    router.push(tabs[closest].href);
     setDragIndex(null);
     // Clear after the pointerup-triggered click fires, so it isn't treated as a tap
     requestAnimationFrame(() => {
@@ -182,7 +174,7 @@ export default function NavMobile() {
   const handleTap = (index: number) => {
     if (isDraggingRef.current) return;
     snapTo(index);
-    router.push(TABS[index].href);
+    router.push(tabs[index].href);
   };
 
   return (
@@ -246,9 +238,8 @@ export default function NavMobile() {
         </motion.div>
 
         {/* ── Tab Icons ────────────────────────────────────── */}
-        {TABS.map((tab, i) => {
+        {tabs.map((tab, i) => {
           const isActive = activeIndex === i;
-          const Icon = tab.icon;
           return (
             <motion.button
               key={tab.label}
@@ -274,14 +265,17 @@ export default function NavMobile() {
                   damping: 28,
                 }}
               >
-                <Icon
-                  size={ICON_SIZE}
-                  strokeWidth={isActive ? 2.4 : 1.8}
-                  className="transition-colors duration-200"
-                  style={{
-                    color: isActive ? "white" : "var(--color-ink-55)",
-                  }}
-                />
+                {React.isValidElement(tab.icon) &&
+                  React.cloneElement(tab.icon as React.ReactElement<any>, {
+                    size: ICON_SIZE,
+                    strokeWidth: isActive ? 2.4 : 1.8,
+                    className: "transition-colors duration-200",
+                    style: {
+                      color: isActive ? "white" : "var(--color-ink-55)",
+                      ...((tab.icon as React.ReactElement<any>).props.style ||
+                        {}),
+                    },
+                  })}
               </motion.div>
             </motion.button>
           );
