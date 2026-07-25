@@ -2,8 +2,14 @@
 "use client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { UserIcon } from "lucide-react";
-import UserDropdown from "./UserDropdown";
+import { UserIcon, PackageIcon, HeartIcon, MapPinIcon } from "lucide-react";
+import UserDropdown from "../../utils/Dropdown";
+const USER_MENU_ITEMS = [
+  { label: "My Profile", href: "/account", icon: <UserIcon /> },
+  { label: "My Orders", href: "/orders", icon: <PackageIcon /> },
+  { label: "Wishlist", href: "/wishlist", icon: <HeartIcon /> },
+  { label: "Addresses", href: "/account/addresses", icon: <MapPinIcon /> },
+] as const;
 
 export default function HeaderMobile() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
@@ -30,6 +36,7 @@ export default function HeaderMobile() {
         isOpen={isUserDropdownOpen}
         onClose={() => setIsUserDropdownOpen(false)}
         triggerRef={userTriggerRef}
+        items={USER_MENU_ITEMS}
       />
     </>
   );

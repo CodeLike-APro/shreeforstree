@@ -1,10 +1,24 @@
 "use client";
 import Link from "next/link";
-import { HandbagIcon, HeartIcon, SearchIcon, UserIcon } from "lucide-react";
+import {
+  HandbagIcon,
+  HeartIcon,
+  SearchIcon,
+  UserIcon,
+  PackageIcon,
+  MapPinIcon,
+} from "lucide-react";
 import { useSearch } from "./search/useSearch";
 import { SearchPanel } from "./search/searchPanel";
-import UserDropdown from "./UserDropdown";
+import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
+
+const USER_MENU_ITEMS = [
+  { label: "My Profile", href: "/account", icon: <UserIcon /> },
+  { label: "My Orders", href: "/orders", icon: <PackageIcon /> },
+  { label: "Wishlist", href: "/wishlist", icon: <HeartIcon /> },
+  { label: "Addresses", href: "/account/addresses", icon: <MapPinIcon /> },
+] as const;
 
 export default function HeaderDesktop() {
   const navLinks = [
@@ -65,6 +79,7 @@ export default function HeaderDesktop() {
                 isOpen={isUserDropdownOpen}
                 onClose={() => setIsUserDropdownOpen(false)}
                 triggerRef={userTriggerRef}
+                items={USER_MENU_ITEMS}
               />
             </div>
           </div>
