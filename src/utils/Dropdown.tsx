@@ -264,7 +264,8 @@ export default function UserDropdown({
             style={isMobile ? { y: dragY } : undefined}
             className={[
               "fixed inset-x-0 bottom-0 z-70 w-full overflow-hidden rounded-t-3xl bg-paper text-ink shadow-2xl ring-1 ring-ink-08",
-              "md:absolute md:inset-x-auto md:w-60 md:rounded-2xl",
+              "md:absolute md:inset-x-auto md:rounded-2xl",
+              variant === "minimal" ? "md:w-60" : "md:w-80",
               direction === "up"
                 ? "md:bottom-full md:left-0 md:mb-0 md:origin-bottom-left"
                 : "md:bottom-auto md:right-0 md:top-full md:mt-3 md:origin-top-right",
