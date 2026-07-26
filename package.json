@@ -27,7 +27,7 @@
     "razorpay": "^2.9.6",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "sharp": "^0.35.3",
+    "sharp": "0.32.6",
     "slugify": "^1.6.9",
     "ssh2": "^1.17.0",
     "ssh2-sftp-client": "^12.1.1",
@@ -48,8 +48,5 @@
     "tsx": "^4.22.4",
     "typescript": "6.0.3",
     "vitest": "^4.1.10"
-  },
-  "optionalDependencies": {
-    "@img/sharp-linux-x64": "^0.35.3"
   }
 }
