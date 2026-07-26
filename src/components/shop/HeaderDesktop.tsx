@@ -65,10 +65,14 @@ export default function HeaderDesktop() {
               <SearchPanel isOpen={isOpen} onClose={close} />
             </div>
             <div>
-              <HeartIcon className="cursor-pointer stroke-[1.4]" />
+              <Link href="/wishlist">
+                <HeartIcon className="cursor-pointer stroke-[1.4]" />
+              </Link>
             </div>
             <div>
-              <HandbagIcon className="cursor-pointer stroke-[1.4]" />
+              <Link href="/cart">
+                <HandbagIcon className="cursor-pointer stroke-[1.4]" />
+              </Link>
             </div>
             <div ref={userTriggerRef} className="relative">
               <UserIcon
