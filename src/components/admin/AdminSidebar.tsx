@@ -14,6 +14,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, type Variants } from "motion/react";
+import { usePathname } from "next/navigation";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import UserDropdown from "@/utils/Dropdown";
 
@@ -58,6 +59,7 @@ const labelFade: Variants = {
 };
 
 export default function AdminSideBar() {
+  const pathname = usePathname();
   const { data: session } = authClient.useSession();
 
   const { isCollapsed, toggle } = useSidebarStore();
@@ -136,14 +138,39 @@ export default function AdminSideBar() {
         <div className="flex flex-col text-blush/70 gap-1 w-full">
           {sideBarLinks.map((link, index) => {
             const Icon = link.icon;
+            const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+
             return (
               <Link
                 href={link.href}
                 key={index}
-                className="relative group"
+                className="relative group block"
                 aria-label={link.label}
               >
-                <div className="flex h-12 items-center gap-4 py-3 rounded-md cursor-pointer hover:bg-blush/10 transition-colors px-3 duration-200">
+                {/* Active Indicator Strip / Collapsed Background */}
+                {isActive && (
+                  <motion.div
+                    layout
+                    layoutId="active-nav-indicator"
+                    className={`absolute left-0 z-0 bg-rose-gold ${
+                      isCollapsed ? "inset-0 rounded-md" : "inset-y-0 w-1 rounded-r-md"
+                    }`}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  />
+                )}
+
+                {/* Expanded active highlight & Hover background */}
+                <div
+                  className={`absolute inset-0 rounded-md transition-colors duration-300 z-0 ${
+                    isActive && !isCollapsed ? "bg-blush/30" : ""
+                  } ${!isActive ? "group-hover:bg-blush/10" : ""}`}
+                />
+
+                <div
+                  className={`flex h-12 items-center gap-4 py-3 rounded-md cursor-pointer px-3 relative z-10 transition-transform duration-300 ${
+                    isActive ? "text-paper" : ""
+                  } ${isActive && !isCollapsed ? "translate-x-1.5" : "translate-x-0"}`}
+                >
                   <div className="stroke-[1.7] shrink-0 w-4.75">
                     <Icon size={19} />
                   </div>
