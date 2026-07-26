@@ -6,7 +6,7 @@ import { UserIcon, Bell } from "lucide-react";
 import UserDropdown from "../../utils/Dropdown";
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <UserIcon /> },
-  { label: "Notifications", href: "/notifications", icon: <Bell /> },
+  { label: "Notifications", href: "/admin/notifications", icon: <Bell /> },
 ] as const;
 
 export default function HeaderMobile() {
