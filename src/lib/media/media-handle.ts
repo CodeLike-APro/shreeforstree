@@ -19,15 +19,16 @@ type UploadOptions = {
 
 const connect = async (): Promise<SftpClient> => {
   const { default: Client } = await import("ssh2-sftp-client");
+  const fs = await import("fs");
   const sftp = new Client();
 
   try {
     await sftp.connect({
-      host: process.env.HOSTINGER_SFTP_HOST!,
-      port: Number(process.env.HOSTINGER_SFTP_PORT),
-      username: process.env.HOSTINGER_SFTP_USER!,
-      privateKey: process.env.HOSTINGER_SFTP_PRIVATE_KEY!.replace(/\\n/g, "\n"),
-      passphrase: process.env.HOSTINGER_SFTP_PASSPHRASE,
+      host: process.env.SFTP_HOST!,
+      port: Number(process.env.SFTP_PORT),
+      username: process.env.SFTP_USER!,
+      privateKey: fs.readFileSync(process.env.SFTP_PRIVATE_KEY_PATH!, "utf-8"),
+      passphrase: process.env.SFTP_PASSPHRASE,
     });
   } catch (error) {
     await sftp.end().catch(() => {});
@@ -37,7 +38,7 @@ const connect = async (): Promise<SftpClient> => {
 };
 
 async function cleanupEmptyFolders(sftp: SftpClient, filePath: string) {
-  const fileRoot = process.env.FILE_ROOT!;
+  const fileRoot = process.env.MEDIA_REMOTE_ROOT!;
   let currentDir = filePath.substring(0, filePath.lastIndexOf("/"));
 
   while (
@@ -64,8 +65,8 @@ const generateFileName = () => {
 };
 
 async function buildPublicUrl(path: string) {
-  const baseUrl = process.env.MEDIA_BASE_URL;
-  const mediaRoot = process.env.FILE_ROOT!;
+  const baseUrl = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+  const mediaRoot = process.env.MEDIA_REMOTE_ROOT!;
   const relativePath = path
     .replace(mediaRoot, "")
     .replace(/^\/+/, "")
@@ -97,8 +98,8 @@ async function uploadFile({
 
     const mediaFolder = result.isImage ? "images" : "videos";
     const remoteDir = skipMediaFolder
-      ? `${process.env.FILE_ROOT!}/${folder}`
-      : `${process.env.FILE_ROOT!}/${folder}/${mediaFolder}`;
+      ? `${process.env.MEDIA_REMOTE_ROOT!}/${folder}`
+      : `${process.env.MEDIA_REMOTE_ROOT!}/${folder}/${mediaFolder}`;
 
     await sftp.put(processedFile, `${remoteDir}/${uploadFileName}`);
 
@@ -136,7 +137,7 @@ export async function uploadSingleFile(
   folder: string,
 ): Promise<UploadedFile> {
   const sftp = await connect();
-  const remoteDir = `${process.env.FILE_ROOT!}/${folder}`;
+  const remoteDir = `${process.env.MEDIA_REMOTE_ROOT!}/${folder}`;
   try {
     if (!(await sftp.exists(remoteDir))) {
       await sftp.mkdir(remoteDir, true);
@@ -160,7 +161,7 @@ export async function uploadFiles(
     for (const file of files) {
       const result = await detectMediaType(file);
       const mediaFolder = result.isImage ? "images" : "videos";
-      const remoteDir = `${process.env.FILE_ROOT!}/${folder}/${mediaFolder}`;
+      const remoteDir = `${process.env.MEDIA_REMOTE_ROOT!}/${folder}/${mediaFolder}`;
 
       if (!createdDirectories.has(remoteDir)) {
         if (!(await sftp.exists(remoteDir))) {

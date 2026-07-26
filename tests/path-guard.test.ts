@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isOwnedMediaPath } from "@/lib/media/path-guard";
 
 describe("isOwnedMediaPath", () => {
-  it("accepts a path inside the scoped folder (with FILE_ROOT prefix)", () => {
+  it("accepts a path inside the scoped folder (with MEDIA_REMOTE_ROOT prefix)", () => {
     expect(
       isOwnedMediaPath("/root/media/avatars/u1/123-abc.webp", "avatars/u1"),
     ).toBe(true);
@@ -28,7 +28,10 @@ describe("isOwnedMediaPath", () => {
 
   it("rejects traversal attempts", () => {
     expect(
-      isOwnedMediaPath("/root/media/avatars/u1/../../products/a.webp", "avatars/u1"),
+      isOwnedMediaPath(
+        "/root/media/avatars/u1/../../products/a.webp",
+        "avatars/u1",
+      ),
     ).toBe(false);
   });
 
