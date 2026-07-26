@@ -86,10 +86,10 @@ export default function AdminSideBar() {
         minWidth: isCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
       }}
       transition={sidebarSpring}
-      className="flex flex-col justify-between items-center gap-6 min-h-screen fixed bg-ink px-3 py-3 text-blush select-none z-40"
+      className="flex flex-col justify-center items-center gap-6 h-screen sticky top-0 shrink-0 bg-ink px-3 py-4 text-blush select-none z-40"
     >
       {/* ─── Top section: toggle + brand + nav links ─── */}
-      <div className="flex flex-col gap-10 items-start justify-center w-full h-full">
+      <div className="flex flex-col gap-10 items-start justify-start w-full h-full">
         {/* Toggle + branding */}
         <div className="flex items-center justify-start gap-2">
           <button
@@ -138,7 +138,8 @@ export default function AdminSideBar() {
         <div className="flex flex-col text-blush/70 gap-1 w-full">
           {sideBarLinks.map((link, index) => {
             const Icon = link.icon;
-            const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const isActive =
+              pathname === link.href || pathname.startsWith(`${link.href}/`);
 
             return (
               <Link
@@ -153,7 +154,9 @@ export default function AdminSideBar() {
                     layout
                     layoutId="active-nav-indicator"
                     className={`absolute left-0 z-0 bg-rose-gold ${
-                      isCollapsed ? "inset-0 rounded-md" : "inset-y-0 w-1 rounded-r-md"
+                      isCollapsed
+                        ? "inset-0 rounded-md"
+                        : "inset-y-0 w-1 rounded-r-md"
                     }`}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
