@@ -69,7 +69,9 @@ export async function PATCH(
       // optimistic guard: only apply if the status is still the one the
       // transition was validated against, so concurrent updates can't
       // produce an invalid state
-      .where(and(eq(orders.id, orderId), eq(orders.orderStatus, order.orderStatus)))
+      .where(
+        and(eq(orders.id, orderId), eq(orders.orderStatus, order.orderStatus)),
+      )
       .returning();
 
     if (!updatedOrder) {

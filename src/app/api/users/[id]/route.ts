@@ -91,7 +91,10 @@ export async function PATCH(
 
     // imagePath is later passed to deleteFile on avatar replacement/account
     // deletion — restrict it to the target user's own avatar folder
-    if (imagePath !== undefined && !isOwnedMediaPath(imagePath, `avatars/${id}`)) {
+    if (
+      imagePath !== undefined &&
+      !isOwnedMediaPath(imagePath, `avatars/${id}`)
+    ) {
       return badRequest("imagePath must point to this user's avatar folder");
     }
 
