@@ -32,7 +32,6 @@ const sideBarLinks = [
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <UserIcon /> },
-  { label: "Notifications", href: "/admin/notifications", icon: <Bell /> },
 ];
 
 /* ── spring config shared by the sidebar width + content fades ── */
