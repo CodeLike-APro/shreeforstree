@@ -13,7 +13,7 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import { createProductSchema } from "@/lib/validators/product.validators";
-import { and, count, eq, SQL, desc, sql, inArray } from "drizzle-orm";
+import { and, count, eq, SQL, desc, sql, inArray, countDistinct } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
@@ -30,7 +30,19 @@ export async function GET(request: NextRequest) {
     const isNewArrival = searchParams.get("isNewArrival");
     const isHeroProduct = searchParams.get("isHeroProduct");
     const search = searchParams.get("search");
-    let tsquery: string | null = null;
+    let searchTerms: string[] = [];
+    let tsqueryString = "";
+    if (search) {
+      searchTerms = search
+        .split(/\s+/)
+        .map((term) => term.replace(/[^\p{L}\p{N}]/gu, ""))
+        .filter(Boolean)
+        .slice(0, 8);
+      if (searchTerms.length > 0) {
+        tsqueryString = searchTerms.map((w) => `${w}:*`).join(" | ");
+      }
+    }
+    const vec = sql`product_search_vector(${products.title}, ${products.description}, ${products.keywords})`;
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1") || 1);
     const limit = Math.max(
       1,
@@ -66,11 +78,9 @@ export async function GET(request: NextRequest) {
     if (isHeroProduct === "true") {
       conditions.push(eq(products.isHeroProduct, true));
     }
-    if (search && search.trim().length > 0) {
-      const words = search.trim().split(/\s+/).filter(Boolean);
-      tsquery = words.map((w) => `${w}:*`).join(" | ");
+    if (tsqueryString) {
       conditions.push(
-        sql`product_search_vector(${products.title}, ${products.description}, ${products.keywords}) @@ to_tsquery('english', ${tsquery})`,
+        sql`${vec} @@ to_tsquery('english', ${tsqueryString})`
       );
     }
 
@@ -83,10 +93,10 @@ export async function GET(request: NextRequest) {
     let countResult: { count: number }[];
     let allProducts: Awaited<ReturnType<typeof db.query.products.findMany>>;
 
-    if (search && tsquery) {
+    if (tsqueryString) {
       // COUNT
       countResult = await db
-        .select({ count: count() })
+        .select({ count: countDistinct(products.id) })
         .from(products)
         .leftJoin(
           productCategories,
@@ -99,7 +109,11 @@ export async function GET(request: NextRequest) {
       const rankedIds = await db
         .select({
           id: products.id,
-          rank: sql<number>`ts_rank(...)`.as("rank"),
+          match_count: sql<number>`(${sql.join(
+            searchTerms.map((term) => sql`(${vec} @@ to_tsquery('english', ${term + ":*"}))::int`),
+            sql` + `
+          )})`.as("match_count"),
+          rank: sql<number>`ts_rank('{0.05, 0.2, 0.6, 1.0}'::float4[], ${vec}, to_tsquery('english', ${tsqueryString}))`.as("rank"),
         })
         .from(products)
         .leftJoin(
@@ -108,7 +122,8 @@ export async function GET(request: NextRequest) {
         )
         .leftJoin(categories, eq(categories.id, productCategories.categoryId))
         .where(conditions.length ? and(...conditions) : undefined)
-        .orderBy(desc(sql`rank`))
+        .groupBy(products.id)
+        .orderBy(desc(sql`match_count`), desc(sql`rank`), desc(products.createdAt))
         .limit(limit)
         .offset(offset);
 
