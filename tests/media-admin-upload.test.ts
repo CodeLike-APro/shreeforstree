@@ -105,10 +105,9 @@ describe("POST /api/media/admin/upload", () => {
   it("returns 403 when the caller is not an admin", async () => {
     vi.mocked(adminCheck).mockResolvedValue(false);
     const res = await POST(
-      uploadRequest(
-        { type: "product-fabric", productId: PRODUCT_ID },
-        [makeImageFile()],
-      ),
+      uploadRequest({ type: "product-fabric", productId: PRODUCT_ID }, [
+        makeImageFile(),
+      ]),
     );
     expect(res.status).toBe(403);
   });
@@ -122,13 +121,15 @@ describe("POST /api/media/admin/upload", () => {
 
   it("does not require productId for category-size-chart uploads", async () => {
     mockUpdateReturning([
-      { sizeChartImageUrl: "https://media.test/x.webp", sizeChartImagePath: "/x" },
+      {
+        sizeChartImageUrl: "https://media.test/x.webp",
+        sizeChartImagePath: "/x",
+      },
     ]);
     const res = await POST(
-      uploadRequest(
-        { type: "category-size-chart", categorySlug: "dresses" },
-        [makeImageFile()],
-      ),
+      uploadRequest({ type: "category-size-chart", categorySlug: "dresses" }, [
+        makeImageFile(),
+      ]),
     );
     expect(res.status).toBe(200);
   });
@@ -136,7 +137,11 @@ describe("POST /api/media/admin/upload", () => {
   it("rejects keepCount on a type that doesn't support a replace flow", async () => {
     const res = await POST(
       uploadRequest(
-        { type: "category-size-chart", categorySlug: "dresses", keepCount: "1" },
+        {
+          type: "category-size-chart",
+          categorySlug: "dresses",
+          keepCount: "1",
+        },
         [makeImageFile()],
       ),
     );
@@ -147,10 +152,10 @@ describe("POST /api/media/admin/upload", () => {
     it("rejects an upload that would exceed the max when keepCount is omitted", async () => {
       mockExistingCount(4);
       const res = await POST(
-        uploadRequest(
-          { type: "product-fabric", productId: PRODUCT_ID },
-          [makeImageFile("a.webp"), makeImageFile("b.webp")],
-        ),
+        uploadRequest({ type: "product-fabric", productId: PRODUCT_ID }, [
+          makeImageFile("a.webp"),
+          makeImageFile("b.webp"),
+        ]),
       );
       expect(res.status).toBe(400);
       expect(uploadFiles).not.toHaveBeenCalled();
@@ -198,10 +203,9 @@ describe("POST /api/media/admin/upload", () => {
     it("rejects an upload that would exceed the max when keepCount is omitted", async () => {
       mockExistingCount(10);
       const res = await POST(
-        uploadRequest(
-          { type: "product-gallery", productId: PRODUCT_ID },
-          [makeImageFile()],
-        ),
+        uploadRequest({ type: "product-gallery", productId: PRODUCT_ID }, [
+          makeImageFile(),
+        ]),
       );
       expect(res.status).toBe(400);
       expect(uploadFiles).not.toHaveBeenCalled();
@@ -242,7 +246,11 @@ describe("POST /api/media/admin/upload", () => {
     it("inserts a new hero row when the product has no existing hero image", async () => {
       dbAny.query.productMedia = { findFirst: vi.fn(async () => undefined) };
       const { valuesMock } = mockInsertReturning([
-        { path: "/root/media/products/p1/hero-image/new.webp", url: "u", type: "image" },
+        {
+          path: "/root/media/products/p1/hero-image/new.webp",
+          url: "u",
+          type: "image",
+        },
       ]);
       vi.mocked(uploadSingleFile).mockResolvedValue({
         publicUrl: "https://media.test/products/p1/hero-image/new.webp",
@@ -273,7 +281,11 @@ describe("POST /api/media/admin/upload", () => {
         })),
       };
       mockUpdateReturning([
-        { path: "/root/media/products/p1/hero-image/new.webp", url: "u", type: "image" },
+        {
+          path: "/root/media/products/p1/hero-image/new.webp",
+          url: "u",
+          type: "image",
+        },
       ]);
       vi.mocked(uploadSingleFile).mockResolvedValue({
         publicUrl: "https://media.test/products/p1/hero-image/new.webp",
@@ -353,7 +365,10 @@ describe("POST /api/media/admin/upload", () => {
         })),
       };
       mockUpdateReturning([
-        { categoryImageUrl: "https://media.test/x.webp", categoryImagePath: "/x" },
+        {
+          categoryImageUrl: "https://media.test/x.webp",
+          categoryImagePath: "/x",
+        },
       ]);
 
       const res = await POST(
@@ -370,11 +385,15 @@ describe("POST /api/media/admin/upload", () => {
       dbAny.query.categories = {
         findFirst: vi.fn(async () => ({
           id: "cat-1",
-          categoryImagePath: "/root/media/categories/cat-1/category-image/old.webp",
+          categoryImagePath:
+            "/root/media/categories/cat-1/category-image/old.webp",
         })),
       };
       mockUpdateReturning([
-        { categoryImageUrl: "https://media.test/x.webp", categoryImagePath: "/x" },
+        {
+          categoryImageUrl: "https://media.test/x.webp",
+          categoryImagePath: "/x",
+        },
       ]);
 
       const res = await POST(
@@ -393,12 +412,16 @@ describe("POST /api/media/admin/upload", () => {
       dbAny.query.categories = {
         findFirst: vi.fn(async () => ({
           id: "cat-1",
-          categoryImagePath: "/root/media/categories/cat-1/category-image/old.webp",
+          categoryImagePath:
+            "/root/media/categories/cat-1/category-image/old.webp",
         })),
       };
       vi.mocked(deleteFiles).mockRejectedValueOnce(new Error("SFTP down"));
       mockUpdateReturning([
-        { categoryImageUrl: "https://media.test/x.webp", categoryImagePath: "/x" },
+        {
+          categoryImageUrl: "https://media.test/x.webp",
+          categoryImagePath: "/x",
+        },
       ]);
 
       const res = await POST(

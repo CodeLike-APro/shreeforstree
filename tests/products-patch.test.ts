@@ -158,7 +158,12 @@ describe("PATCH /api/products/[id]", () => {
     const res = await patchProduct({
       fabric: "silk",
       media: [
-        { url: "url-gallery-1", path: "gallery-1", type: "image", sortOrder: 0 },
+        {
+          url: "url-gallery-1",
+          path: "gallery-1",
+          type: "image",
+          sortOrder: 0,
+        },
       ],
     });
 

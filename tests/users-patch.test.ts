@@ -30,7 +30,10 @@ describe("PATCH /api/users/[id] imagePath guard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    vi.mocked(getCurrentUser).mockResolvedValue({ id: "u1", role: "user" } as any);
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: "u1",
+      role: "user",
+    } as any);
     dbAny.query.user = {
       findFirst: vi.fn(async () => ({ id: "u1", deletedAt: null })),
     };
