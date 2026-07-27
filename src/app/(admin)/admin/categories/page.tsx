@@ -1,9 +1,7 @@
-export default function Home() {
+export default function categories() {
   return (
-    <div className=" h-screen w-full text-center flex flex-col items-center  justify-center">
-      <h1 className="text-4xl md:text-8xl font-display md:text-ink font-bold">
-        Categories
-      </h1>
+    <div className="min-h-screen w-full flex flex-col items-center justify-start">
+      {/* Categories content will go here */}
     </div>
   );
 }

@@ -1,17 +1,9 @@
-import Link from "next/link";
+import StatCard from "@/components/admin/StatCard";
 
-export default function admin() {
+export default function dashboard() {
   return (
-    <div className=" h-screen w-full text-center flex flex-col items-center  justify-center">
-      <h1 className="text-4xl md:text-8xl font-display md:text-ink font-bold">
-        ADMIN
-      </h1>
-      <Link
-        href="/"
-        className="mt-4 text-xl font-serif-alt font-bold py-2 px-3 bg-ink text-paper rounded-md tracking-widest hover:bg-paper border border-ink hover:text-ink transition-all duration-300"
-      >
-        HOME
-      </Link>
+    <div className="min-h-screen w-full flex flex-col items-center justify-start">
+      {/* Dashboard content will go here */}
     </div>
   );
 }
