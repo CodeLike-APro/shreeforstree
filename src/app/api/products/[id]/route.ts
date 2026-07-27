@@ -91,6 +91,7 @@ export async function PATCH(
       categoryIds,
       media,
       fabricMedia,
+      keywords,
     } = result.data;
 
     const slug = title
@@ -187,6 +188,7 @@ export async function PATCH(
         ...(neckline !== undefined && { neckline }),
         ...(length !== undefined && { length }),
         ...(careInstructions !== undefined && { careInstructions }),
+        ...(keywords !== undefined && keywords.length > 0 && { keywords }),
       };
 
       await db.transaction(async (tx) => {

@@ -290,6 +290,7 @@ export async function POST(request: NextRequest) {
       length: formData.get("length"),
       careInstructions: formData.get("careInstructions"),
       categoryIds: formData.getAll("categoryIds"),
+      keywords: formData.getAll("keywords"),
     };
     const files = formData.getAll("files") as File[];
 
@@ -337,6 +338,7 @@ export async function POST(request: NextRequest) {
       length,
       careInstructions,
       categoryIds,
+      keywords,
     } = result.data;
 
     const slug = slugify(title.trim(), { lower: true, strict: true });
@@ -385,6 +387,7 @@ export async function POST(request: NextRequest) {
             neckline: neckline?.trim(),
             length: length?.trim(),
             careInstructions: careInstructions?.trim(),
+            keywords: keywords?.map((k) => k.trim()),
           })
           .returning();
 
