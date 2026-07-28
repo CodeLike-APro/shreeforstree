@@ -13,7 +13,16 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import { createProductSchema } from "@/lib/validators/product.validators";
-import { and, count, eq, SQL, desc, sql, inArray, countDistinct } from "drizzle-orm";
+import {
+  and,
+  count,
+  eq,
+  SQL,
+  desc,
+  sql,
+  inArray,
+  countDistinct,
+} from "drizzle-orm";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
@@ -79,9 +88,7 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(products.isHeroProduct, true));
     }
     if (tsqueryString) {
-      conditions.push(
-        sql`${vec} @@ to_tsquery('english', ${tsqueryString})`
-      );
+      conditions.push(sql`${vec} @@ to_tsquery('english', ${tsqueryString})`);
     }
 
     const isAdmin = await adminCheck(request);
@@ -110,10 +117,15 @@ export async function GET(request: NextRequest) {
         .select({
           id: products.id,
           match_count: sql<number>`(${sql.join(
-            searchTerms.map((term) => sql`(${vec} @@ to_tsquery('english', ${term + ":*"}))::int`),
-            sql` + `
+            searchTerms.map(
+              (term) =>
+                sql`(${vec} @@ to_tsquery('english', ${term + ":*"}))::int`,
+            ),
+            sql` + `,
           )})`.as("match_count"),
-          rank: sql<number>`ts_rank('{0.05, 0.2, 0.6, 1.0}'::float4[], ${vec}, to_tsquery('english', ${tsqueryString}))`.as("rank"),
+          rank: sql<number>`ts_rank('{0.05, 0.2, 0.6, 1.0}'::float4[], ${vec}, to_tsquery('english', ${tsqueryString}))`.as(
+            "rank",
+          ),
         })
         .from(products)
         .leftJoin(
@@ -123,7 +135,11 @@ export async function GET(request: NextRequest) {
         .leftJoin(categories, eq(categories.id, productCategories.categoryId))
         .where(conditions.length ? and(...conditions) : undefined)
         .groupBy(products.id)
-        .orderBy(desc(sql`match_count`), desc(sql`rank`), desc(products.createdAt))
+        .orderBy(
+          desc(sql`match_count`),
+          desc(sql`rank`),
+          desc(products.createdAt),
+        )
         .limit(limit)
         .offset(offset);
 
@@ -148,7 +164,7 @@ export async function GET(request: NextRequest) {
             categories: {
               with: {
                 category: {
-                  columns: { name: true },
+                  columns: { title: true },
                 },
               },
             },
@@ -205,7 +221,7 @@ export async function GET(request: NextRequest) {
               with: {
                 category: {
                   columns: {
-                    name: true,
+                    title: true,
                   },
                 },
               },
@@ -232,7 +248,7 @@ export async function GET(request: NextRequest) {
             with: {
               category: {
                 columns: {
-                  name: true,
+                  title: true,
                 },
               },
             },
