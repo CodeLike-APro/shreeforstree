@@ -35,7 +35,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const headerList = await headers();
-  const session = await auth.api.getSession({ headers: headerList });
+  // const session = await auth.api.getSession({ headers: headerList });
   const deviceType = headerList.get("x-device-type");
   // if (!session || session.user.role !== "admin") {
   //   redirect("/");
@@ -52,7 +52,7 @@ export default async function AdminLayout({
           <AdminSidebar />
         </nav>
       )}
-      <main className="flex-1 min-w-0 flex flex-col min-h-[200vh]">
+      <main className="flex-1 min-w-0 flex flex-col min-h-screen">
         {deviceType === "mobile" ? (
           <AdminMobileTopBar />
         ) : (

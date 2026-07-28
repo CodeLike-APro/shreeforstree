@@ -1,14 +1,14 @@
 import z4 from "zod/v4";
 
 export const createCategorySchema = z4.object({
-  name: z4.string().min(1, "Category name is required"),
+  title: z4.string().min(1, "Category title is required"),
   description: z4.string().min(1).optional(),
   isActive: z4.boolean().optional(),
 });
 
 export const updateCategorySchema = z4
   .object({
-    name: z4.string().min(1).optional(),
+    title: z4.string().min(1).optional(),
     description: z4.string().min(1).optional(),
     isActive: z4.boolean().optional(),
     categoryImageUrl: z4.string().min(1).optional(),

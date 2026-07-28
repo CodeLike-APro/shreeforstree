@@ -4,7 +4,7 @@ import { productCategories } from "./productCategory.schema";
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
-  name: text("name").notNull().unique(),
+  title: text("title").notNull().unique(),
   slug: text("slug").notNull().unique(),
   description: text("description"),
   categoryImageUrl: text("category_image_url"),
