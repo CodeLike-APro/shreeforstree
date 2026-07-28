@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const isActiveRaw = formData.get("isActive");
 
     const data = {
-      name: formData.get("name"),
+      title: formData.get("title"),
       description: formData.get("description"),
       isActive: isActiveRaw !== null ? isActiveRaw === "true" : undefined,
     };
@@ -59,9 +59,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, description = "" } = result.data;
+    const { title, description = "" } = result.data;
 
-    const slug = slugify(name.trim(), { lower: true, strict: true });
+    const slug = slugify(title.trim(), { lower: true, strict: true });
 
     const existingCategory = await db.query.categories.findFirst({
       where: (categories, { eq }) => eq(categories.slug, slug),
@@ -89,7 +89,7 @@ export async function POST(request: Request) {
         .insert(categories)
         .values({
           id: newCategoryId,
-          name: name.trim(),
+          title: title.trim(),
           slug: slug,
           description: description.trim(),
           categoryImageUrl: uploaded?.publicUrl || null,

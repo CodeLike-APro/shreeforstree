@@ -39,7 +39,7 @@ export async function PATCH(
     }
 
     const {
-      name,
+      title,
       description,
       isActive,
       categoryImageUrl,
@@ -48,8 +48,8 @@ export async function PATCH(
       sizeChartImagePath,
     } = result.data;
 
-    const slug = name
-      ? slugify(name.trim(), { lower: true, strict: true })
+    const slug = title
+      ? slugify(title.trim(), { lower: true, strict: true })
       : undefined;
 
     const category = await db.query.categories.findFirst({
@@ -74,7 +74,7 @@ export async function PATCH(
     const updatedCategory = await db
       .update(categories)
       .set({
-        ...(name && { name: name.trim(), slug }),
+        ...(title && { title: title.trim(), slug }),
         ...(description && { description: description.trim() }),
         ...(categoryImageUrl ? { categoryImageUrl, categoryImagePath } : {}),
         ...(sizeChartImageUrl ? { sizeChartImageUrl, sizeChartImagePath } : {}),
