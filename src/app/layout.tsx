@@ -6,6 +6,7 @@ import {
   League_Spartan,
 } from "next/font/google";
 import "./globals.css";
+import BrandToaster from "@/components/ui/BrandToaster";
 
 const playfair = Playfair_Display({
   variable: "--font-display",
@@ -65,6 +66,7 @@ export default function RootLayout({
         className={`${playfair.variable} ${inter.variable} ${Cormorant.variable} ${league.variable} min-h-full flex flex-col font-body`}
       >
         {children}
+        <BrandToaster />
       </body>
     </html>
   );
