@@ -17,9 +17,9 @@ export function Shimmer({ className = "" }: ShimmerProps) {
 /** Placeholder that matches a single product/category card. */
 export function CardShimmer() {
   return (
-    <div className="w-64 shrink-0 select-none">
+    <div className="w-full sm:w-64 shrink-0 select-none">
       {/* Image — same footprint as the card's 3:4 media */}
-      <Shimmer className="w-64 aspect-3/4" />
+      <Shimmer className="w-full sm:w-64 aspect-3/4" />
 
       {/* Title + price */}
       <div className="py-2">

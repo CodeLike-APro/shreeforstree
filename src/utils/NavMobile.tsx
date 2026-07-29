@@ -177,6 +177,12 @@ export default function NavMobile({ tabs }: NavMobileProps) {
     router.push(tabs[index].href);
   };
 
+  // Hide on form sub-pages (edit/create) so the nav doesn't cover the save bar
+  const isFormSubPage =
+    /^\/admin\/categories\/[^/]+$/.test(pathname) ||
+    /^\/admin\/products\/[^/]+$/.test(pathname);
+  if (isFormSubPage) return null;
+
   return (
     <nav className="fixed bg-linear-to-t from-black/20 to-transparent bottom-0 pb-5 left-0 right-0 z-50 flex items-center justify-center pointer-events-none">
       <motion.div

@@ -232,7 +232,7 @@ export default function Card({
   return (
     <div className="select-none shrink-0">
       <div
-        className="w-64 rounded-sm cursor-pointer group"
+        className="w-full sm:w-64 rounded-sm cursor-pointer group"
         onClick={handleCardClick}
         onMouseLeave={() => hasGallery && setActiveIndex(0)}
       >
@@ -241,7 +241,7 @@ export default function Card({
           onTouchStart={hasGallery ? handleTouchStart : undefined}
           onTouchEnd={hasGallery ? handleTouchEnd : undefined}
         >
-          <div className="relative w-64 aspect-3/4">
+          <div className="relative w-full sm:w-64 aspect-3/4">
             {displayImages.map((src, index) => (
               <img
                 key={index}

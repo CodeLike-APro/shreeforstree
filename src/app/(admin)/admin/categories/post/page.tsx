@@ -93,7 +93,9 @@ export default function PostCategory() {
         method: "POST",
         body: formData,
       });
-      const payload = (await res.json().catch(() => null)) as ApiResponse | null;
+      const payload = (await res
+        .json()
+        .catch(() => null)) as ApiResponse | null;
 
       if (!res.ok) {
         const firstFieldError = payload?.errors
@@ -155,86 +157,86 @@ export default function PostCategory() {
             disabled={isSubmitting}
             className="grid grid-cols-1 gap-6 md:grid-cols-3"
           >
-          <section className="flex flex-col gap-6 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-2">
-            <h2 className="font-display text-2xl font-bold text-ink">
-              Category details
-            </h2>
+            <section className="flex flex-col gap-6 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-2">
+              <h2 className="font-display text-2xl font-bold text-ink">
+                Category details
+              </h2>
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="name"
-                className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
-              >
-                Title
-              </label>
-              <input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Bridal Lehengas"
-                className="w-full rounded-lg border border-ink-40 bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:border-ink focus:outline-none"
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="slug"
-                className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
-              >
-                Slug
-              </label>
-              <div className="flex w-full items-center overflow-hidden rounded-lg border border-ink-40 bg-paper">
-                <span className="border-r border-ink-40 bg-ink-08 px-4 py-2.5 font-body text-ink-55">
-                  /category/
-                </span>
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="name"
+                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                >
+                  Title
+                </label>
                 <input
                   type="text"
-                  id="slug"
-                  value={slug}
-                  readOnly
-                  placeholder="bridal-lehengas"
-                  className="w-full cursor-not-allowed bg-transparent px-4 py-2.5 font-body text-ink placeholder:text-ink-40 focus:outline-none"
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Bridal Lehengas"
+                  className="w-full rounded-lg border border-ink-40 bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:border-ink focus:outline-none"
                 />
               </div>
-              <p className="font-body text-xs text-ink-40">
-                Used in the URL. Auto-filled from the title.
-              </p>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="description"
-                className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
-              >
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Describe this collection…"
-                rows={6}
-                className="w-full resize-none rounded-lg border border-ink-40 bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:border-ink focus:outline-none"
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="slug"
+                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                >
+                  Slug
+                </label>
+                <div className="flex w-full items-center overflow-hidden rounded-lg border border-ink-40 bg-paper">
+                  <span className="border-r border-ink-40 bg-ink-08 px-4 py-2.5 font-body text-ink-55">
+                    /category/
+                  </span>
+                  <input
+                    type="text"
+                    id="slug"
+                    value={slug}
+                    readOnly
+                    placeholder="bridal-lehengas"
+                    className="w-full cursor-not-allowed bg-transparent px-4 py-2.5 font-body text-ink placeholder:text-ink-40 focus:outline-none"
+                  />
+                </div>
+                <p className="font-body text-xs text-ink-40">
+                  Used in the URL. Auto-filled from the title.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label
+                  htmlFor="description"
+                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                >
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe this collection…"
+                  rows={6}
+                  className="w-full resize-none rounded-lg border border-ink-40 bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:border-ink focus:outline-none"
+                />
+              </div>
+            </section>
+
+            <section className="flex h-fit flex-col gap-4 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-1">
+              <h2 className="font-display text-2xl font-bold text-ink">
+                Category image
+              </h2>
+
+              <FileUpload
+                imagePreview={imagePreview}
+                onFileSelect={handleFileSelect}
+                onFileRemove={handleFileRemove}
+                accept="image"
+                maxFiles={1}
+                title="Upload image"
+                subtitle="1200 × 1600 recommended"
               />
-            </div>
-          </section>
-
-          <section className="flex h-fit flex-col gap-4 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-1">
-            <h2 className="font-display text-2xl font-bold text-ink">
-              Category image
-            </h2>
-
-            <FileUpload
-              imagePreview={imagePreview}
-              onFileSelect={handleFileSelect}
-              onFileRemove={handleFileRemove}
-              accept="image"
-              maxFiles={1}
-              title="Upload image"
-              subtitle="1200 × 1600 recommended"
-            />
-          </section>
+            </section>
           </fieldset>
         </div>
       </form>
@@ -244,7 +246,7 @@ export default function PostCategory() {
           type="button"
           onClick={handleLeave}
           disabled={isSubmitting}
-          className="rounded-lg border border-ink-40 bg-paper px-5 py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-50"
+          className="flex-1 sm:flex-initial flex items-center justify-center rounded-lg border border-ink-40 bg-paper px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-50"
         >
           Cancel
         </button>
@@ -252,7 +254,7 @@ export default function PostCategory() {
           type="submit"
           form="category-post-form"
           disabled={isSubmitting}
-          className="flex items-center gap-2 rounded-lg bg-rose-gold px-5 py-2.5 font-body text-sm font-bold text-paper transition-colors hover:bg-rose-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-lg bg-rose-gold px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-paper transition-colors hover:bg-rose-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSubmitting && <Loader2 size={16} className="animate-spin" />}
           {isSubmitting ? "Creating…" : "Create category"}

@@ -29,7 +29,7 @@ const TOP_BAR_ITEMS = [
     searchPlaceholder: "Search products...",
     button: true,
     buttonLabel: "New Product",
-    buttonHref: "/admin/products/post",
+    buttonHref: "/admin/products/new",
     filters: true,
     bell: false,
   },
@@ -131,9 +131,11 @@ export default function AdminMobileTopBar() {
     TOP_BAR_ITEMS.find((item) => pathname.startsWith(item.href)) ||
     TOP_BAR_ITEMS[0];
 
-  const isCategorySubPage = /^\/admin\/categories\/[^/]+$/.test(pathname);
+  const isFormSubPage =
+    /^\/admin\/categories\/[^/]+$/.test(pathname) ||
+    /^\/admin\/products\/[^/]+$/.test(pathname);
 
-  if (isCategorySubPage) return null;
+  if (isFormSubPage) return null;
 
   return (
     <div className="px-4 py-3 sticky top-0 z-50 w-full flex flex-col gap-3 bg-paper border-b border-ink-25 select-none">

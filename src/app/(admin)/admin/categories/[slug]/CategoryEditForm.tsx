@@ -486,7 +486,7 @@ export default function CategoryEditForm({
           type="button"
           onClick={handleCancel}
           disabled={isSaving}
-          className="rounded-lg border border-ink-40 bg-paper px-5 py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-50"
+          className="flex-1 sm:flex-initial flex items-center justify-center rounded-lg border border-ink-40 bg-paper px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-50"
         >
           Cancel
         </button>
@@ -494,7 +494,7 @@ export default function CategoryEditForm({
           type="submit"
           form="category-edit-form"
           disabled={!isDirty || isSaving}
-          className="flex items-center gap-2 rounded-lg bg-rose-gold px-5 py-2.5 font-body text-sm font-bold text-paper transition-colors hover:bg-rose-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-lg bg-rose-gold px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-paper transition-colors hover:bg-rose-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSaving && <Loader2 size={16} className="animate-spin" />}
           {isSaving ? "Saving…" : "Save changes"}

@@ -95,7 +95,7 @@ export default function categories() {
   }, []);
 
   const wrapperClass =
-    "min-h-screen w-full p-6 flex flex-wrap gap-6 justify-center sm:justify-start items-start content-start transition-all";
+    "min-h-screen w-full p-4 sm:p-6 grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6 sm:justify-start items-start content-start transition-all";
 
   if (loading) {
     return (
@@ -107,7 +107,7 @@ export default function categories() {
 
   if (categoriesError) {
     return (
-      <div className={`${wrapperClass} justify-center! items-center!`}>
+      <div className="min-h-screen w-full p-4 sm:p-6 flex justify-center items-center transition-all">
         <div className="flex flex-col items-center text-center gap-4 max-w-sm">
           <div className="flex items-center justify-center w-14 h-14 rounded-full bg-rust/10 text-rust">
             <AlertCircle size={28} />
@@ -135,7 +135,7 @@ export default function categories() {
 
   if (categories.length === 0) {
     return (
-      <div className={`${wrapperClass} justify-center! items-center!`}>
+      <div className="min-h-screen w-full p-4 sm:p-6 flex justify-center items-center transition-all">
         <div className="flex flex-col items-center text-center gap-2 max-w-sm">
           <h2 className="text-xl text-ink">No categories yet</h2>
           <p className="text-sm text-ink-55">

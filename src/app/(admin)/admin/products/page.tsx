@@ -90,13 +90,13 @@ export default function products() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full p-6 flex flex-wrap gap-6 justify-center sm:justify-start items-start content-start transition-all">
+    <div className="min-h-screen w-full p-4 sm:p-6 grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6 sm:justify-start items-start content-start transition-all">
       {products.map((product, index) => (
         <Card
           key={index}
           variant="admin-product"
           data={{ ...product, variant: "admin-product" }}
-          onEdit={(id) => router.push(`/admin/products/patch?id=${id}`)}
+          onEdit={(id) => router.push(`/admin/products/${id}`)}
           onViewOnStore={() =>
             window.open(
               `/product/${product.slug}`,
