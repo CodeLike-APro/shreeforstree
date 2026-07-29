@@ -1,9 +1,19 @@
 "use client";
 
 import Card from "@/utils/card";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+
+interface ProductRow {
+  id: string;
+  title: string;
+  isActive: boolean;
+  [key: string]: unknown;
+}
 
 export default function products() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [productsError, setProductsError] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
@@ -39,13 +49,63 @@ export default function products() {
 
     fetchProducts();
   }, []);
+
+  const handleToggleStatus = useCallback(async (product: ProductRow) => {
+    const next = !product.isActive;
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: next }),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(payload?.message ?? "Couldn't update the product.");
+        return;
+      }
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, isActive: next } : p)),
+      );
+      toast.success(next ? "Product activated." : "Product deactivated.");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
+  }, []);
+
+  const handleDelete = useCallback(async (product: ProductRow) => {
+    try {
+      const res = await fetch(`/api/products/${product.id}`, {
+        method: "DELETE",
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        toast.error(payload?.message ?? "Couldn't delete the product.");
+        return;
+      }
+      setProducts((prev) => prev.filter((p) => p.id !== product.id));
+      toast.success("Product deleted.");
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen w-full grid grid-cols-3 gap-2 flex-wrap">
+    <div className="min-h-screen w-full p-6 flex flex-wrap gap-6 justify-center sm:justify-start items-start content-start transition-all">
       {products.map((product, index) => (
         <Card
           key={index}
           variant="admin-product"
           data={{ ...product, variant: "admin-product" }}
+          onEdit={(id) => router.push(`/admin/products/patch?id=${id}`)}
+          onViewOnStore={() =>
+            window.open(
+              `/product/${product.slug}`,
+              "_blank",
+              "noopener,noreferrer",
+            )
+          }
+          onToggleStatus={() => handleToggleStatus(product)}
+          onDelete={() => handleDelete(product)}
         />
       ))}
     </div>

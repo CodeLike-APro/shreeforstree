@@ -29,8 +29,23 @@ const TOP_BAR_ITEMS = [
     searchPlaceholder: "Search products...",
     button: true,
     buttonLabel: "New Product",
+    buttonHref: "/admin/products/post",
     filters: true,
     bell: false,
+  },
+  {
+    href: "/admin/categories/post",
+    title: "New category",
+    description: "Add a collection to your store",
+    search: false,
+    button: false,
+    filters: false,
+    bell: false,
+    cancelButton: true,
+    cancelHref: "/admin/categories",
+    submitButton: true,
+    submitLabel: "Create",
+    submitFormId: "category-post-form",
   },
   {
     href: "/admin/categories",
@@ -40,6 +55,7 @@ const TOP_BAR_ITEMS = [
     searchPlaceholder: "Search categories...",
     button: true,
     buttonLabel: "New Category",
+    buttonHref: "/admin/categories/post",
     filters: true,
     bell: false,
   },
@@ -115,6 +131,10 @@ export default function AdminMobileTopBar() {
     TOP_BAR_ITEMS.find((item) => pathname.startsWith(item.href)) ||
     TOP_BAR_ITEMS[0];
 
+  const isCategorySubPage = /^\/admin\/categories\/[^/]+$/.test(pathname);
+
+  if (isCategorySubPage) return null;
+
   return (
     <div className="px-4 py-3 sticky top-0 z-50 w-full flex flex-col gap-3 bg-paper border-b border-ink-25 select-none">
       {/* Row 1: Title, Description, Buttons */}
@@ -150,7 +170,7 @@ export default function AdminMobileTopBar() {
 
       {/* Row 2: Search Bar & Filters */}
       <AnimatePresence mode="popLayout">
-        {(currentItem.search || currentItem.filters || currentItem.button) && (
+        {(currentItem.search || currentItem.filters || currentItem.button || currentItem.cancelButton || currentItem.submitButton) && (
           <motion.div
             key="row2"
             layout
@@ -183,9 +203,52 @@ export default function AdminMobileTopBar() {
                   />
                 </motion.div>
               )}
-              {(currentItem.filters || currentItem.button) && (
+              {(currentItem.filters || currentItem.button || currentItem.cancelButton || currentItem.submitButton) && (
                 <motion.div layout className="flex items-center gap-2 shrink-0">
                   <AnimatePresence mode="popLayout">
+                    {currentItem.cancelButton && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        key="cancel"
+                      >
+                        <button
+                          onClick={() => {
+                            if (currentItem.cancelHref) {
+                              router.push(currentItem.cancelHref);
+                            }
+                          }}
+                          className="bg-paper border border-ink-40 hover:border-ink hover:bg-ink transition-all duration-300 rounded-lg flex items-center justify-center px-4 h-9.5 shrink-0"
+                        >
+                          <div className="text-sm font-body text-ink font-bold group-hover:text-white transition-colors duration-300">
+                            Cancel
+                          </div>
+                        </button>
+                      </motion.div>
+                    )}
+                    {currentItem.submitButton && (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        key="submit"
+                      >
+                        <button
+                          type="submit"
+                          form={currentItem.submitFormId}
+                          className="bg-rose-gold hover:bg-rose-gold-dark transition-all duration-300 rounded-lg flex items-center justify-center px-4 h-9.5 shrink-0"
+                        >
+                          <div className="text-sm font-body text-paper font-bold group-hover:text-white transition-colors duration-300">
+                            {currentItem.submitLabel}
+                          </div>
+                        </button>
+                      </motion.div>
+                    )}
                     {currentItem.filters && (
                       <motion.div
                         layout
@@ -209,7 +272,11 @@ export default function AdminMobileTopBar() {
                         key="button"
                       >
                         <button
-                          onClick={() => {}}
+                          onClick={() => {
+                            if (currentItem.buttonHref) {
+                              router.push(currentItem.buttonHref);
+                            }
+                          }}
                           className="bg-rose-gold rounded-lg flex items-center justify-center h-9.5 w-9.5 shrink-0"
                         >
                           <Plus size={18} className="text-paper" />
