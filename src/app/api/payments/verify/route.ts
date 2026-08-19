@@ -12,7 +12,30 @@ import { orders, payments } from "@/lib/db/schema";
 import { razorpay } from "@/lib/razorpay";
 import { verifyPaymentSchema } from "@/lib/validators/payment.validator";
 import crypto from "crypto";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
+import { Payments } from "razorpay/dist/types/payments";
+
+const assertPaymentValid = (
+  paymentdetails: Payments.RazorpayPayment,
+  order: typeof orders.$inferSelect,
+  razorpayOrderId: string,
+) => {
+  if (paymentdetails.order_id !== razorpayOrderId) {
+    return badRequest("Payment does not belong to this order");
+  }
+
+  if (paymentdetails.status !== "captured") {
+    return badRequest("Payment not captured");
+  }
+
+  if (
+    Number(paymentdetails.amount) !==
+      Math.round(Number(order.totalAmount) * 100) ||
+    paymentdetails.currency !== "INR"
+  ) {
+    return badRequest("Payment amount mismatch");
+  }
+};
 
 export async function POST(request: Request) {
   try {
@@ -60,10 +83,6 @@ export async function POST(request: Request) {
       return badRequest("Payment does not belong to this order");
     }
 
-    if (payment.status === "success") {
-      return badRequest("Payment has already been verified");
-    }
-
     const expectedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
@@ -77,14 +96,21 @@ export async function POST(request: Request) {
       );
 
     if (!isValid) {
-      await db
-        .update(payments)
-        .set({ status: "failed" })
-        .where(eq(payments.id, payment.id));
+      console.error("Invalid Payment Signature", {
+        orderId: orderId,
+        razorpayOrderId: razorpayOrderId,
+        userId: currentUser.id,
+      });
       return badRequest("Payment verification failed");
     }
 
     const paymentdetails = await razorpay.payments.fetch(razorpayPaymentId);
+
+    const paymentValidationResponse = assertPaymentValid(
+      paymentdetails,
+      order,
+      razorpayOrderId,
+    );
 
     const updatedPaymentsAndOrders = await db.transaction(async (tx) => {
       const [updatedPayment] = await tx
@@ -94,8 +120,12 @@ export async function POST(request: Request) {
           transactionId: razorpayPaymentId,
           method: paymentdetails.method ?? null,
         })
-        .where(eq(payments.id, payment.id))
+        .where(and(eq(payments.id, payment.id), ne(payments.status, "success")))
         .returning();
+
+      if (!updatedPayment) {
+        return null;
+      }
 
       const [updatedOrder] = await tx
         .update(orders)
