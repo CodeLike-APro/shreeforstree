@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { db } from "@/lib/db";
 import { categories } from "@/lib/db/schema/category.schema";
 import {
@@ -12,6 +14,7 @@ import { eq } from "drizzle-orm";
 import { adminCheck } from "@/lib/auth-utils";
 import slugify from "slugify";
 import { createCategorySchema } from "@/lib/validators/category.validators";
+import { deleteFile, uploadSingleFile } from "@/lib/media/media-handle";
 
 export async function GET(request: Request) {
   try {
@@ -19,7 +22,11 @@ export async function GET(request: Request) {
     const allCategories = isAdmin
       ? await db.select().from(categories)
       : await db.select().from(categories).where(eq(categories.isActive, true));
-    return ok("All categories fetched successfully", allCategories);
+    return ok("All categories fetched successfully", allCategories, {
+      "Cache-Control": isAdmin
+        ? "no-store"
+        : "private, max-age=300, stale-while-revalidate=600",
+    });
   } catch (error) {
     return internalServerError("Failed to fetch categories", error);
   }
@@ -32,8 +39,18 @@ export async function POST(request: Request) {
       return forbidden("Unauthorized access");
     }
 
-    const body = await request.json();
-    const result = await createCategorySchema.safeParseAsync(body);
+    const formData = await request.formData();
+    const isActiveRaw = formData.get("isActive");
+
+    const data = {
+      title: formData.get("title"),
+      description: formData.get("description"),
+      isActive: isActiveRaw !== null ? isActiveRaw === "true" : undefined,
+    };
+
+    const file = formData.get("files") as File | null;
+
+    const result = await createCategorySchema.safeParseAsync(data);
 
     if (!result.success) {
       return badRequest(
@@ -42,9 +59,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const { name, description = "", categoryImageUrl = "" } = result.data;
+    const { title, description = "" } = result.data;
 
-    const slug = slugify(name.trim(), { lower: true, strict: true });
+    const slug = slugify(title.trim(), { lower: true, strict: true });
 
     const existingCategory = await db.query.categories.findFirst({
       where: (categories, { eq }) => eq(categories.slug, slug),
@@ -56,17 +73,40 @@ export async function POST(request: Request) {
       );
     }
 
-    const [newCategory] = await db
-      .insert(categories)
-      .values({
-        name: name.trim(),
-        slug: slug,
-        description: description.trim(),
-        categoryImageUrl: categoryImageUrl.trim(),
-      })
-      .returning();
-    return created("Category created successfully", newCategory);
+    const newCategoryId = crypto.randomUUID();
+    const uploaded = file
+      ? await uploadSingleFile(
+          file,
+          `categories/${newCategoryId}/category-image`,
+        )
+      : null;
+
+    if (file && !uploaded) {
+      return internalServerError("Failed to upload category image");
+    }
+    try {
+      const [newCategory] = await db
+        .insert(categories)
+        .values({
+          id: newCategoryId,
+          title: title.trim(),
+          slug: slug,
+          description: description.trim(),
+          categoryImageUrl: uploaded?.publicUrl || null,
+          categoryImagePath: uploaded?.path || null,
+        })
+        .returning();
+      return created("Category created successfully", newCategory);
+    } catch (error) {
+      if (uploaded && uploaded.path) {
+        await deleteFile(uploaded.path);
+      }
+      return internalServerError("Error creating category", error);
+    }
   } catch (error) {
-    return internalServerError("Error creating category", error);
+    return internalServerError(
+      "Error creating category",
+      error instanceof Error ? error.message : error,
+    );
   }
 }

@@ -8,13 +8,17 @@ type ApiResponse<T = null> = {
 };
 
 // 200 OK
-export function ok<T>(message: string, data: T | null = null) {
+export function ok<T>(
+  message: string,
+  data: T | null = null,
+  headers?: HeadersInit,
+) {
   const body: ApiResponse<T> = {
     success: true,
     message,
     data,
   };
-  return NextResponse.json(body, { status: 200 });
+  return NextResponse.json(body, { status: 200, headers });
 }
 
 // 201 Created
@@ -65,11 +69,12 @@ export function forbidden(message: string = "Forbidden") {
 }
 
 // 404 Not Found
-export function notFound(message: string = "Not Found") {
+export function notFound(message: string = "Not Found", errors?: unknown) {
   const body: ApiResponse = {
     success: false,
     message,
     data: null,
+    errors,
   };
   return NextResponse.json(body, {
     status: 404,

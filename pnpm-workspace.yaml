@@ -1,7 +1,13 @@
 allowBuilds:
+  bcrypt: true
+  cpu-features: true
   esbuild: true
   sharp: true
+  ssh2: true
   unrs-resolver: true
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+# pnpm-workspace.yaml
+overrides:
+  kysely: "^0.28.17"

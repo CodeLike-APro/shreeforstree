@@ -11,10 +11,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
-// next.config.js
-module.exports = {
-  allowedDevOrigins: ["192.168.1.7"],
+  serverExternalPackages: ["ssh2", "ssh2-sftp-client"],
+  allowedDevOrigins: ["192.168.1.*"],
 };
 
 export default nextConfig;

@@ -1,18 +1,39 @@
 import z4 from "zod/v4";
 
 export const createCategorySchema = z4.object({
-  name: z4.string().min(1, "Category name is required"),
+  title: z4.string().min(1, "Category title is required"),
   description: z4.string().min(1).optional(),
-  categoryImageUrl: z4.string().min(1).optional(),
+  isActive: z4.boolean().optional(),
 });
 
 export const updateCategorySchema = z4
   .object({
-    name: z4.string().min(1).optional(),
+    title: z4.string().min(1).optional(),
     description: z4.string().min(1).optional(),
-    categoryImageUrl: z4.string().min(1).optional(),
     isActive: z4.boolean().optional(),
+    categoryImageUrl: z4.string().min(1).optional(),
+    categoryImagePath: z4.string().min(1).optional(),
+    sizeChartImageUrl: z4.string().min(1).optional(),
+    sizeChartImagePath: z4.string().min(1).optional(),
   })
+  .refine(
+    ({ categoryImageUrl, categoryImagePath }) =>
+      !!categoryImageUrl === !!categoryImagePath,
+    {
+      message:
+        "categoryImageUrl and categoryImagePath must be provided together.",
+      path: ["categoryImageUrl"],
+    },
+  )
+  .refine(
+    ({ sizeChartImageUrl, sizeChartImagePath }) =>
+      !!sizeChartImageUrl === !!sizeChartImagePath,
+    {
+      message:
+        "sizeChartImageUrl and sizeChartImagePath must be provided together.",
+      path: ["sizeChartImageUrl"],
+    },
+  )
   .refine(
     (data) =>
       Object.keys(data).some(

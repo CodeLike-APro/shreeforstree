@@ -7,28 +7,38 @@ import {
   ok,
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
-import { extractPublicId } from "@/lib/cloudinary";
 import { db } from "@/lib/db";
-import { productCategories } from "@/lib/db/schema";
+import { orderItems, productCategories, productMedia } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
-import { deleteProductImage } from "@/lib/image-upload";
+import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
+import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
 import { NextRequest } from "next/server";
 import slugify from "slugify";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { productId } = await params;
+    const isAdmin = await adminCheck(request);
+    const { id: productId } = await params;
 
     const product = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: {
+        categories: { with: { category: true } },
+        productMedia: {
+          orderBy: (media, { asc }) => asc(media.sortOrder),
+        },
+      },
     });
 
     if (!product) {
+      return notFound("Product not found");
+    }
+
+    if (!isAdmin && !product.isActive) {
       return notFound("Product not found");
     }
 
@@ -40,7 +50,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -49,7 +59,7 @@ export async function PATCH(
       return forbidden("Unauthorized access");
     }
 
-    const { productId } = await params;
+    const { id: productId } = await params;
     const body = await request.json();
     const result = await updateProductSchema.safeParseAsync(body);
 
@@ -65,19 +75,24 @@ export async function PATCH(
       description,
       price,
       discountedPrice,
-      imagesUrl,
       sizes,
       colors,
       isActive,
       isNewArrival,
       isHeroProduct,
+      fabric,
+      work,
+      silhouette,
+      lining,
+      sleeveType,
+      neckline,
+      length,
+      careInstructions,
       categoryIds,
+      media,
+      fabricMedia,
+      keywords,
     } = result.data;
-
-    let { heroImageUrl } = result.data;
-    if (isHeroProduct === false && heroImageUrl) {
-      heroImageUrl = undefined;
-    }
 
     const slug = title
       ? slugify(title.trim(), { lower: true, strict: true })
@@ -85,6 +100,7 @@ export async function PATCH(
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: { productMedia: true, categories: { with: { category: true } } },
     });
 
     if (!foundProduct) {
@@ -102,75 +118,212 @@ export async function PATCH(
       }
     }
 
-    if (isHeroProduct === false && foundProduct.heroImageUrl) {
-      try {
-        const publicId = extractPublicId(foundProduct.heroImageUrl);
-        await deleteProductImage(publicId);
-      } catch (error) {
-        console.error("Failed to delete hero image from Cloudinary", error);
-        // continue anyway
-      }
-    }
+    const existingPaths =
+      media !== undefined
+        ? new Set(
+            foundProduct.productMedia
+              .filter((media) => !media.isHero && !media.isFabricSwatch)
+              .map((media) => media.path),
+          )
+        : new Set<string>();
 
-    let updatedProduct: typeof foundProduct | undefined;
+    const incomingPaths =
+      media !== undefined
+        ? new Set(media.map((media) => media.path))
+        : new Set<string>();
 
-    if (categoryIds) {
+    const toInsert =
+      media?.filter((media) => !existingPaths.has(media.path)) || [];
+
+    const toUpdateSortOrder = media?.filter((media) =>
+      existingPaths.has(media.path),
+    );
+
+    const toDelete = Array.from(existingPaths).filter(
+      (media) => !incomingPaths.has(media),
+    );
+
+    const existingFabricPaths =
+      fabricMedia !== undefined
+        ? new Set(
+            foundProduct.productMedia
+              .filter((media) => media.isFabricSwatch)
+              .map((media) => media.path),
+          )
+        : new Set<string>();
+
+    const incomingFabricPaths =
+      fabricMedia !== undefined
+        ? new Set(fabricMedia.map((media) => media.path))
+        : new Set<string>();
+
+    const fabricToInsert =
+      fabricMedia?.filter((media) => !existingFabricPaths.has(media.path)) ||
+      [];
+
+    const fabricToUpdateSortOrder = fabricMedia?.filter((media) =>
+      existingFabricPaths.has(media.path),
+    );
+
+    const fabricToDelete = Array.from(existingFabricPaths).filter(
+      (media) => !incomingFabricPaths.has(media),
+    );
+
+    try {
+      const updateData = {
+        ...(title !== undefined && { title: title.trim(), slug }),
+        ...(description !== undefined && { description: description.trim() }),
+        ...(price !== undefined && { price }),
+        ...(discountedPrice !== undefined && { discountedPrice }),
+        ...(sizes !== undefined && { sizes }),
+        ...(colors !== undefined && { colors }),
+        ...(isActive !== undefined && { isActive }),
+        ...(isNewArrival !== undefined && { isNewArrival }),
+        ...(isHeroProduct !== undefined && { isHeroProduct }),
+        ...(fabric !== undefined && { fabric }),
+        ...(work !== undefined && { work }),
+        ...(silhouette !== undefined && { silhouette }),
+        ...(lining !== undefined && { lining }),
+        ...(sleeveType !== undefined && { sleeveType }),
+        ...(neckline !== undefined && { neckline }),
+        ...(length !== undefined && { length }),
+        ...(careInstructions !== undefined && { careInstructions }),
+        ...(keywords !== undefined && keywords.length > 0 && { keywords }),
+      };
+
       await db.transaction(async (tx) => {
-        [updatedProduct] = await tx
-          .update(products)
-          .set({
-            ...(title && { title: title.trim(), slug }),
-            ...(description && { description: description.trim() }),
-            ...(price && { price }),
-            ...(discountedPrice && { discountedPrice }),
-            ...(imagesUrl && { imagesUrl }),
-            ...(sizes && { sizes }),
-            ...(colors && { colors }),
-            ...(isActive !== undefined && { isActive }),
-            ...(isNewArrival !== undefined && { isNewArrival }),
-            ...(isHeroProduct !== undefined && { isHeroProduct }),
-            ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
-            ...(isHeroProduct === false && { heroImageUrl: null }),
-            updatedAt: new Date(),
-          })
-          .where(eq(products.id, productId))
-          .returning();
+        if (Object.keys(updateData).length > 0) {
+          await tx
+            .update(products)
+            .set(updateData)
+            .where(eq(products.id, productId));
+        }
 
-        await tx
-          .delete(productCategories)
-          .where(eq(productCategories.productId, productId));
+        if (categoryIds) {
+          await tx
+            .delete(productCategories)
+            .where(eq(productCategories.productId, productId));
 
-        await tx
-          .insert(productCategories)
-          .values(categoryIds.map((categoryId) => ({ productId, categoryId })));
+          await tx
+            .insert(productCategories)
+            .values(
+              categoryIds.map((categoryId) => ({ productId, categoryId })),
+            );
+        }
+
+        if (toInsert.length > 0) {
+          await tx.insert(productMedia).values(
+            toInsert.map((file) => ({
+              productId,
+              type: file.type,
+              url: file.url,
+              path: file.path,
+              sortOrder: file.sortOrder,
+            })),
+          );
+        }
+
+        if (toDelete.length > 0) {
+          await tx
+            .delete(productMedia)
+            .where(inArray(productMedia.path, toDelete));
+        }
+
+        if (toUpdateSortOrder && toUpdateSortOrder.length > 0) {
+          for (const media of toUpdateSortOrder) {
+            await tx
+              .update(productMedia)
+              .set({ sortOrder: media.sortOrder })
+              .where(
+                and(
+                  eq(productMedia.productId, productId),
+                  eq(productMedia.path, media.path),
+                ),
+              );
+          }
+        }
+
+        if (fabricToInsert.length > 0) {
+          await tx.insert(productMedia).values(
+            fabricToInsert.map((file) => ({
+              productId,
+              type: file.type,
+              url: file.url,
+              path: file.path,
+              sortOrder: file.sortOrder,
+              isFabricSwatch: true,
+            })),
+          );
+        }
+
+        if (fabricToDelete.length > 0) {
+          await tx
+            .delete(productMedia)
+            .where(inArray(productMedia.path, fabricToDelete));
+        }
+
+        if (fabricToUpdateSortOrder && fabricToUpdateSortOrder.length > 0) {
+          for (const media of fabricToUpdateSortOrder) {
+            await tx
+              .update(productMedia)
+              .set({ sortOrder: media.sortOrder })
+              .where(
+                and(
+                  eq(productMedia.productId, productId),
+                  eq(productMedia.path, media.path),
+                ),
+              );
+          }
+        }
       });
-    } else {
-      [updatedProduct] = await db
-        .update(products)
-        .set({
-          ...(title && { title: title.trim(), slug }),
-          ...(description && { description: description.trim() }),
-          ...(price && { price }),
-          ...(discountedPrice && { discountedPrice }),
-          ...(imagesUrl && { imagesUrl }),
-          ...(sizes && { sizes }),
-          ...(colors && { colors }),
-          ...(isActive !== undefined && { isActive }),
-          ...(isNewArrival !== undefined && { isNewArrival }),
-          ...(isHeroProduct !== undefined && { isHeroProduct }),
-          ...(heroImageUrl && { heroImageUrl: heroImageUrl.trim() }),
-          ...(isHeroProduct === false && { heroImageUrl: null }),
-          updatedAt: new Date(),
-        })
-        .where(eq(products.id, productId))
-        .returning();
-    }
 
-    if (!updatedProduct) {
-      return internalServerError("Failed to update product");
-    }
+      // storage cleanup happens after the transaction committed, and skips
+      // any file whose URL is still referenced by an order-item snapshot
+      const allToDelete = [...toDelete, ...fabricToDelete];
+      if (allToDelete.length > 0) {
+        const urlByPath = new Map(
+          foundProduct.productMedia.map((m) => [m.path, m.url]),
+        );
+        const deletedUrls = allToDelete
+          .map((path) => urlByPath.get(path))
+          .filter((url): url is string => url !== undefined);
 
-    return ok("Product updated successfully", updatedProduct);
+        const referencedItems = deletedUrls.length
+          ? await db
+              .select({ url: orderItems.productImageUrl })
+              .from(orderItems)
+              .where(inArray(orderItems.productImageUrl, deletedUrls))
+          : [];
+        const referencedUrls = new Set(referencedItems.map((r) => r.url));
+
+        const filesToRemove = allToDelete.filter(
+          (path) => !referencedUrls.has(urlByPath.get(path) ?? ""),
+        );
+
+        await deleteFiles(filesToRemove);
+      }
+
+      const updatedProduct = await db.query.products.findFirst({
+        where: (products, { eq }) => eq(products.id, productId),
+        with: {
+          productMedia: true,
+          categories: {
+            with: {
+              category: true,
+            },
+          },
+        },
+      });
+
+      if (!updatedProduct) {
+        return internalServerError("Failed to update product");
+      }
+
+      return ok("Product updated successfully", updatedProduct);
+    } catch (error) {
+      console.error("Failed to update product", error);
+      return internalServerError("Failed to update product", error);
+    }
   } catch (error) {
     return internalServerError("Failed to update product", error);
   }
@@ -178,7 +331,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ productId: string }> },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const isAdmin = await adminCheck(request);
@@ -187,32 +340,32 @@ export async function DELETE(
       return forbidden("Unauthorized access");
     }
 
-    const { productId } = await params;
+    const { id: productId } = await params;
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
+      with: { productMedia: { columns: { path: true } } },
     });
 
     if (!foundProduct) {
       return notFound("Product not found");
     }
 
-    const imageUrls = [
-      ...foundProduct.imagesUrl,
-      ...(foundProduct.heroImageUrl ? [foundProduct.heroImageUrl] : []),
-    ];
+    const hasOrders = await db.query.orderItems.findFirst({
+      where: (oi, { eq }) => eq(oi.productId, productId),
+    });
+    if (hasOrders)
+      return badRequest(
+        "Cannot delete product with existing orders. Set isActive to false instead.",
+      );
 
-    const publicIds = imageUrls.map((url) => extractPublicId(url));
+    // delete the DB record first — if that fails the product must keep its
+    // media; storage cleanup afterwards is non-blocking
+    await db.delete(products).where(eq(products.id, productId));
 
-    try {
-      await Promise.all(publicIds.map((id) => deleteProductImage(id)));
-    } catch (error) {
-      console.error("Failed to delete images from Cloudinary", error);
+    if (foundProduct.productMedia.length > 0) {
+      await deleteFiles(foundProduct.productMedia.map((m) => m.path));
     }
-
-    await db.delete(products).where(eq(products.id, productId));
-
-    await db.delete(products).where(eq(products.id, productId));
 
     return ok("Product deleted successfully");
   } catch (error) {

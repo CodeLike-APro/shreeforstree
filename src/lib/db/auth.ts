@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { db } from "./index";
 import * as schema from "./schema";
 
@@ -8,15 +8,29 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  trustedOrigins: [process.env.NEXT_PUBLIC_BETTER_AUTH_URL!],
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
   },
 
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+
+  rateLimit: {
+    enabled: true,
+    storage: "database",
+    window: 60,
+    max: 10,
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 5,
+      },
     },
   },
 
@@ -29,8 +43,26 @@ export const auth = betterAuth({
     additionalFields: {
       role: {
         type: "string",
-        defaultValue: "customer",
+        defaultValue: "user",
         input: false, // not settable by user
+      },
+      deletedAt: {
+        type: "date",
+        defaultValue: null,
+        input: false,
+        nullable: true,
+      },
+      phone: {
+        type: "string",
+        defaultValue: null,
+        input: true,
+        nullable: true,
+      },
+      image_path: {
+        type: "string",
+        defaultValue: null,
+        input: true,
+        nullable: true,
       },
     },
   },

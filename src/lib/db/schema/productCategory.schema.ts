@@ -13,9 +13,7 @@ export const productCategories = pgTable(
       .notNull()
       .references(() => categories.id, { onDelete: "cascade" }),
   },
-  (t) => ({
-    pk: primaryKey({ columns: [t.productId, t.categoryId] }),
-  }),
+  (t) => [primaryKey({ columns: [t.productId, t.categoryId] })],
 );
 
 export const productCategoryRelations = relations(

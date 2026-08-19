@@ -1,7 +1,15 @@
 import { relations } from "drizzle-orm";
-import { pgTable, text, timestamp, boolean, index } from "drizzle-orm/pg-core";
-import { wishlist } from "./wishlist.schema";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  index,
+  integer,
+  bigint,
+} from "drizzle-orm/pg-core";
 import { addresses } from "./address.schema";
+import { wishlist } from "./wishlist.schema";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -10,12 +18,14 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
+  image_path: text("image_path"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: text("role").default("customer"),
+  role: text("role").default("user").notNull(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const session = pgTable(
@@ -75,6 +85,17 @@ export const verification = pgTable(
       .notNull(),
   },
   (table) => [index("verification_identifier_idx").on(table.identifier)],
+);
+
+export const rateLimit = pgTable(
+  "rate_limit",
+  {
+    id: text("id").primaryKey(),
+    key: text("key").notNull(),
+    count: integer("count").notNull(),
+    lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+  },
+  (table) => [index("rate_limit_key_idx").on(table.key)],
 );
 
 export const userRelations = relations(user, ({ many }) => ({
