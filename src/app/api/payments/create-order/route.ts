@@ -67,14 +67,12 @@ export async function POST(request: Request) {
     }
 
     const razorpayOrder = await razorpay.orders.create({
-      amount: Math.round(Number(order.totalAmount) * 100), // paise
+      amount: Math.round(Number(order.totalAmount) * 100),
       currency: "INR",
       receipt: order.id,
     });
 
     if (existingPayment) {
-      // reuse the existing row (orderId is unique) instead of inserting a
-      // second one, which would violate the unique constraint
       await db
         .update(payments)
         .set({
@@ -86,8 +84,6 @@ export async function POST(request: Request) {
         })
         .where(eq(payments.id, existingPayment.id));
     } else {
-      // upsert on the unique orderId so a concurrent request that inserted
-      // first doesn't turn into a unique-constraint 500
       await db
         .insert(payments)
         .values({
