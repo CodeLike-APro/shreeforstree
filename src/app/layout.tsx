@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     template: "%s | shreeforstree",
   },
   description:
-    "Handcrafted, made-to-order women's clothing tailored to your story. Explore our exclusive collection of custom ethnic, fusion, and contemporary designs — where every stitch is personal.",
+    "Handcrafted, made-to-order women's clothing tailored to your story. Explore our exclusive collection of custom ethnic, fusion, and contemporary designs, where every stitch is personal.",
   keywords: [
     "custom women's clothing",
     "tailored outfits",
