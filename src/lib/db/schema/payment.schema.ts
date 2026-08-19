@@ -24,7 +24,7 @@ export const payments = pgTable("payments", {
     .references(() => orders.id, { onDelete: "restrict" }),
   razorpayOrderId: text("razorpay_order_id").notNull(),
   provider: text("provider").notNull().default("razorpay"),
-  transactionId: text("transaction_id"),
+  transactionId: text("transaction_id").unique(),
   method: text("method"),
   status: paymentStatusEnum("status").notNull().default("pending"),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
