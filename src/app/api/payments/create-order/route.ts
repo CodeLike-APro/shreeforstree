@@ -1,5 +1,6 @@
 import {
   badRequest,
+  created,
   forbidden,
   internalServerError,
   notFound,
@@ -11,12 +12,20 @@ import { db } from "@/lib/db";
 import { orders, payments } from "@/lib/db/schema";
 import { razorpay } from "@/lib/razorpay";
 import { createPaymentOrderSchema } from "@/lib/validators/payment.validator";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { Orders } from "razorpay/dist/types/orders";
+import type { PgTransaction } from "drizzle-orm/pg-core";
 
 type orderCreationResult = {
-  kind: "created" | "ok" | "badRequest" | "notFound" | "forbidden";
+  kind:
+    | "created"
+    | "ok"
+    | "badRequest"
+    | "notFound"
+    | "forbidden"
+    | "internalServerError";
   message: string;
+  error?: unknown;
   data?: {
     razorpayOrder?: Orders.RazorpayOrder;
     razorpayOrderId?: string;
@@ -24,6 +33,16 @@ type orderCreationResult = {
     currency: string;
     keyId?: string;
   };
+};
+
+const expirePaymentOrders = async (
+  orderId: string,
+  tx: PgTransaction<any, any, any>,
+) => {
+  await tx
+    .update(payments)
+    .set({ status: "expired" })
+    .where(and(eq(payments.orderId, orderId), eq(payments.status, "pending")));
 };
 
 export async function POST(request: Request) {
@@ -79,36 +98,43 @@ export async function POST(request: Request) {
 
         const existingPayment = await tx.query.payments.findFirst({
           where: (payments, { eq }) => eq(payments.orderId, order.id),
+          orderBy: (payments, { desc }) => desc(payments.createdAt),
         });
 
         if (existingPayment?.status === "pending") {
-          const razorpayOrder = await razorpay.orders.fetch(
-            existingPayment.razorpayOrderId,
-          );
-          if (razorpayOrder.status !== "created") {
+          let razorpayOrder: Orders.RazorpayOrder | null = null;
+
+          try {
+            razorpayOrder = await razorpay.orders.fetch(
+              existingPayment.razorpayOrderId,
+            );
+          } catch (error) {
+            await expirePaymentOrders(order.id, tx);
+            console.error("Error fetching Razorpay Order", error);
+          }
+
+          const canReuse =
+            razorpayOrder !== null &&
+            razorpayOrder.status === "created" &&
+            Number(razorpayOrder.amount) ===
+              Math.round(Number(order.totalAmount) * 100) &&
+            razorpayOrder.currency === "INR";
+
+          if (canReuse) {
             return {
-              kind: "badRequest",
-              message: "Existing payment order is not in a valid state",
+              kind: "ok",
+              message: "Payment order already exists",
+              data: {
+                razorpayOrder: razorpayOrder || undefined,
+                razorpayOrderId: existingPayment.razorpayOrderId,
+                amount: order.totalAmount,
+                currency: "INR",
+                keyId: process.env.RAZORPAY_KEY_ID!,
+              },
             };
           }
-          if (
-            Number(razorpayOrder.amount) !==
-              Math.round(Number(order.totalAmount) * 100) ||
-            razorpayOrder.currency !== "INR"
-          ) {
-            return { kind: "badRequest", message: "Payment amount mismatch" };
-          }
-          return {
-            kind: "ok",
-            message: "Payment order already exists",
-            data: {
-              razorpayOrder,
-              razorpayOrderId: existingPayment.razorpayOrderId,
-              amount: order.totalAmount,
-              currency: "INR",
-              keyId: process.env.RAZORPAY_KEY_ID!,
-            },
-          };
+
+          await expirePaymentOrders(order.id, tx);
         }
 
         if (existingPayment?.status === "success") {
@@ -121,6 +147,8 @@ export async function POST(request: Request) {
             },
           };
         }
+
+        await expirePaymentOrders(order.id, tx);
 
         const razorpayOrder = await razorpay.orders.create({
           amount: Math.round(Number(order.totalAmount) * 100),
@@ -138,16 +166,7 @@ export async function POST(request: Request) {
             provider: "razorpay",
             transactionId: null,
           })
-          .onConflictDoUpdate({
-            target: payments.orderId,
-            set: {
-              razorpayOrderId: razorpayOrder.id,
-              status: "pending",
-              amount: order.totalAmount,
-              transactionId: null,
-              method: null,
-            },
-          });
+          .returning();
 
         const returnData = {
           razorpayOrderId: razorpayOrder.id,
@@ -166,7 +185,7 @@ export async function POST(request: Request) {
 
     switch (createdOrder.kind) {
       case "created":
-        return ok(createdOrder.message, createdOrder.data);
+        return created(createdOrder.message, createdOrder.data);
       case "ok":
         return ok(createdOrder.message, createdOrder.data);
       case "badRequest":
@@ -175,6 +194,13 @@ export async function POST(request: Request) {
         return notFound(createdOrder.message);
       case "forbidden":
         return forbidden(createdOrder.message);
+      case "internalServerError":
+        return internalServerError(createdOrder.message, createdOrder.error);
+
+      default: {
+        const _exhaustive: never = createdOrder.kind;
+        throw new Error(`Unhandled kind: ${_exhaustive}`);
+      }
     }
   } catch (error) {
     return internalServerError(
