@@ -15,17 +15,19 @@ import crypto from "crypto";
 import { and, eq, ne } from "drizzle-orm";
 import { Payments } from "razorpay/dist/types/payments";
 
+type ValidationResult = { ok: true } | { ok: false; reason: string };
+
 const assertPaymentValid = (
   paymentdetails: Payments.RazorpayPayment,
   order: typeof orders.$inferSelect,
   razorpayOrderId: string,
-) => {
+): ValidationResult => {
   if (paymentdetails.order_id !== razorpayOrderId) {
-    return badRequest("Payment does not belong to this order");
+    return { ok: false, reason: "Payment does not belong to this order" };
   }
 
   if (paymentdetails.status !== "captured") {
-    return badRequest("Payment not captured");
+    return { ok: false, reason: "Payment not captured" };
   }
 
   if (
@@ -33,8 +35,10 @@ const assertPaymentValid = (
       Math.round(Number(order.totalAmount) * 100) ||
     paymentdetails.currency !== "INR"
   ) {
-    return badRequest("Payment amount mismatch");
+    return { ok: false, reason: "Payment amount mismatch" };
   }
+
+  return { ok: true };
 };
 
 export async function POST(request: Request) {
@@ -106,11 +110,19 @@ export async function POST(request: Request) {
 
     const paymentdetails = await razorpay.payments.fetch(razorpayPaymentId);
 
-    const paymentValidationResponse = assertPaymentValid(
+    const validation = assertPaymentValid(
       paymentdetails,
       order,
       razorpayOrderId,
     );
+
+    if (!validation.ok) {
+      console.error("Payment velidation failed", {
+        orderId: order.id,
+        reason: validation.reason,
+      });
+      return badRequest(validation.reason);
+    }
 
     const updatedPaymentsAndOrders = await db.transaction(async (tx) => {
       const [updatedPayment] = await tx
