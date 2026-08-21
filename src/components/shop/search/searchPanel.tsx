@@ -80,14 +80,14 @@ export function SearchPanel({
           onAnimationComplete={() => {
             if (isOpen) inputRef.current?.focus();
           }}
-          className="fixed inset-0 z-50 flex flex-col flex-1 backdrop-blur-lg bg-black/20 drop-shadow-2xl bg-opacity-50"
+          className="bg-opacity-50 fixed inset-0 z-50 flex flex-1 flex-col bg-black/20 drop-shadow-2xl backdrop-blur-lg"
           onClick={onClose}
         >
           <div
-            className="h-full md:h-[60%] w-full bg-paper py-6 px-7 md:px-[15vw] flex flex-col gap-10 overflow-y-auto no-scrollbar"
+            className="bg-paper no-scrollbar flex h-full w-full flex-col gap-10 overflow-y-auto px-7 py-6 md:h-[60%] md:px-[15vw]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="border-b-2 border-ink flex items-center justify-between gap-6 py-2">
+            <div className="border-ink flex items-center justify-between gap-6 border-b-2 py-2">
               <SearchIcon
                 size={32}
                 className="text-rose-gold cursor-pointer"
@@ -108,22 +108,22 @@ export function SearchPanel({
                   }
                 }}
                 placeholder="Search the atelier..."
-                className="py-2 leading-5 w-full font-display font-bold text-2xl md:text-4xl focus:outline-none focus:ring-0 placeholder-ink-25"
+                className="font-display placeholder-ink-25 w-full py-2 text-2xl leading-5 font-bold focus:ring-0 focus:outline-none md:text-4xl"
               />
               <div
-                className="cursor-pointer border-[0.5] border-ink-25 rounded-full p-2.5 group hover:bg-ink transition-all duration-300 ease-in-out "
+                className="border-ink-25 group hover:bg-ink cursor-pointer rounded-full border-[0.5] p-2.5 transition-all duration-300 ease-in-out"
                 onClick={onClose}
               >
                 <XIcon
                   size={18}
-                  className="text-ink stroke-[1.7] group-hover:text-white transition-colors duration-300 ease-in-out"
+                  className="text-ink stroke-[1.7] transition-colors duration-300 ease-in-out group-hover:text-white"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-12">
+            <div className="flex flex-col gap-12 md:flex-row">
               <div className="flex flex-col gap-6 md:w-[50%]">
-                <h5 className="text-sm font-label font-semibold uppercase text-rose-gold tracking-[2]">
+                <h5 className="font-label text-rose-gold text-sm font-semibold tracking-[2] uppercase">
                   Recent Searches
                 </h5>
                 <div className="flex flex-col gap-4 px-2">
@@ -131,7 +131,7 @@ export function SearchPanel({
                     recentSearches.map((item) => (
                       <div
                         key={item}
-                        className="flex items-center gap-3 border-b border-ink-25 pb-2 px-1 group cursor-pointer"
+                        className="border-ink-25 group flex cursor-pointer items-center gap-3 border-b px-1 pb-2"
                         onClick={() => {
                           submit(item);
                           onClose();
@@ -141,7 +141,7 @@ export function SearchPanel({
                           size={14}
                           className="text-ink-40 group-hover:text-rose-gold"
                         />
-                        <p className="text-ink text-sm group-hover:text-rose-gold flex-1">
+                        <p className="text-ink group-hover:text-rose-gold flex-1 text-sm">
                           {item}
                         </p>
                         <button
@@ -164,36 +164,36 @@ export function SearchPanel({
               </div>
 
               <div className="flex flex-col gap-4 md:w-[45%]">
-                <h5 className="text-sm font-label font-semibold uppercase text-rose-gold tracking-[2]">
+                <h5 className="font-label text-rose-gold text-sm font-semibold tracking-[2] uppercase">
                   Explore by Occasion
                 </h5>
-                <div className="grid grid-cols-2 gap-4 h-full">
+                <div className="grid h-full grid-cols-2 gap-4">
                   {loading ? (
-                    <p className="text-2xl font-serif-alt text-ink-40 col-span-2 flex justify-center items-center h-full">
+                    <p className="font-serif-alt text-ink-40 col-span-2 flex h-full items-center justify-center text-2xl">
                       Loading categories...
                     </p>
                   ) : categoriesError ? (
-                    <p className="text-2xl font-bold font-serif-alt text-ink-40 col-span-2 flex justify-center items-center h-full">
+                    <p className="font-serif-alt text-ink-40 col-span-2 flex h-full items-center justify-center text-2xl font-bold">
                       Couldn&apos;t load categories
                     </p>
                   ) : categories.length === 0 ? (
-                    <p className="text-2xl font-serif-alt text-ink-40 col-span-2 flex justify-center items-center h-full">
+                    <p className="font-serif-alt text-ink-40 col-span-2 flex h-full items-center justify-center text-2xl">
                       No categories to load
                     </p>
                   ) : (
                     categories.map((cat: any, idx: number) => (
                       <div
                         key={cat.id || idx}
-                        className="relative aspect-5/3 w-full overflow-hidden rounded cursor-pointer group"
+                        className="group relative aspect-5/3 w-full cursor-pointer overflow-hidden rounded"
                       >
                         <img
                           src={cat.categoryImageUrl}
                           alt={cat.name || cat.title}
                           loading="lazy"
-                          className="w-full h-full object-cover"
+                          className="h-full w-full object-cover"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
-                        <h5 className="absolute bottom-2 left-3 text-xl font-display font-semibold text-white lowercase first-letter:uppercase tracking-wider">
+                        <h5 className="font-display absolute bottom-2 left-3 text-xl font-semibold tracking-wider text-white lowercase first-letter:uppercase">
                           {cat.name || cat.title}
                         </h5>
                       </div>
