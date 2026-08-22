@@ -1,44 +1,39 @@
-import {
-  badRequest,
-  created,
-  forbidden,
-  internalServerError,
-  notFound,
-  ok,
-  unauthorized,
-} from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth-utils";
+import { badRequest, internalServerError } from "@/lib/api-response";
+import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { orders, payments } from "@/lib/db/schema";
 import { razorpay } from "@/lib/razorpay";
 import { createPaymentOrderSchema } from "@/lib/validators/payment.validator";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ExtractTablesWithRelations } from "drizzle-orm";
 import type { Orders } from "razorpay/dist/types/orders";
 import type { PgTransaction } from "drizzle-orm/pg-core";
+import { NeonQueryResultHKT } from "drizzle-orm/neon-serverless";
+import { handleResponse } from "@/lib/response-handler";
+import * as schema from "@/lib/db/schema/index";
 
-type orderCreationResult = {
-  kind:
-    | "created"
-    | "ok"
-    | "badRequest"
-    | "notFound"
-    | "forbidden"
-    | "internalServerError";
-  message: string;
-  error?: unknown;
-  data?: {
-    razorpayOrder?: Orders.RazorpayOrder;
-    razorpayOrderId?: string;
-    amount: string;
-    currency: string;
-    keyId?: string;
-  };
+type Transaction = PgTransaction<
+  NeonQueryResultHKT,
+  typeof schema,
+  ExtractTablesWithRelations<typeof schema>
+>;
+
+type OrderCreationData = {
+  razorpayOrder?: Orders.RazorpayOrder;
+  razorpayOrderId?: string;
+  amount: string;
+  currency: string;
+  keyId?: string;
 };
 
-const expirePaymentOrders = async (
-  orderId: string,
-  tx: PgTransaction<any, any, any>,
-) => {
+type orderCreationResult =
+  | { kind: "created"; message: string; data: OrderCreationData }
+  | { kind: "ok"; message: string; data: OrderCreationData }
+  | { kind: "badRequest"; message: string }
+  | { kind: "notFound"; message: string }
+  | { kind: "forbidden"; message: string }
+  | { kind: "internalServerError"; message: string; error?: unknown };
+
+const expirePaymentOrders = async (orderId: string, tx: Transaction) => {
   await tx
     .update(payments)
     .set({ status: "expired" })
@@ -48,10 +43,6 @@ const expirePaymentOrders = async (
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    if (!currentUser) {
-      return unauthorized("Please login to create an order");
-    }
-
     const body = await request.json();
     const result = await createPaymentOrderSchema.safeParseAsync(body);
     if (!result.success) {
@@ -60,11 +51,10 @@ export async function POST(request: Request) {
         result.error.flatten((issue) => issue.message).fieldErrors,
       );
     }
+    const { orderId, guestToken } = result.data;
 
-    const { orderId } = result.data;
-
-    const createdOrder = await db.transaction(
-      async (tx): Promise<orderCreationResult> => {
+    const createdOrder: orderCreationResult = await db.transaction(
+      async (tx) => {
         const [order] = await tx
           .select()
           .from(orders)
@@ -75,10 +65,16 @@ export async function POST(request: Request) {
           return { kind: "notFound", message: "Order not found" };
         }
 
-        if (order.userId !== currentUser.id) {
+        const ownershipCheck = await assertOrderOwnership(
+          order,
+          currentUser?.id,
+          guestToken,
+        );
+
+        if (ownershipCheck.kind === "forbidden") {
           return {
             kind: "forbidden",
-            message: "You are not the owner of this order",
+            message: ownershipCheck.message,
           };
         }
 
@@ -183,25 +179,7 @@ export async function POST(request: Request) {
       },
     );
 
-    switch (createdOrder.kind) {
-      case "created":
-        return created(createdOrder.message, createdOrder.data);
-      case "ok":
-        return ok(createdOrder.message, createdOrder.data);
-      case "badRequest":
-        return badRequest(createdOrder.message);
-      case "notFound":
-        return notFound(createdOrder.message);
-      case "forbidden":
-        return forbidden(createdOrder.message);
-      case "internalServerError":
-        return internalServerError(createdOrder.message, createdOrder.error);
-
-      default: {
-        const _exhaustive: never = createdOrder.kind;
-        throw new Error(`Unhandled kind: ${_exhaustive}`);
-      }
-    }
+    return handleResponse(createdOrder);
   } catch (error) {
     return internalServerError(
       "An error occurred while creating the payment order",

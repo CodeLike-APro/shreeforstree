@@ -1,13 +1,12 @@
 import {
   badRequest,
-  forbidden,
   internalServerError,
   notFound,
   ok,
-  unauthorized,
 } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth-utils";
+import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { handleResponse } from "@/lib/response-handler";
 
 export async function GET(
   request: Request,
@@ -15,10 +14,6 @@ export async function GET(
 ) {
   try {
     const currentUser = await getCurrentUser(request);
-
-    if (!currentUser) {
-      return unauthorized("Unauthorized access");
-    }
 
     const { id: orderId } = await params;
 
@@ -38,8 +33,16 @@ export async function GET(
       return notFound("Order not found");
     }
 
-    if (order.userId !== currentUser.id && currentUser.role !== "admin") {
-      return forbidden("You do not have permission to access this order");
+    const ownershipCheck = await assertOrderOwnership(
+      order,
+      currentUser?.id,
+      request.headers.get("guest-token") || undefined,
+    );
+
+    const ownershipResponse = handleResponse(ownershipCheck);
+
+    if (ownershipResponse.status !== 200) {
+      return ownershipResponse;
     }
 
     return ok("Order fetched successfully", order);

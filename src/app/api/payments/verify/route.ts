@@ -1,53 +1,25 @@
 import {
   badRequest,
-  forbidden,
   internalServerError,
   notFound,
   ok,
-  unauthorized,
 } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth-utils";
+import {
+  assertOrderOwnership,
+  assertPaymentValid,
+  getCurrentUser,
+} from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { orders, payments } from "@/lib/db/schema";
 import { razorpay } from "@/lib/razorpay";
+import { handleResponse } from "@/lib/response-handler";
 import { verifyPaymentSchema } from "@/lib/validators/payment.validator";
 import crypto from "crypto";
 import { and, eq, ne } from "drizzle-orm";
-import { Payments } from "razorpay/dist/types/payments";
-
-type ValidationResult = { ok: true } | { ok: false; reason: string };
-
-const assertPaymentValid = (
-  paymentdetails: Payments.RazorpayPayment,
-  order: typeof orders.$inferSelect,
-  razorpayOrderId: string,
-): ValidationResult => {
-  if (paymentdetails.order_id !== razorpayOrderId) {
-    return { ok: false, reason: "Payment does not belong to this order" };
-  }
-
-  if (paymentdetails.status !== "captured") {
-    return { ok: false, reason: "Payment not captured" };
-  }
-
-  if (
-    Number(paymentdetails.amount) !==
-      Math.round(Number(order.totalAmount) * 100) ||
-    paymentdetails.currency !== "INR"
-  ) {
-    return { ok: false, reason: "Payment amount mismatch" };
-  }
-
-  return { ok: true };
-};
 
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    if (!currentUser) {
-      return unauthorized("Please login to verify the payment");
-    }
-
     const body = await request.json();
     const result = await verifyPaymentSchema.safeParseAsync(body);
     if (!result.success) {
@@ -57,8 +29,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const { orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature } =
-      result.data;
+    const {
+      orderId,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      guestToken,
+    } = result.data;
 
     const order = await db.query.orders.findFirst({
       where: (orders, { eq }) => eq(orders.id, orderId),
@@ -68,8 +45,16 @@ export async function POST(request: Request) {
       return notFound("Order not found");
     }
 
-    if (order.userId !== currentUser.id) {
-      return forbidden("You are not the owner of this order");
+    const ownershipCheck = await assertOrderOwnership(
+      order,
+      currentUser?.id,
+      guestToken,
+    );
+
+    const ownershipResponse = handleResponse(ownershipCheck);
+
+    if (ownershipResponse.status !== 200) {
+      return ownershipResponse;
     }
 
     const payment = await db.query.payments.findFirst({
@@ -103,7 +88,7 @@ export async function POST(request: Request) {
       console.error("Invalid Payment Signature", {
         orderId: orderId,
         razorpayOrderId: razorpayOrderId,
-        userId: currentUser.id,
+        userId: currentUser?.id,
       });
       return badRequest("Payment verification failed");
     }
@@ -116,12 +101,14 @@ export async function POST(request: Request) {
       razorpayOrderId,
     );
 
-    if (!validation.ok) {
-      console.error("Payment velidation failed", {
+    const validationResponse = handleResponse(validation);
+
+    if (validationResponse.status !== 200) {
+      console.error("Payment validation failed", {
         orderId: order.id,
-        reason: validation.reason,
+        reason: validation.message,
       });
-      return badRequest(validation.reason);
+      return validationResponse;
     }
 
     const updatedPaymentsAndOrders = await db.transaction(async (tx) => {

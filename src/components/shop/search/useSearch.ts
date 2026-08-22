@@ -32,7 +32,7 @@ export function useSearch() {
       setRecentSearches(updated);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     },
-    [recentSearches]
+    [recentSearches],
   );
 
   const submit = useCallback(
@@ -50,7 +50,7 @@ export function useSearch() {
       router.push(`/shop?search=${encodeURIComponent(searchTerm)}`);
       close();
     },
-    [query, recentSearches, close, router]
+    [query, recentSearches, close, router],
   );
 
   return {
