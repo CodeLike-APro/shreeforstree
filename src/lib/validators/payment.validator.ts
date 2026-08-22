@@ -2,6 +2,7 @@ import z4 from "zod/v4";
 
 export const createPaymentOrderSchema = z4.object({
   orderId: z4.uuid(),
+  guestToken: z4.string().min(1).optional(),
 });
 
 export const verifyPaymentSchema = z4.object({
@@ -9,4 +10,5 @@ export const verifyPaymentSchema = z4.object({
   razorpayPaymentId: z4.string().min(1),
   razorpaySignature: z4.string().min(1),
   orderId: z4.uuid(),
+  guestToken: z4.string().min(1).optional(),
 });

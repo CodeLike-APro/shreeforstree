@@ -10,6 +10,7 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { auth } from "@/lib/db/auth";
 import {
   cartItems,
   orderItems,
@@ -19,6 +20,7 @@ import {
 import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
+import crypto from "crypto";
 
 export async function GET(request: NextRequest) {
   try {
@@ -71,6 +73,7 @@ export async function GET(request: NextRequest) {
       where: conditions.length ? and(...conditions) : undefined,
       limit,
       offset,
+      orderBy: (orders, { desc }) => desc(orders.createdAt),
     });
 
     return paginated(
@@ -87,12 +90,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentUser = await getCurrentUser(request);
+    const currentSession = await auth.api.getSession({
+      headers: request.headers,
+    });
 
-    if (!currentUser) {
-      return unauthorized(
-        "Unauthorized access. Please log in to create an order.",
-      );
+    if (!currentSession) {
+      return unauthorized("Unauthorized access");
     }
 
     const body = await request.json();
@@ -105,7 +108,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { addressId } = result.data;
+    const { addressId, email } = result.data;
 
     const address = await db.query.addresses.findFirst({
       where: (addresses, { eq }) => eq(addresses.id, addressId),
@@ -115,14 +118,20 @@ export async function POST(request: NextRequest) {
       return notFound("Address not found");
     }
 
-    if (address.userId !== currentUser.id) {
+    if (address.userId !== currentSession?.user?.id) {
       return forbidden(
         "Unauthorized access. You can only use your own address.",
       );
     }
 
+    let guestToken: string | undefined = undefined;
+
+    if (!currentSession.user) {
+      guestToken = crypto.randomBytes(16).toString("hex");
+    }
+
     const cart = await db.query.carts.findFirst({
-      where: (carts, { eq }) => eq(carts.userId, currentUser.id),
+      where: (carts, { eq }) => eq(carts.sessionId, currentSession.session.id),
       with: {
         cartItems: {
           with: {
@@ -203,7 +212,8 @@ export async function POST(request: NextRequest) {
       const [order] = await tx
         .insert(orders)
         .values({
-          userId: currentUser.id,
+          userId: currentSession?.user?.id,
+          guestToken: guestToken,
           originalAmount: originalAmount.toString(),
           discountAmount: discountAmount.toString(),
           itemsTotal: itemsTotal.toString(),
@@ -214,6 +224,7 @@ export async function POST(request: NextRequest) {
           addressId: address.id,
           shippingFullName: address.fullName,
           shippingPhone: address.phone,
+          shippingEmail: email,
           shippingAddressLine1: address.addressLine1,
           shippingAddressLine2: address.addressLine2,
           shippingCity: address.city,
