@@ -33,29 +33,29 @@ export default function HeaderDesktop() {
   const userTriggerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <header className="flex items-center justify-between border-b border-border py-4 px-4 h-17 w-full">
-      <nav className="flex items-center gap-4 w-full">
+    <header className="border-border flex h-17 w-full items-center justify-between border-b px-4 py-4">
+      <nav className="flex w-full items-center gap-4">
         <Link
           href="/"
-          className="text-2xl font-display font-bold text-ink tracking-[2] h-35px w-186px text-[26px] mx-6 leading-none"
+          className="font-display text-ink h-35px w-186px mx-6 text-2xl text-[26px] leading-none font-bold tracking-[2]"
         >
           shreeforstree
         </Link>
-        <div className="w-full flex items-center justify-between gap-7">
+        <div className="flex w-full items-center justify-between gap-7">
           <div className="flex items-center gap-7 pt-2.5">
             {navLinks.map((item) => {
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="text-lg font-label font-semibold uppercase text-ink tracking-[1.75] h-11.5px w-37px text-[12.5px] leading-2.5  "
+                  className="font-label text-ink h-11.5px w-37px text-lg text-[12.5px] leading-2.5 font-semibold tracking-[1.75] uppercase"
                 >
                   {item.label}
                 </Link>
               );
             })}
           </div>
-          <div className="flex items-center gap-6 mr-6">
+          <div className="mr-6 flex items-center gap-6">
             <div className="flex items-center justify-end gap-3">
               <SearchIcon
                 onClick={open}

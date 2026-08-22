@@ -17,9 +17,9 @@ export default function HeaderMobile() {
 
   return (
     <>
-      <div className="flex md:hidden h-16 w-full items-center justify-between bg-linear-to-b from-black/20 to-transparent px-4 py-2 fixed">
+      <div className="fixed flex h-16 w-full items-center justify-between bg-linear-to-b from-black/20 to-transparent px-4 py-2 md:hidden">
         <div className="px-1">
-          <Link href="/" className="text-4xl font-display text-ink">
+          <Link href="/" className="font-display text-ink text-4xl">
             shreeforstree
           </Link>
         </div>
@@ -27,7 +27,7 @@ export default function HeaderMobile() {
           ref={userTriggerRef}
           onClick={() => setIsUserDropdownOpen((prev) => !prev)}
           aria-label="Account menu"
-          className="rounded-full bg-paper p-2 text-ink"
+          className="bg-paper text-ink rounded-full p-2"
         >
           <UserIcon />
         </button>
