@@ -30,7 +30,7 @@ export async function GET(
       where: (orders, { eq }) => eq(orders.id, orderId),
       with: {
         orderItems: true,
-        payment: true,
+        payments: true,
       },
     });
 

@@ -49,8 +49,10 @@ export const orders = pgTable("orders", {
   addressId: uuid("address_id").references(() => addresses.id, {
     onDelete: "set null",
   }),
+  guestToken: text("guest_token").unique(),
   shippingFullName: text("shipping_full_name").notNull(),
   shippingPhone: text("shipping_phone").notNull(),
+  shippingEmail: text("shipping_email").notNull(),
   shippingAddressLine1: text("shipping_address_line1").notNull(),
   shippingAddressLine2: text("shipping_address_line2"),
   shippingCity: text("shipping_city").notNull(),
@@ -74,9 +76,6 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.addressId],
     references: [addresses.id],
   }),
-  payment: one(payments, {
-    fields: [orders.id],
-    references: [payments.orderId],
-  }),
+  payments: many(payments),
   orderItems: many(orderItems),
 }));
