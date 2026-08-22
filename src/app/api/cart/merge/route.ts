@@ -1,15 +1,16 @@
-import {
-  badRequest,
-  internalServerError,
-  ok,
-  unauthorized,
-} from "@/lib/api-response";
+import { internalServerError, ok, unauthorized } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { getOrCreateSessionId, upsertCartItem } from "@/lib/cart-utils";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { carts } from "@/lib/db/schema/cart.schema";
+import { handleResponse } from "@/lib/response-handler";
 import { and, eq, isNull } from "drizzle-orm/sql/expressions/conditions";
+
+type MergedCartItemsResponse =
+  | { kind: "ok"; message: string; data: unknown }
+  | { kind: "badRequest"; message: string }
+  | { kind: "internalServerError"; message: string; error?: unknown };
 
 export async function POST(request: Request) {
   try {
@@ -21,65 +22,72 @@ export async function POST(request: Request) {
 
     const sessionId = await getOrCreateSessionId();
 
-    const mergedCartItems = await db.transaction(async (tx) => {
-      const guestCart = await tx.query.carts.findFirst({
-        where: (carts, { and, eq, isNull }) =>
-          and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
-      });
-
-      if (!guestCart) {
-        return badRequest("No guest cart found to merge");
-      }
-
-      // insert-first with onConflictDoNothing against carts_user_id_unique
-      // closes the same find-then-insert race as getOrCreateCart
-      await tx
-        .insert(carts)
-        .values({ sessionId, userId: currentUser.id })
-        .onConflictDoNothing({ target: carts.userId });
-
-      const userCart = await tx.query.carts.findFirst({
-        where: (carts, { eq }) => eq(carts.userId, currentUser.id),
-      });
-
-      if (!userCart) {
-        throw new Error("Failed to get or create user cart during merge");
-      }
-
-      const guestCartItems = await tx.query.cartItems.findMany({
-        where: (cartItems, { eq }) => eq(cartItems.cartId, guestCart.id),
-      });
-
-      for (const guestItem of guestCartItems) {
-        // atomic upsert against the cart_items unique constraint — same
-        // helper used by the add-to-cart route
-        await upsertCartItem(tx, {
-          cartId: userCart.id,
-          productId: guestItem.productId,
-          color: guestItem.color,
-          size: guestItem.size,
-          quantity: guestItem.quantity,
-          maxQuantity: MAX_CART_ITEMS,
+    const mergedCartItems: MergedCartItemsResponse = await db.transaction(
+      async (tx) => {
+        const guestCart = await tx.query.carts.findFirst({
+          where: (carts, { and, eq, isNull }) =>
+            and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
         });
-      }
-      await tx
-        .delete(carts)
-        .where(
-          and(
-            eq(carts.id, guestCart.id),
-            eq(carts.sessionId, sessionId),
-            isNull(carts.userId),
-          ),
-        )
-        .returning();
 
-      return userCart;
-    });
+        if (!guestCart) {
+          return {
+            kind: "badRequest",
+            message: "No guest cart found to merge",
+          };
+        }
+        await tx
+          .insert(carts)
+          .values({ sessionId, userId: currentUser.id })
+          .onConflictDoNothing({ target: carts.userId });
 
-    // badRequest() returned from inside the transaction callback is a
-    // Response, not cart data — pass it through instead of wrapping in ok()
-    if (mergedCartItems instanceof Response) {
-      return mergedCartItems;
+        const userCart = await tx.query.carts.findFirst({
+          where: (carts, { eq }) => eq(carts.userId, currentUser.id),
+        });
+
+        if (!userCart) {
+          return {
+            kind: "internalServerError",
+            message: "Failed to create or retrieve user cart",
+          };
+        }
+
+        const guestCartItems = await tx.query.cartItems.findMany({
+          where: (cartItems, { eq }) => eq(cartItems.cartId, guestCart.id),
+        });
+
+        for (const guestItem of guestCartItems) {
+          await upsertCartItem(tx, {
+            cartId: userCart.id,
+            productId: guestItem.productId,
+            color: guestItem.color,
+            size: guestItem.size,
+            quantity: guestItem.quantity,
+            maxQuantity: MAX_CART_ITEMS,
+          });
+        }
+        await tx
+          .delete(carts)
+          .where(
+            and(
+              eq(carts.id, guestCart.id),
+              eq(carts.sessionId, sessionId),
+              isNull(carts.userId),
+            ),
+          )
+          .returning();
+
+        return {
+          kind: "ok",
+          message: "Carts merged successfully",
+          data: { userCartId: userCart.id },
+        };
+      },
+    );
+
+    const mergedCartItemsResponse = handleResponse(mergedCartItems);
+
+    if (mergedCartItemsResponse.status !== 200) {
+      return mergedCartItemsResponse;
     }
 
     return ok("Carts merged successfully", mergedCartItems);
