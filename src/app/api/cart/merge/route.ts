@@ -5,7 +5,7 @@ import {
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
-import { getSessionId, upsertCartItem } from "@/lib/cart-utils";
+import { getOrCreateSessionId, upsertCartItem } from "@/lib/cart-utils";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { carts } from "@/lib/db/schema/cart.schema";
@@ -19,11 +19,7 @@ export async function POST(request: Request) {
       return unauthorized("Please login to merge carts");
     }
 
-    const sessionId = getSessionId(request);
-
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const mergedCartItems = await db.transaction(async (tx) => {
       const guestCart = await tx.query.carts.findFirst({

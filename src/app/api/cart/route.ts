@@ -3,12 +3,11 @@ import {
   internalServerError,
   notFound,
   ok,
-  unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import {
   getOrCreateCart,
-  getSessionId,
+  getOrCreateSessionId,
   upsertCartItem,
 } from "@/lib/cart-utils";
 import {
@@ -24,10 +23,7 @@ import { eq } from "drizzle-orm/sql/expressions/conditions";
 export async function GET(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
 
@@ -130,10 +126,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const item = await request.json();
 
@@ -196,20 +189,9 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
-
-    const ownsCart =
-      (currentUser && cart.userId === currentUser.id) ||
-      cart.sessionId === sessionId;
-
-    if (!ownsCart) {
-      return unauthorized("You can only modify your own cart");
-    }
 
     const clearedCart = await db
       .delete(cartItems)

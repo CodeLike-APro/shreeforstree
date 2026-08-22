@@ -2,9 +2,16 @@ import { sql } from "drizzle-orm";
 import { internalServerError } from "./api-response";
 import { db } from "./db";
 import { carts, cartItems } from "./db/schema";
+import { cookies } from "next/headers";
+import { setCartCookie } from "@/app/actions";
 
-export function getSessionId(request: Request): string | null {
-  return request.headers.get("x-session-id");
+export async function getOrCreateSessionId() {
+  const cookieStore = await cookies();
+  let cartCookie = cookieStore.get("cartCookie")?.value ?? null;
+  if (!cartCookie) {
+    cartCookie = await setCartCookie();
+  }
+  return cartCookie;
 }
 
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -17,11 +24,6 @@ export async function getOrCreateCart(
   try {
     const executor = tx ?? db;
 
-    // Insert-first with onConflictDoNothing against the partial unique
-    // indexes (carts_user_id_unique / carts_session_id_unique) closes the
-    // find-then-insert race: two concurrent requests for the same
-    // user/session can no longer both pass a missing-cart check and each
-    // insert their own cart row.
     await executor
       .insert(carts)
       .values({ userId, sessionId })
@@ -45,19 +47,6 @@ export async function getOrCreateCart(
   }
 }
 
-/**
- * Atomically adds `quantity` to a cart line item (or creates it), capping
- * the resulting quantity at `maxQuantity`, via onConflictDoUpdate against
- * the cart_items unique constraint (cartId, productId, color, size). This
- * closes the find-then-insert/update race on the add-to-cart path —
- * concurrent adds of the same line item merge into one row and the cap is
- * enforced by the database in the same statement, not by an app-level
- * read-then-check that a second request could race past.
- *
- * The cap is applied silently (LEAST) rather than rejecting the whole
- * request, since the database can't atomically decide "reject" vs "apply"
- * without a second round trip that reopens the race.
- */
 export async function upsertCartItem(
   tx: Tx,
   params: {
