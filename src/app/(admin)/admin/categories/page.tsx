@@ -15,11 +15,11 @@ interface CategoryRow {
   [key: string]: unknown;
 }
 
-export default function categories() {
+export default function Categories() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryRow[]>([]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -50,7 +50,10 @@ export default function categories() {
   }, []);
 
   useEffect(() => {
-    fetchCategories();
+    const fetchData = async () => {
+      await fetchCategories();
+    };
+    fetchData();
   }, [fetchCategories]);
 
   const handleToggleStatus = useCallback(async (category: CategoryRow) => {
@@ -150,7 +153,7 @@ export default function categories() {
         <Card
           key={index}
           variant="admin-category"
-          data={{ ...category, variant: "admin-category" }}
+          data={{ ...category }}
           onEdit={() => router.push(`/admin/categories/${category.slug}`)}
           onViewOnStore={() =>
             window.open(
