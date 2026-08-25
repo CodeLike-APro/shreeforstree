@@ -1,5 +1,6 @@
 "use client";
 
+import { CardShimmerGrid } from "@/components/ui/Shimmer";
 import Card from "@/utils/card";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -12,11 +13,11 @@ interface ProductRow {
   [key: string]: unknown;
 }
 
-export default function products() {
+export default function Products() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [productsError, setProductsError] = useState(false);
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<ProductRow[]>([]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -90,24 +91,30 @@ export default function products() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full p-4 sm:p-6 grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6 sm:justify-start items-start content-start transition-all">
-      {products.map((product, index) => (
-        <Card
-          key={index}
-          variant="admin-product"
-          data={{ ...product, variant: "admin-product" }}
-          onEdit={(id) => router.push(`/admin/products/${id}`)}
-          onViewOnStore={() =>
-            window.open(
-              `/product/${product.slug}`,
-              "_blank",
-              "noopener,noreferrer",
-            )
-          }
-          onToggleStatus={() => handleToggleStatus(product)}
-          onDelete={() => handleDelete(product)}
-        />
-      ))}
+    <div className="grid min-h-screen w-full grid-cols-2 content-start items-start gap-4 p-4 transition-all sm:flex sm:flex-wrap sm:justify-start sm:gap-6 sm:p-6">
+      {loading ? (
+        <CardShimmerGrid count={8} />
+      ) : productsError ? (
+        <p>Failed to load products.</p>
+      ) : (
+        products.map((product, index) => (
+          <Card
+            key={index}
+            variant="admin-product"
+            data={{ ...product }}
+            onEdit={(id) => router.push(`/admin/products/${id}`)}
+            onViewOnStore={() =>
+              window.open(
+                `/product/${product.slug}`,
+                "_blank",
+                "noopener,noreferrer",
+              )
+            }
+            onToggleStatus={() => handleToggleStatus(product)}
+            onDelete={() => handleDelete(product)}
+          />
+        ))
+      )}
     </div>
   );
 }
