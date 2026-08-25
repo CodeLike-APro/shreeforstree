@@ -16,29 +16,18 @@ export interface CardMedia {
   isFabricSwatch?: boolean;
 }
 
-/**
- * Accepts the raw API shapes directly:
- *   - products  → `paginated()` items with `productMedia[]`, string prices, flags
- *   - categories → `ok()` items with `categoryImageUrl`
- * Prices arrive as numeric strings from Postgres, so `price`/`discountedPrice`
- * are typed loosely and coerced with Number() before use.
- */
 export interface CardData {
   id: string;
   title: string;
-  // Media — provide any one; the card resolves them into a gallery.
   images?: string[];
   image?: string | null;
   productMedia?: CardMedia[];
   categoryImageUrl?: string | null;
-  // Pricing (numeric strings from DB, or numbers)
   price?: number | string | null;
   discountedPrice?: number | string | null;
-  // Flags
   isActive?: boolean;
   isNewArrival?: boolean;
   isHeroProduct?: boolean;
-  // Explicit tags override the flags-derived ones
   tags?: { label: string; type: "new" | "hero" | string }[];
 }
 
