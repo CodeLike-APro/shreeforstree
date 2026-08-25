@@ -6,9 +6,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 
 export type CardVariant =
-  | "customer-product"
-  | "admin-product"
-  | "admin-category";
+  "customer-product" | "admin-product" | "admin-category";
 
 export interface CardMedia {
   url: string;
@@ -126,8 +124,7 @@ export default function Card({
 
   const displayImages = images.length ? images : ["/images/white.webp"];
   // Three-zone hover / swipe gallery is customer-facing only.
-  const hasGallery =
-    variant === "customer-product" && displayImages.length > 1;
+  const hasGallery = variant === "customer-product" && displayImages.length > 1;
   const safeIndex = Math.min(activeIndex, displayImages.length - 1);
 
   // Prices come back as numeric strings from Postgres.
@@ -140,12 +137,10 @@ export default function Card({
   const hasDiscount = discountedPrice > 0 && discountedPrice < price;
 
   // Derive tags from product flags when none are explicitly provided.
-  const tags =
-    data.tags ??
-    [
-      ...(data.isHeroProduct ? [{ label: "Hero", type: "hero" }] : []),
-      ...(data.isNewArrival ? [{ label: "New", type: "new" }] : []),
-    ];
+  const tags = data.tags ?? [
+    ...(data.isHeroProduct ? [{ label: "Hero", type: "hero" }] : []),
+    ...(data.isNewArrival ? [{ label: "New", type: "new" }] : []),
+  ];
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -230,25 +225,25 @@ export default function Card({
   };
 
   return (
-    <div className="select-none shrink-0">
+    <div className="shrink-0 select-none">
       <div
-        className="w-full sm:w-64 rounded-sm cursor-pointer group"
+        className="group w-full cursor-pointer rounded-sm sm:w-64"
         onClick={handleCardClick}
         onMouseLeave={() => hasGallery && setActiveIndex(0)}
       >
         <div
-          className="w-full relative overflow-hidden rounded-sm"
+          className="relative w-full overflow-hidden rounded-sm"
           onTouchStart={hasGallery ? handleTouchStart : undefined}
           onTouchEnd={hasGallery ? handleTouchEnd : undefined}
         >
-          <div className="relative w-full sm:w-64 aspect-3/4">
+          <div className="relative aspect-3/4 w-full sm:w-64">
             {displayImages.map((src, index) => (
               <img
                 key={index}
                 src={src}
                 alt={data.title}
                 loading={index === 0 ? "eager" : "lazy"}
-                className={`absolute inset-0 w-full h-full object-cover rounded-sm transition-opacity duration-300 ${
+                className={`absolute inset-0 h-full w-full rounded-sm object-cover transition-opacity duration-300 ${
                   index === safeIndex ? "opacity-100" : "opacity-0"
                 } ${isInactive && isAdmin ? "opacity-70" : ""}`}
               />
@@ -269,7 +264,7 @@ export default function Card({
 
             {/* Dots indicate the active image (both hover and swipe). */}
             {hasGallery && (
-              <div className="absolute bottom-2 left-0 right-0 z-10 flex justify-center gap-1.5">
+              <div className="absolute right-0 bottom-2 left-0 z-10 flex justify-center gap-1.5">
                 {displayImages.map((_, index) => (
                   <button
                     key={index}
@@ -280,9 +275,7 @@ export default function Card({
                       setActiveIndex(index);
                     }}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
-                      index === safeIndex
-                        ? "w-4 bg-paper"
-                        : "w-1.5 bg-paper/50"
+                      index === safeIndex ? "bg-paper w-4" : "bg-paper/50 w-1.5"
                     }`}
                   />
                 ))}
@@ -291,11 +284,11 @@ export default function Card({
           </div>
 
           {showTags && tags.length > 0 && (
-            <div className="absolute top-2 left-2 z-10 flex flex-col gap-2 items-start">
+            <div className="absolute top-2 left-2 z-10 flex flex-col items-start gap-2">
               {tags.map((tag, index) => (
                 <div
                   key={index}
-                  className={`text-[0.6rem] font-bold py-1 px-2 uppercase tracking-widest ${
+                  className={`px-2 py-1 text-[0.6rem] font-bold tracking-widest uppercase ${
                     tag.type === "hero"
                       ? "bg-ink text-paper"
                       : "bg-paper text-rose-gold"
@@ -308,28 +301,28 @@ export default function Card({
           )}
 
           {isAdmin && isInactive && (
-            <div className="flex items-center justify-center gap-2 absolute top-2 right-2 z-10 bg-paper text-rust text-[0.6rem] font-bold py-1 px-2 uppercase tracking-widest rounded-full">
-              <div className="w-1.5 h-1.5 bg-rust rounded-full"></div>
+            <div className="bg-paper text-rust absolute top-2 right-2 z-10 flex items-center justify-center gap-2 rounded-full px-2 py-1 text-[0.6rem] font-bold tracking-widest uppercase">
+              <div className="bg-rust h-1.5 w-1.5 rounded-full"></div>
               <p>Inactive</p>
             </div>
           )}
         </div>
 
-        <div className="w-full flex items-start justify-between py-2 relative">
-          <div className="overflow-hidden flex flex-col flex-1">
-            <div className="flex items-center justify-start min-h-8">
-              <h1 className="text-lg text-ink line-clamp-2 leading-tight">
+        <div className="relative flex w-full items-start justify-between py-2">
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex min-h-8 items-center justify-start">
+              <h1 className="text-ink line-clamp-2 text-lg leading-tight">
                 {data.title}
               </h1>
             </div>
             {showPrices && (
-              <div className="flex items-center gap-2 mt-1">
+              <div className="mt-1 flex items-center gap-2">
                 {hasDiscount ? (
                   <>
                     <p className="text-md text-rose-gold tracking-wide">
                       {formatPrice(discountedPrice)}
                     </p>
-                    <p className="text-xs text-ink-40 line-through">
+                    <p className="text-ink-40 text-xs line-through">
                       {formatPrice(price)}
                     </p>
                   </>
@@ -344,14 +337,14 @@ export default function Card({
 
           {isAdmin && (
             <div
-              className="flex items-center justify-center mt-1 relative ml-2 shrink-0"
+              className="relative mt-1 ml-2 flex shrink-0 items-center justify-center"
               ref={dropdownRef}
             >
               <button
                 onClick={handleDropdownClick}
-                className="w-5 h-7 flex items-center justify-center bg-paper border-[1.5px] border-ink text-ink p-0.5 rounded-[20vw] hover:bg-ink hover:text-paper transition-all duration-300"
+                className="bg-paper border-ink text-ink hover:bg-ink hover:text-paper flex h-7 w-5 items-center justify-center rounded-[20vw] border-[1.5px] p-0.5 transition-all duration-300"
               >
-                <EllipsisVertical size={16} className="stroke-[1.7] shrink-0" />
+                <EllipsisVertical size={16} className="shrink-0 stroke-[1.7]" />
               </button>
 
               <AnimatePresence>
@@ -379,7 +372,7 @@ export default function Card({
                         : dropdownVertical === "down"
                           ? "right-0 origin-top-right"
                           : "right-0 origin-bottom-right"
-                    } bg-paper ring-1 ring-ink-08 shadow-2xl rounded-xl w-40 z-20 p-1.5`}
+                    } bg-paper ring-ink-08 z-20 w-40 rounded-xl p-1.5 shadow-2xl ring-1`}
                   >
                     <motion.div
                       variants={staggerContainer}
@@ -391,7 +384,7 @@ export default function Card({
                       <motion.div variants={staggerItem}>
                         <button
                           onClick={(e) => handleAction(e, onEdit)}
-                          className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-ink-05 rounded-lg transition-colors"
+                          className="text-ink hover:bg-ink-05 w-full rounded-lg px-3 py-2 text-left text-sm transition-colors"
                         >
                           Edit
                         </button>
@@ -399,7 +392,7 @@ export default function Card({
                       <motion.div variants={staggerItem}>
                         <button
                           onClick={(e) => handleAction(e, onViewOnStore)}
-                          className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-ink-05 rounded-lg transition-colors"
+                          className="text-ink hover:bg-ink-05 w-full rounded-lg px-3 py-2 text-left text-sm transition-colors"
                         >
                           View on Store
                         </button>
@@ -407,14 +400,14 @@ export default function Card({
                       <motion.div variants={staggerItem}>
                         <button
                           onClick={handleToggleStatus}
-                          className="w-full text-left px-3 py-2 text-sm text-ink hover:bg-ink-05 rounded-lg transition-colors"
+                          className="text-ink hover:bg-ink-05 w-full rounded-lg px-3 py-2 text-left text-sm transition-colors"
                         >
                           {data.isActive ? "Deactivate" : "Activate"}
                         </button>
                       </motion.div>
 
                       <motion.div variants={staggerItem}>
-                        <div className="my-1 h-px bg-ink-08" />
+                        <div className="bg-ink-08 my-1 h-px" />
                       </motion.div>
 
                       <motion.div variants={staggerItem}>
@@ -424,7 +417,7 @@ export default function Card({
                             setIsDropdownOpen(false);
                             setIsDeleteDialogOpen(true);
                           }}
-                          className="w-full text-left px-3 py-2 text-sm text-rust hover:bg-rust/10 rounded-lg transition-colors"
+                          className="text-rust hover:bg-rust/10 w-full rounded-lg px-3 py-2 text-left text-sm transition-colors"
                         >
                           Delete
                         </button>
@@ -442,15 +435,15 @@ export default function Card({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-100 bg-ink-55 flex items-center justify-center p-4"
+            className="bg-ink-55 fixed inset-0 z-100 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className="bg-paper rounded-sm p-6 w-full max-w-md shadow-card relative"
+              className="bg-paper shadow-card relative w-full max-w-md rounded-sm p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-ink">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-ink text-xl font-bold">
                   Delete {variant === "admin-category" ? "Category" : "Product"}
                 </h2>
                 <button
@@ -465,27 +458,27 @@ export default function Card({
                 </button>
               </div>
 
-              <div className="flex gap-4 mb-6">
+              <div className="mb-6 flex gap-4">
                 <img
                   src={displayImages[0]}
                   alt={data.title}
-                  className="w-20 h-20 object-cover rounded-sm shadow-sm"
+                  className="h-20 w-20 rounded-sm object-cover shadow-sm"
                 />
                 <div className="flex flex-col justify-center">
-                  <p className="text-sm text-ink-55 mb-1">
+                  <p className="text-ink-55 mb-1 text-sm">
                     Are you sure you want to delete this{" "}
                     {variant === "admin-category" ? "category" : "product"}?
                   </p>
-                  <p className="font-semibold text-ink line-clamp-2">
+                  <p className="text-ink line-clamp-2 font-semibold">
                     {data.title}
                   </p>
                 </div>
               </div>
 
               <div className="mb-6">
-                <label className="block text-sm text-ink-55 mb-2">
+                <label className="text-ink-55 mb-2 block text-sm">
                   Type{" "}
-                  <span className="font-bold text-ink select-none">
+                  <span className="text-ink font-bold select-none">
                     {data.title}
                   </span>{" "}
                   to confirm.
@@ -495,18 +488,18 @@ export default function Card({
                   value={deleteInput}
                   onChange={(e) => setDeleteInput(e.target.value)}
                   placeholder={data.title}
-                  className="w-full border border-ink-25 rounded-sm px-3 py-2 text-ink outline-none focus:border-ink transition-colors"
+                  className="border-ink-25 text-ink focus:border-ink w-full rounded-sm border px-3 py-2 transition-colors outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="mt-4 flex justify-end gap-3">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsDeleteDialogOpen(false);
                     setDeleteInput("");
                   }}
-                  className="px-4 py-2 text-ink border border-ink-25 rounded-sm hover:bg-ink-05 transition-colors"
+                  className="text-ink border-ink-25 hover:bg-ink-05 rounded-sm border px-4 py-2 transition-colors"
                 >
                   Cancel
                 </button>
@@ -519,7 +512,7 @@ export default function Card({
                     deleteInput.trim().toLowerCase() !==
                     data.title.trim().toLowerCase()
                   }
-                  className="px-4 py-2 bg-rust text-paper rounded-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  className="bg-rust text-paper rounded-sm px-4 py-2 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Delete
                 </button>
