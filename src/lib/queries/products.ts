@@ -11,6 +11,23 @@ import {
 import { categories, productCategories, products } from "../db/schema";
 import { db } from "../db";
 
+export type ProductsWithMediaAndCategories = Awaited<
+  ReturnType<
+    typeof db.query.products.findMany<{
+      with: {
+        productMedia: true;
+        categories: {
+          with: {
+            category: {
+              columns: { title: true; sizeChartImageUrl: true };
+            };
+          };
+        };
+      };
+    }>
+  >
+>;
+
 export default async function getProducts({
   slug,
   fabric,
@@ -91,7 +108,7 @@ export default async function getProducts({
   }
 
   let countResult: { count: number }[];
-  let allProducts: Awaited<ReturnType<typeof db.query.products.findMany>>;
+  let allProducts: ProductsWithMediaAndCategories;
 
   if (tsqueryString) {
     // COUNT
@@ -151,7 +168,7 @@ export default async function getProducts({
           categories: {
             with: {
               category: {
-                columns: { title: true },
+                columns: { title: true, sizeChartImageUrl: true },
               },
             },
           },
@@ -209,6 +226,7 @@ export default async function getProducts({
               category: {
                 columns: {
                   title: true,
+                  sizeChartImageUrl: true,
                 },
               },
             },
@@ -236,6 +254,7 @@ export default async function getProducts({
             category: {
               columns: {
                 title: true,
+                sizeChartImageUrl: true,
               },
             },
           },
