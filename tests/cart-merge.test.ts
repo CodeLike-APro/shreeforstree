@@ -90,7 +90,6 @@ describe("POST /api/cart/merge", () => {
       id: "gi-1",
       cartId: "guest-cart",
       productId: "p1",
-      color: "red",
       size: "M",
       quantity: 3,
     };

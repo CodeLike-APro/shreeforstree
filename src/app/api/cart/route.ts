@@ -139,7 +139,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { productId, quantity, color, size } = result.data;
+    const { productId, quantity, size } = result.data;
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
@@ -153,10 +153,6 @@ export async function POST(request: Request) {
       return badRequest(`Size ${size} is not available for this product`);
     }
 
-    if (!foundProduct.colors.includes(color)) {
-      return badRequest(`Color ${color} is not available for this product`);
-    }
-
     const updatedItem = await db.transaction(async (tx) => {
       const cart = await getOrCreateCart(
         currentUser?.id ?? null,
@@ -164,9 +160,6 @@ export async function POST(request: Request) {
         tx,
       );
 
-      // atomic upsert against the (cartId, productId, color, size) unique
-      // constraint — closes the race where two concurrent adds of the same
-      // line item both saw no existing row and both inserted
       return upsertCartItem(tx, {
         cartId: cart.id,
         productId,

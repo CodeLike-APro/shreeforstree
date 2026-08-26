@@ -240,7 +240,6 @@ export async function POST(request: NextRequest) {
         productTitle: item.product.title,
         productImageUrl: item.product.productMedia[0]?.url ?? "",
         size: item.size,
-        color: item.color,
         quantity: item.quantity,
         // same effective-price rule as calculateAmounts: a zero/absent
         // discountedPrice falls back to the full price

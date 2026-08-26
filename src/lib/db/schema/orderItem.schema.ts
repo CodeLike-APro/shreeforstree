@@ -21,7 +21,6 @@ export const orderItems = pgTable("order_items", {
   productTitle: text("product_title").notNull(),
   productImageUrl: text("product_image_url").notNull(),
   size: text("size").notNull(),
-  color: text("color").notNull(),
   quantity: integer("quantity").notNull(),
   priceAtPurchase: numeric("price_at_purchase", {
     precision: 10,
