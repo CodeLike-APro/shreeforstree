@@ -16,8 +16,8 @@ export default function ProductGrid({
         <Card
           variant="customer-product"
           data={{ ...product }}
-          onClick={(id) => {
-            router.push(`/shop/${id}`);
+          onClick={() => {
+            router.push(`/shop/${product.slug}`);
           }}
           key={product.id}
         />
