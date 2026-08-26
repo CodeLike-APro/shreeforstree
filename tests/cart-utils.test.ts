@@ -86,7 +86,6 @@ describe("upsertCartItem", () => {
       {
         cartId: "cart-1",
         productId: "p1",
-        color: "red",
         size: "M",
         quantity: 2,
         maxQuantity: 10,
@@ -97,7 +96,6 @@ describe("upsertCartItem", () => {
     expect(valuesMock).toHaveBeenCalledWith({
       cartId: "cart-1",
       productId: "p1",
-      color: "red",
       size: "M",
       quantity: 2,
     });

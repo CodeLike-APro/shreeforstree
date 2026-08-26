@@ -59,7 +59,6 @@ export async function POST(request: Request) {
           await upsertCartItem(tx, {
             cartId: userCart.id,
             productId: guestItem.productId,
-            color: guestItem.color,
             size: guestItem.size,
             quantity: guestItem.quantity,
             maxQuantity: MAX_CART_ITEMS,

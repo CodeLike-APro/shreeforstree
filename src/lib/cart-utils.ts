@@ -52,24 +52,18 @@ export async function upsertCartItem(
   params: {
     cartId: string;
     productId: string;
-    color: string;
     size: string;
     quantity: number;
     maxQuantity: number;
   },
 ) {
-  const { cartId, productId, color, size, quantity, maxQuantity } = params;
+  const { cartId, productId, size, quantity, maxQuantity } = params;
 
   const [item] = await tx
     .insert(cartItems)
-    .values({ cartId, productId, color, size, quantity })
+    .values({ cartId, productId, size, quantity })
     .onConflictDoUpdate({
-      target: [
-        cartItems.cartId,
-        cartItems.productId,
-        cartItems.color,
-        cartItems.size,
-      ],
+      target: [cartItems.cartId, cartItems.productId, cartItems.size],
       set: {
         quantity: sql`LEAST(${cartItems.quantity} + ${quantity}, ${maxQuantity})`,
       },

@@ -170,7 +170,6 @@ export async function POST(request: Request) {
       return upsertCartItem(tx, {
         cartId: cart.id,
         productId,
-        color,
         size,
         quantity,
         maxQuantity: MAX_CART_ITEMS,
