@@ -122,7 +122,10 @@ describe("PATCH /api/products/[id]", () => {
     };
 
     txHelpers = mockTx();
-    dbAny.transaction.mockImplementation(async (cb: any) => cb(txHelpers.tx));
+    dbAny.transaction.mockImplementation(
+      async (cb: (tx: ReturnType<typeof mockTx>["tx"]) => unknown) =>
+        cb(txHelpers.tx),
+    );
     // order-item reference lookup for storage cleanup: nothing referenced by default
     dbAny.select.mockImplementation(() => chain([]));
   });

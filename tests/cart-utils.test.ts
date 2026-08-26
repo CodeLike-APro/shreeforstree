@@ -71,8 +71,8 @@ describe("upsertCartItem", () => {
     const returningMock = vi.fn(async () => [
       { id: "item-1", quantity: 5, cartId: "cart-1" },
     ]);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const onConflictDoUpdateMock = vi.fn((_args: any) => ({
+
+    const onConflictDoUpdateMock = vi.fn(() => ({
       returning: returningMock,
     }));
     const valuesMock = vi.fn(() => ({
@@ -99,7 +99,13 @@ describe("upsertCartItem", () => {
       size: "M",
       quantity: 2,
     });
-    const conflictArgs = onConflictDoUpdateMock.mock.calls[0][0];
+    const conflictArgs = (
+      onConflictDoUpdateMock.mock.calls as unknown as [
+        [{ target: unknown[]; set: { quantity?: unknown } }],
+      ]
+    )[0]?.[0];
+    expect(conflictArgs).toBeDefined();
+    if (!conflictArgs) throw new Error("Missing conflict arguments");
     expect(conflictArgs.target).toHaveLength(4);
     expect(conflictArgs.set.quantity).toBeDefined();
   });
