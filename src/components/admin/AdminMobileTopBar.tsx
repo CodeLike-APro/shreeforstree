@@ -105,13 +105,16 @@ export default function AdminMobileTopBar() {
     searchParams.get("search") || "",
   );
 
+  const searchParamsRef = useRef(searchParams);
+
   useEffect(() => {
-    setSearchValue(searchParams.get("search") || "");
+    searchParamsRef.current = searchParams;
   }, [searchParams]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      const currentParams = searchParamsRef.current;
+      const params = new URLSearchParams(currentParams.toString());
       const currentSearch = params.get("search") || "";
 
       if (searchValue !== currentSearch) {
@@ -125,7 +128,7 @@ export default function AdminMobileTopBar() {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchValue, pathname, router, searchParams]);
+  }, [searchValue, pathname, router]);
 
   const currentItem =
     TOP_BAR_ITEMS.find((item) => pathname.startsWith(item.href)) ||

@@ -10,7 +10,7 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import { usePathname } from "next/navigation";
@@ -65,10 +65,10 @@ export default function AdminSideBar() {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userTriggerRef = useRef<HTMLButtonElement>(null);
 
-  /* close dropdown when sidebar collapses */
-  useEffect(() => {
-    if (isCollapsed) setIsUserDropdownOpen(false);
-  }, [isCollapsed]);
+  const handleSidebarToggle = () => {
+    if (!isCollapsed) setIsUserDropdownOpen(false);
+    toggle();
+  };
 
   const initial = (
     session?.user?.name?.trim()?.[0] ||
@@ -91,7 +91,7 @@ export default function AdminSideBar() {
         {/* Toggle + branding */}
         <div className="flex items-center justify-start gap-2">
           <button
-            onClick={toggle}
+            onClick={handleSidebarToggle}
             className="hover:bg-blush/10 group relative shrink-0 cursor-pointer rounded-md p-3"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >

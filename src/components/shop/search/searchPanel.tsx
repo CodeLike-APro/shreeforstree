@@ -1,7 +1,12 @@
+"use client";
+
 import { Clock, Search, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSearch } from "./useSearch";
 import { useEffect, useRef, useState } from "react";
+import { categories } from "@/lib/db/schema";
+
+type Category = typeof categories.$inferSelect;
 
 export function SearchPanel({
   isOpen,
@@ -12,12 +17,9 @@ export function SearchPanel({
 }) {
   const { recentSearches, removeRecent, submit, query, setQuery } = useSearch();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [mounted, setMounted] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -66,8 +68,6 @@ export function SearchPanel({
       document.removeEventListener("keydown", handler);
     };
   }, [isOpen, onClose]);
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>
@@ -181,20 +181,20 @@ export function SearchPanel({
                       No categories to load
                     </p>
                   ) : (
-                    categories.map((cat: any, idx: number) => (
+                    categories.map((cat: Category, idx: number) => (
                       <div
                         key={cat.id || idx}
                         className="group relative aspect-5/3 w-full cursor-pointer overflow-hidden rounded"
                       >
                         <img
-                          src={cat.categoryImageUrl}
-                          alt={cat.name || cat.title}
+                          src={cat.categoryImageUrl ?? ""}
+                          alt={cat.title}
                           loading="lazy"
                           className="h-full w-full object-cover"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                         <h5 className="font-display absolute bottom-2 left-3 text-xl font-semibold tracking-wider text-white lowercase first-letter:uppercase">
-                          {cat.name || cat.title}
+                          {cat.title}
                         </h5>
                       </div>
                     ))
