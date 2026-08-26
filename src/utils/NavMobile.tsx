@@ -27,6 +27,13 @@ const NAV_W = 290;
 const NAV_PAD_X = 12;
 const NAV_BORDER = 1;
 
+type NavIconProps = {
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+  style?: React.CSSProperties;
+};
+
 export default function NavMobile({ tabs }: NavMobileProps) {
   const CONTENT_W = NAV_W - 2 * (NAV_PAD_X + NAV_BORDER);
   const HALF_GAP = (CONTENT_W - tabs.length * PILL_SIZE) / (tabs.length * 2);
@@ -99,7 +106,7 @@ export default function NavMobile({ tabs }: NavMobileProps) {
       }
     }
     return closest;
-  }, [getTabCenter, pillX]);
+  }, [getTabCenter, pillX, tabs.length]);
 
   // Keep a ref so the resize handler always reads the latest active index
   const urlIndexRef = useRef(urlIndex);
@@ -272,16 +279,20 @@ export default function NavMobile({ tabs }: NavMobileProps) {
                 }}
               >
                 {React.isValidElement(tab.icon) &&
-                  React.cloneElement(tab.icon as React.ReactElement<any>, {
+                  React.cloneElement(
+                    tab.icon as React.ReactElement<NavIconProps>,
+                    {
                     size: ICON_SIZE,
                     strokeWidth: isActive ? 2.4 : 1.8,
                     className: "transition-colors duration-200",
                     style: {
                       color: isActive ? "white" : "var(--color-ink-55)",
-                      ...((tab.icon as React.ReactElement<any>).props.style ||
+                      ...((tab.icon as React.ReactElement<NavIconProps>).props
+                        .style ||
                         {}),
                     },
-                  })}
+                    },
+                  )}
               </motion.div>
             </motion.button>
           );

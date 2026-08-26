@@ -376,11 +376,15 @@ export default function UserDropdown({
                         >
                           {React.isValidElement(icon) &&
                             React.cloneElement(
-                              icon as React.ReactElement<any>,
+                              icon as React.ReactElement<{
+                                size?: number;
+                                className?: string;
+                              }>,
                               {
                                 size: 18,
                                 className: `stroke-[1.5] text-ink-55 transition-colors group-hover:text-rose-gold ${
-                                  (icon.props as any).className || ""
+                                  (icon.props as { className?: string })
+                                    .className || ""
                                 }`,
                               },
                             )}
