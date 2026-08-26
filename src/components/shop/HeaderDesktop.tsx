@@ -1,23 +1,16 @@
 "use client";
 import Link from "next/link";
-import {
-  HandbagIcon,
-  HeartIcon,
-  SearchIcon,
-  UserIcon,
-  PackageIcon,
-  MapPinIcon,
-} from "lucide-react";
+import { User, Package, Heart, MapPin, Search, Handbag } from "lucide-react";
 import { useSearch } from "./search/useSearch";
 import { SearchPanel } from "./search/searchPanel";
 import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
 
 const USER_MENU_ITEMS = [
-  { label: "My Profile", href: "/account", icon: <UserIcon /> },
-  { label: "My Orders", href: "/orders", icon: <PackageIcon /> },
-  { label: "Wishlist", href: "/wishlist", icon: <HeartIcon /> },
-  { label: "Addresses", href: "/account/addresses", icon: <MapPinIcon /> },
+  { label: "My Profile", href: "/account", icon: <User /> },
+  { label: "My Orders", href: "/orders", icon: <Package /> },
+  { label: "Wishlist", href: "/wishlist", icon: <Heart /> },
+  { label: "Addresses", href: "/account/addresses", icon: <MapPin /> },
 ] as const;
 
 export default function HeaderDesktop() {
@@ -57,25 +50,22 @@ export default function HeaderDesktop() {
           </div>
           <div className="mr-6 flex items-center gap-6">
             <div className="flex items-center justify-end gap-3">
-              <SearchIcon
-                onClick={open}
-                className="cursor-pointer stroke-[1.4]"
-              />
+              <Search onClick={open} className="cursor-pointer stroke-[1.4]" />
 
               <SearchPanel isOpen={isOpen} onClose={close} />
             </div>
             <div>
               <Link href="/wishlist">
-                <HeartIcon className="cursor-pointer stroke-[1.4]" />
+                <Heart className="cursor-pointer stroke-[1.4]" />
               </Link>
             </div>
             <div>
               <Link href="/cart">
-                <HandbagIcon className="cursor-pointer stroke-[1.4]" />
+                <Handbag className="cursor-pointer stroke-[1.4]" />
               </Link>
             </div>
             <div ref={userTriggerRef} className="relative">
-              <UserIcon
+              <User
                 className="cursor-pointer stroke-[1.4]"
                 onClick={() => setIsUserDropdownOpen((prev) => !prev)}
               />

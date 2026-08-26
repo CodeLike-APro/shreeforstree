@@ -2,13 +2,13 @@
 "use client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { UserIcon, PackageIcon, HeartIcon, MapPinIcon } from "lucide-react";
+import { User, Package, Heart, MapPin } from "lucide-react";
 import UserDropdown from "../../utils/Dropdown";
 const USER_MENU_ITEMS = [
-  { label: "My Profile", href: "/account", icon: <UserIcon /> },
-  { label: "My Orders", href: "/orders", icon: <PackageIcon /> },
-  { label: "Wishlist", href: "/wishlist", icon: <HeartIcon /> },
-  { label: "Addresses", href: "/account/addresses", icon: <MapPinIcon /> },
+  { label: "My Profile", href: "/account", icon: <User /> },
+  { label: "My Orders", href: "/orders", icon: <Package /> },
+  { label: "Wishlist", href: "/wishlist", icon: <Heart /> },
+  { label: "Addresses", href: "/account/addresses", icon: <MapPin /> },
 ] as const;
 
 export default function HeaderMobile() {
@@ -29,7 +29,7 @@ export default function HeaderMobile() {
           aria-label="Account menu"
           className="bg-paper text-ink rounded-full p-2"
         >
-          <UserIcon />
+          <User />
         </button>
       </div>
       <UserDropdown

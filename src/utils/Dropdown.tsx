@@ -10,7 +10,7 @@ import React, {
   useState,
   type RefObject,
 } from "react";
-import { XIcon, LogOutIcon, SparklesIcon, ChevronRight } from "lucide-react";
+import { ChevronRight, X, LogOut, Sparkles } from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -309,7 +309,7 @@ export default function UserDropdown({
                   aria-label="Close menu"
                   className="group border-ink-15 hover:bg-ink shrink-0 rounded-full border p-2.5 transition-all duration-300 ease-in-out"
                 >
-                  <XIcon
+                  <X
                     size={16}
                     className="text-ink group-hover:text-paper stroke-[1.7] transition-colors duration-300 ease-in-out"
                   />
@@ -407,7 +407,7 @@ export default function UserDropdown({
                         disabled={signingOut}
                         className="group text-rust hover:bg-rust/10 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 disabled:opacity-60"
                       >
-                        <LogOutIcon
+                        <LogOut
                           size={18}
                           className="group-hover:text-rust stroke-[1.5] transition-colors"
                         />
@@ -451,7 +451,7 @@ export default function UserDropdown({
                       variants={staggerItem}
                       className="font-body text-ink-40 mt-4 flex items-center justify-center gap-1.5 text-xs"
                     >
-                      <SparklesIcon size={13} className="text-rose-gold" />
+                      <Sparkles size={13} className="text-rose-gold" />
                       Crafted for you, by shreeforstree
                     </motion.p>
                   </div>

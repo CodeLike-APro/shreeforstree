@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, Plus, Search, SlidersHorizontal, UserIcon } from "lucide-react";
+import { Bell, Plus, Search, SlidersHorizontal, User } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import UserDropdown from "../../utils/Dropdown";
 import { motion, AnimatePresence } from "motion/react";
 
 const USER_MENU_ITEMS = [
-  { label: "My Profile", href: "/account", icon: <UserIcon /> },
+  { label: "My Profile", href: "/account", icon: <User /> },
   { label: "Notifications", href: "/admin/notifications", icon: <Bell /> },
 ] as const;
 
@@ -138,9 +138,9 @@ export default function AdminMobileTopBar() {
   if (isFormSubPage) return null;
 
   return (
-    <div className="px-4 py-3 sticky top-0 z-50 w-full flex flex-col gap-3 bg-paper border-b border-ink-25 select-none">
+    <div className="bg-paper border-ink-25 sticky top-0 z-50 flex w-full flex-col gap-3 border-b px-4 py-3 select-none">
       {/* Row 1: Title, Description, Buttons */}
-      <div className="flex items-center justify-between w-full">
+      <div className="flex w-full items-center justify-between">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentItem.title}
@@ -150,29 +150,33 @@ export default function AdminMobileTopBar() {
             transition={{ duration: 0.2 }}
             className="flex flex-col items-start justify-center"
           >
-            <h1 className="font-display font-bold text-ink text-3xl leading-tight">
+            <h1 className="font-display text-ink text-3xl leading-tight font-bold">
               {currentItem.title}
             </h1>
           </motion.div>
         </AnimatePresence>
         <div className="flex items-center justify-end gap-2">
-          <div className="bg-paper border border-ink-40 rounded-lg flex items-center justify-center p-3 cursor-pointer shrink-0">
+          <div className="bg-paper border-ink-40 flex shrink-0 cursor-pointer items-center justify-center rounded-lg border p-3">
             <Bell size={18} className="text-ink" />
           </div>
           <button
             ref={userTriggerRef}
             onClick={() => setIsUserDropdownOpen((prev) => !prev)}
             aria-label="Account menu"
-            className="rounded-lg bg-paper p-3 text-ink border border-ink-40 shrink-0"
+            className="bg-paper text-ink border-ink-40 shrink-0 rounded-lg border p-3"
           >
-            <UserIcon size={18} />
+            <User size={18} />
           </button>
         </div>
       </div>
 
       {/* Row 2: Search Bar & Filters */}
       <AnimatePresence mode="popLayout">
-        {(currentItem.search || currentItem.filters || currentItem.button || currentItem.cancelButton || currentItem.submitButton) && (
+        {(currentItem.search ||
+          currentItem.filters ||
+          currentItem.button ||
+          currentItem.cancelButton ||
+          currentItem.submitButton) && (
           <motion.div
             key="row2"
             layout
@@ -180,7 +184,7 @@ export default function AdminMobileTopBar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex items-center justify-between gap-2 w-full overflow-hidden"
+            className="flex w-full items-center justify-between gap-2 overflow-hidden"
           >
             <AnimatePresence mode="popLayout">
               {currentItem.search && (
@@ -191,9 +195,9 @@ export default function AdminMobileTopBar() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.2 }}
                   key="search"
-                  className="flex w-full h-10 items-center justify-center border border-ink-40 focus-within:border-ink rounded-lg px-1.5 gap-3 transition-all duration-300"
+                  className="border-ink-40 focus-within:border-ink flex h-10 w-full items-center justify-center gap-3 rounded-lg border px-1.5 transition-all duration-300"
                 >
-                  <div className="flex items-center h-full text-ink/60 border-r border-ink-40 pr-2">
+                  <div className="text-ink/60 border-ink-40 flex h-full items-center border-r pr-2">
                     <Search size={18} />
                   </div>
                   <input
@@ -205,8 +209,11 @@ export default function AdminMobileTopBar() {
                   />
                 </motion.div>
               )}
-              {(currentItem.filters || currentItem.button || currentItem.cancelButton || currentItem.submitButton) && (
-                <motion.div layout className="flex items-center gap-2 shrink-0">
+              {(currentItem.filters ||
+                currentItem.button ||
+                currentItem.cancelButton ||
+                currentItem.submitButton) && (
+                <motion.div layout className="flex shrink-0 items-center gap-2">
                   <AnimatePresence mode="popLayout">
                     {currentItem.cancelButton && (
                       <motion.div
@@ -223,9 +230,9 @@ export default function AdminMobileTopBar() {
                               router.push(currentItem.cancelHref);
                             }
                           }}
-                          className="bg-paper border border-ink-40 hover:border-ink hover:bg-ink transition-all duration-300 rounded-lg flex items-center justify-center px-4 h-9.5 shrink-0"
+                          className="bg-paper border-ink-40 hover:border-ink hover:bg-ink flex h-9.5 shrink-0 items-center justify-center rounded-lg border px-4 transition-all duration-300"
                         >
-                          <div className="text-sm font-body text-ink font-bold group-hover:text-white transition-colors duration-300">
+                          <div className="font-body text-ink text-sm font-bold transition-colors duration-300 group-hover:text-white">
                             Cancel
                           </div>
                         </button>
@@ -243,9 +250,9 @@ export default function AdminMobileTopBar() {
                         <button
                           type="submit"
                           form={currentItem.submitFormId}
-                          className="bg-rose-gold hover:bg-rose-gold-dark transition-all duration-300 rounded-lg flex items-center justify-center px-4 h-9.5 shrink-0"
+                          className="bg-rose-gold hover:bg-rose-gold-dark flex h-9.5 shrink-0 items-center justify-center rounded-lg px-4 transition-all duration-300"
                         >
-                          <div className="text-sm font-body text-paper font-bold group-hover:text-white transition-colors duration-300">
+                          <div className="font-body text-paper text-sm font-bold transition-colors duration-300 group-hover:text-white">
                             {currentItem.submitLabel}
                           </div>
                         </button>
@@ -259,7 +266,7 @@ export default function AdminMobileTopBar() {
                         exit={{ opacity: 0, scale: 0.8 }}
                         transition={{ duration: 0.2 }}
                         key="filters"
-                        className="bg-paper border border-ink-40 rounded-lg flex items-center justify-center w-9.5 h-9.5 cursor-pointer shrink-0"
+                        className="bg-paper border-ink-40 flex h-9.5 w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-lg border"
                       >
                         <SlidersHorizontal size={18} className="text-ink" />
                       </motion.div>
@@ -279,7 +286,7 @@ export default function AdminMobileTopBar() {
                               router.push(currentItem.buttonHref);
                             }
                           }}
-                          className="bg-rose-gold rounded-lg flex items-center justify-center h-9.5 w-9.5 shrink-0"
+                          className="bg-rose-gold flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-lg"
                         >
                           <Plus size={18} className="text-paper" />
                         </button>

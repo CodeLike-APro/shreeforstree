@@ -1,4 +1,4 @@
-import { ClockIcon, SearchIcon, XIcon } from "lucide-react";
+import { Clock, Search, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSearch } from "./useSearch";
 import { useEffect, useRef, useState } from "react";
@@ -88,7 +88,7 @@ export function SearchPanel({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="border-ink flex items-center justify-between gap-6 border-b-2 py-2">
-              <SearchIcon
+              <Search
                 size={32}
                 className="text-rose-gold cursor-pointer"
                 onClick={() => {
@@ -114,7 +114,7 @@ export function SearchPanel({
                 className="border-ink-25 group hover:bg-ink cursor-pointer rounded-full border-[0.5] p-2.5 transition-all duration-300 ease-in-out"
                 onClick={onClose}
               >
-                <XIcon
+                <X
                   size={18}
                   className="text-ink stroke-[1.7] transition-colors duration-300 ease-in-out group-hover:text-white"
                 />
@@ -137,7 +137,7 @@ export function SearchPanel({
                           onClose();
                         }}
                       >
-                        <ClockIcon
+                        <Clock
                           size={14}
                           className="text-ink-40 group-hover:text-rose-gold"
                         />
@@ -151,7 +151,7 @@ export function SearchPanel({
                           }}
                           className="text-ink-40 hover:text-rose-gold text-xs"
                         >
-                          <XIcon size={13} />
+                          <X size={13} />
                         </button>
                       </div>
                     ))
