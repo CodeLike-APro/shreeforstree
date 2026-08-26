@@ -3,52 +3,68 @@ import { MAX_CART_ITEMS } from "@/lib/constants";
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
 
-export default function QuantitySelector() {
-  const [value, setValue] = useState(1);
+type QuantitySelectorProps = {
+  quantity: number;
+  OnQuantityChange: (quantity: number) => void;
+};
+
+export default function QuantitySelector({
+  quantity,
+  OnQuantityChange,
+}: QuantitySelectorProps) {
+  const [value, setValue] = useState<number | "">(quantity);
+
+  const updateQuantity = (next: number | "") => {
+    setValue(next);
+
+    if (next !== "") {
+      OnQuantityChange(next);
+    }
+  };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
 
     if (val === "") {
-      setValue("" as unknown as number);
+      updateQuantity("");
       return;
     }
 
     const inputVal = Number(val);
     if (inputVal > MAX_CART_ITEMS) {
-      setValue(MAX_CART_ITEMS);
+      updateQuantity(MAX_CART_ITEMS);
       return;
     }
     if (inputVal < 1) {
-      setValue(1);
+      updateQuantity(1);
       return;
     }
-    setValue(inputVal);
+    updateQuantity(inputVal);
     return;
   };
 
   const handleBlur = () => {
-    if (value === ("" as unknown as number) || value < 1) {
-      setValue(1);
+    if (value === "" || value < 1) {
+      updateQuantity(1);
     }
   };
 
   const handleIncrement = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (value < MAX_CART_ITEMS) {
-      setValue(value + 1);
+    if (typeof value === "number" && value < MAX_CART_ITEMS) {
+      updateQuantity(value + 1);
     }
   };
 
   const handleDecrement = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (value > 1) {
-      setValue(value - 1);
+    if (typeof value === "number" && value > 1) {
+      updateQuantity(value - 1);
     }
   };
 
   return (
-    <div className="border-ink-25 font-display flex w-fit items-center justify-around gap-2 rounded-sm border px-2 py-3 text-xl font-bold">
+    <div className="border-ink-25 font-display flex w-fit items-center justify-around gap-2 rounded-sm border px-2 py-2.5 text-xl font-bold">
       <button
         className="hover:text-rose-gold cursor-pointer"
         onClick={handleDecrement}
