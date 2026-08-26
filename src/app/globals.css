@@ -11,6 +11,8 @@
   --color-ink-25: oklch(0.21 0.01 40 / 0.25);
   --color-ink-40: oklch(0.21 0.01 40 / 0.4);
   --color-ink-55: oklch(0.21 0.01 40 / 0.55);
+  --color-muted: oklch(0.93 0.008 60);
+  --color-muted-foreground: oklch(0.21 0.01 40 / 0.55);
 
   /* Slightly deeper than --color-ink — used for footer background only */
   --color-ink-deep: oklch(0.18 0.005 64);
@@ -125,19 +127,23 @@
 }
 
 @keyframes glow-spin {
-  0% { 
+  0% {
     --glow-angle: 0deg;
     transform: rotate(0deg);
   }
-  100% { 
+  100% {
     --glow-angle: 360deg;
     transform: rotate(360deg);
   }
 }
 
 @keyframes glow-breathe {
-  0% { opacity: 0.75; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
