@@ -1,7 +1,5 @@
-import { auth } from "@/lib/db/auth";
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   Box,
   LayoutDashboard,
@@ -43,7 +41,7 @@ export default async function AdminLayout({
 
   return (
     <section
-      className={`min-h-screen flex flex-1 w-full ${
+      className={`flex min-h-screen w-full flex-1 ${
         deviceType === "mobile" ? "flex-col" : "flex-row"
       }`}
     >
@@ -52,7 +50,7 @@ export default async function AdminLayout({
           <AdminSidebar />
         </nav>
       )}
-      <main className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col">
         {deviceType === "mobile" ? (
           <AdminMobileTopBar />
         ) : (

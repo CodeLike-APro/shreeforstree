@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import z4 from "zod/v4";
 import { db } from "@/lib/db";
-import { orderItems } from "@/lib/db/schema";
 import ProductForm from "@/components/admin/ProductForm";
 
 export const dynamic = "force-dynamic";
