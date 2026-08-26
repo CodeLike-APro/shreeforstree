@@ -1,7 +1,6 @@
 import ProductPurchase from "@/components/shop/product/ProductPurchase";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import z4 from "zod/v4";
 
 export default async function ProductPage({
   params,
@@ -9,10 +8,6 @@ export default async function ProductPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-
-  if (!z4.string().safeParse(slug).success) {
-    notFound();
-  }
 
   const product = await db.query.products.findFirst({
     where: (products, { eq }) => eq(products.slug, slug),
