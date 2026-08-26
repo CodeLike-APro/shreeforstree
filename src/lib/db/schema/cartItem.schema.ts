@@ -21,14 +21,13 @@ export const cartItems = pgTable(
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
     quantity: integer("quantity").notNull().default(1),
-    color: text("color").notNull(),
     size: text("size").notNull(),
     updatedAt: timestamp("updated_at")
       .notNull()
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (t) => [unique().on(t.cartId, t.productId, t.color, t.size)],
+  (t) => [unique().on(t.cartId, t.productId, t.size)],
 );
 
 export const cartItemRelations = relations(cartItems, ({ one }) => ({

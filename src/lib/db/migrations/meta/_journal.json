@@ -50,6 +50,13 @@
       "when": 1787375338280,
       "tag": "0006_strange_marvex",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787737863707,
+      "tag": "0007_light_menace",
+      "breakpoints": true
     }
   ]
 }
