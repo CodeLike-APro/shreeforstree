@@ -26,7 +26,7 @@ export default function HeaderDesktop() {
   const userTriggerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <header className="border-border flex h-17 w-full items-center justify-between border-b px-4 py-4">
+    <header className="border-border flex h-22 w-full items-center justify-between border-b px-4 py-4">
       <nav className="flex w-full items-center gap-4">
         <Link
           href="/"
