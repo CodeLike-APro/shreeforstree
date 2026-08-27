@@ -1,21 +1,18 @@
 "use client";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { Minus, Plus } from "lucide-react";
-import { useState } from "react";
 
 type QuantitySelectorProps = {
-  quantity: number;
-  OnQuantityChange: (quantity: number) => void;
+  quantity: number | "";
+  OnQuantityChange: (quantity: number | "") => void;
 };
 
 export default function QuantitySelector({
   quantity,
   OnQuantityChange,
 }: QuantitySelectorProps) {
-  const [value, setValue] = useState<number | "">(quantity);
-
   const updateQuantity = (next: number | "") => {
-    setValue(next);
+    OnQuantityChange(next);
 
     if (next !== "") {
       OnQuantityChange(next);
@@ -44,22 +41,22 @@ export default function QuantitySelector({
   };
 
   const handleBlur = () => {
-    if (value === "" || value < 1) {
+    if (quantity === "" || quantity < 1) {
       updateQuantity(1);
     }
   };
 
   const handleIncrement = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (typeof value === "number" && value < MAX_CART_ITEMS) {
-      updateQuantity(value + 1);
+    if (typeof quantity === "number" && quantity < MAX_CART_ITEMS) {
+      updateQuantity(quantity + 1);
     }
   };
 
   const handleDecrement = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (typeof value === "number" && value > 1) {
-      updateQuantity(value - 1);
+    if (typeof quantity === "number" && quantity > 1) {
+      updateQuantity(quantity - 1);
     }
   };
 
@@ -76,7 +73,7 @@ export default function QuantitySelector({
           type="number"
           min="1"
           max={MAX_CART_ITEMS}
-          value={value}
+          value={quantity}
           onChange={handleInput}
           onBlur={handleBlur}
           className="focus-ring-0 [appearance-textfield] text-ink w-10 border-none text-center text-xl font-bold focus:ring-offset-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
