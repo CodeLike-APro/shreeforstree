@@ -1,30 +1,112 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AddToBag from "./AddToBag";
 import QuantitySelector from "./QuantitySelector";
 import { PRODUCT_SIZES } from "@/lib/db/schema";
+import Image from "next/image";
+import { X } from "lucide-react";
 
 type ProductPurchaseProps = {
   sizes: (typeof PRODUCT_SIZES)[number][];
   price: number;
+  sizeGuide?: string | null;
 };
 
 export default function ProductPurchase({
   sizes,
   price,
+  sizeGuide,
 }: ProductPurchaseProps) {
   const [selectedSize, setSelectedSize] = useState<
     (typeof PRODUCT_SIZES)[number] | ""
   >("");
 
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | "">(1);
+  const [isOpen, setIsOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLHeadingElement>(null);
+
+  // Handle Outside Click for Size Guide Modal
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointer = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      if (triggerRef.current?.contains(target)) return;
+      setIsOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="relative flex flex-col gap-6">
       <div>
-        <h6 className="font-label text-ink text-sm tracking-widest uppercase">
-          Select size
-        </h6>
+        <div className="flex items-center justify-between">
+          <h6 className="font-label text-ink text-sm tracking-widest uppercase">
+            Select size
+          </h6>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="font-label text-rose-gold hover:text-rose-gold-dark focus-ring-none cursor-pointer text-sm tracking-widest uppercase hover:underline"
+          >
+            size guide
+          </button>
+        </div>
+
+        {/* Size Guide Modal */}
+
+        {isOpen && sizeGuide && (
+          <div className="bg-ink/50 fixed inset-0 z-50 flex h-screen w-full items-center justify-center backdrop-blur-md">
+            <div
+              ref={panelRef}
+              className="bg-paper absolute flex h-[75%] w-[60%] flex-col rounded-lg"
+            >
+              <div className="border-ink-25 flex shrink-0 items-center justify-between border-b p-4">
+                <h4 className="font-display text-ink text-lg tracking-widest uppercase">
+                  Size Guide
+                </h4>
+                <button
+                  className="text-ink hover:text-paper hover:bg-ink border-ink cursor-pointer rounded-full border p-2 transition-colors duration-300"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="min-h-0 w-full flex-1 overflow-y-auto">
+                <Image
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  src={sizeGuide}
+                  alt="Size Guide"
+                  className="h-auto w-full"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
           {sizes?.map((s) => (
             <button

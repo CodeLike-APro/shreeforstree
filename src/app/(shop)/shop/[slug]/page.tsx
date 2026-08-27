@@ -80,6 +80,7 @@ export default async function ProductPage({
         <ProductPurchase
           sizes={product.sizes}
           price={Number(product.discountedPrice ?? product.price)}
+          sizeGuide={product.categories[0]?.category.sizeChartImageUrl}
         />
         <div className="mt-3 flex items-center justify-center gap-2">
           <div className="bg-ink-25 h-px w-full"></div>
