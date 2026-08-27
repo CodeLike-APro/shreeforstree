@@ -5,15 +5,23 @@ export default function AddToBag({
   price,
 }: {
   size: string;
-  quantity: number;
+  quantity: number | "";
   price: number;
 }) {
   return (
     <div className="w-full">
-      <button className="bg-ink text-paper font-label border-ink w-full rounded-sm border px-4 py-3 tracking-widest uppercase">
+      <button
+        type="button"
+        disabled={!size}
+        className={[
+          "bg-ink text-paper font-label border-ink w-full rounded-sm border px-4 py-3 tracking-widest uppercase",
+          size ? "cursor-pointer" : "cursor-not-allowed",
+        ].join(" ")}
+      >
         {size ? (
           <p className="">
-            Add to Bag - {quantity} &middot; {quantity * price}
+            Add to Bag - {typeof quantity === "number" ? quantity : 1} &middot;{" "}
+            {typeof quantity === "number" ? quantity * price : price}
           </p>
         ) : (
           <p className="">Select a size</p>
