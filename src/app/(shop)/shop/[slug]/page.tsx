@@ -1,3 +1,4 @@
+import ProductDescription from "@/components/shop/product/ProductDescription";
 import ProductGallery from "@/components/shop/product/ProductGallery";
 import ProductPurchase from "@/components/shop/product/ProductPurchase";
 import { db } from "@/lib/db";
@@ -73,9 +74,7 @@ export default async function ProductPage({
               </div>
             )}
           </div>
-          <p className="font-serif-alt text-ink mt-5 md:text-xl">
-            {product.description}
-          </p>
+          <ProductDescription description={product.description} />
         </div>
         <ProductPurchase
           sizes={product.sizes}
