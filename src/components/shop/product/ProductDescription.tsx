@@ -10,7 +10,9 @@ export default function ProductDescription({
 
   const descriptionLength = description.length;
 
-  if (descriptionLength < 220) {
+  const descriptionCap = 250;
+
+  if (descriptionLength < descriptionCap && !expanded) {
     setExpanded(true);
   }
 
@@ -25,11 +27,11 @@ export default function ProductDescription({
         {description}
       </p>
 
-      {!expanded && descriptionLength > 220 && (
+      {!expanded && descriptionLength > descriptionCap && (
         <div className="bg-paper absolute right-23 bottom-0">...</div>
       )}
 
-      {descriptionLength > 220 && (
+      {descriptionLength > descriptionCap && (
         <button
           className={[
             "font-serif-alt text-rose-gold hover:text-rose-gold-dark text-xl font-semibold italic hover:underline",
