@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useSearch } from "./useSearch";
 import { useEffect, useRef, useState } from "react";
 import { categories } from "@/lib/db/schema";
+import Image from "next/image";
 
 type Category = typeof categories.$inferSelect;
 
@@ -186,7 +187,7 @@ export function SearchPanel({
                         key={cat.id || idx}
                         className="group relative aspect-5/3 w-full cursor-pointer overflow-hidden rounded"
                       >
-                        <img
+                        <Image
                           src={cat.categoryImageUrl ?? ""}
                           alt={cat.title}
                           loading="lazy"
