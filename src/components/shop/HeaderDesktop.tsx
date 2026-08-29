@@ -2,9 +2,9 @@
 import Link from "next/link";
 import { User, Package, Heart, MapPin, Search, Handbag } from "lucide-react";
 import { useSearch } from "./search/useSearch";
-import { SearchPanel } from "./search/searchPanel";
 import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
+import dynamic from "next/dynamic";
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },
@@ -13,7 +13,25 @@ const USER_MENU_ITEMS = [
   { label: "Addresses", href: "/account/addresses", icon: <MapPin /> },
 ] as const;
 
-export default function HeaderDesktop() {
+const SearchPanel = dynamic(
+  () =>
+    import("@/components/shop/search/searchPanel").then((m) => m.SearchPanel),
+  {
+    ssr: false,
+  },
+);
+
+type AdminPath = {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+};
+
+export default function HeaderDesktop({
+  adminPath,
+}: {
+  adminPath?: AdminPath;
+}) {
   const navLinks = [
     { label: "SHOP", href: "/shop" },
     { label: "COLLECTIONS", href: "/collections" },
@@ -24,6 +42,15 @@ export default function HeaderDesktop() {
   const { isOpen, open, close } = useSearch();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userTriggerRef = useRef<HTMLDivElement>(null);
+
+  const userMenuItems = [
+    ...USER_MENU_ITEMS.map((item) => ({
+      label: item.label,
+      href: item.href,
+      icon: item.icon,
+    })),
+    ...(adminPath ? [adminPath] : []),
+  ];
 
   return (
     <header className="border-border flex h-22 w-full items-center justify-between border-b px-4 py-4">
@@ -50,7 +77,9 @@ export default function HeaderDesktop() {
           </div>
           <div className="mr-6 flex items-center gap-6">
             <div className="flex items-center justify-end gap-3">
-              <Search onClick={open} className="cursor-pointer stroke-[1.4]" />
+              <button onClick={open}>
+                <Search className="cursor-pointer stroke-[1.4]" />
+              </button>
 
               <SearchPanel isOpen={isOpen} onClose={close} />
             </div>
@@ -73,7 +102,7 @@ export default function HeaderDesktop() {
                 isOpen={isUserDropdownOpen}
                 onClose={() => setIsUserDropdownOpen(false)}
                 triggerRef={userTriggerRef}
-                items={USER_MENU_ITEMS}
+                items={userMenuItems}
               />
             </div>
           </div>
