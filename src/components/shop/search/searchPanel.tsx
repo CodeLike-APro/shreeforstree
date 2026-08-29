@@ -6,6 +6,7 @@ import { useSearch } from "./useSearch";
 import { useEffect, useRef, useState } from "react";
 import { categories } from "@/lib/db/schema";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 
 type Category = typeof categories.$inferSelect;
 
@@ -70,7 +71,7 @@ export function SearchPanel({
     };
   }, [isOpen, onClose]);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -190,8 +191,9 @@ export function SearchPanel({
                         <Image
                           src={cat.categoryImageUrl ?? ""}
                           alt={cat.title}
+                          fill={true}
                           loading="lazy"
-                          className="h-full w-full object-cover"
+                          className="object-cover"
                         />
                         <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                         <h5 className="font-display absolute bottom-2 left-3 text-xl font-semibold tracking-wider text-white lowercase first-letter:uppercase">
@@ -206,6 +208,7 @@ export function SearchPanel({
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }

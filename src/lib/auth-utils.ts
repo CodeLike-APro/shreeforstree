@@ -15,9 +15,10 @@ export async function getCurrentUser(request: Request) {
   }
 }
 
-export async function adminCheck(request: Request): Promise<boolean> {
+export async function adminCheck(input: Request | Headers): Promise<boolean> {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const headers = input instanceof Headers ? input : input.headers;
+    const session = await auth.api.getSession({ headers });
     const isAdmin = session?.user?.role === "admin";
     return isAdmin;
   } catch (error) {
