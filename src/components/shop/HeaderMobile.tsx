@@ -11,9 +11,24 @@ const USER_MENU_ITEMS = [
   { label: "Addresses", href: "/account/addresses", icon: <MapPin /> },
 ] as const;
 
-export default function HeaderMobile() {
+type AdminPath = {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+};
+
+export default function HeaderMobile({ adminPath }: { adminPath?: AdminPath }) {
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const userMenuItems = [
+    ...USER_MENU_ITEMS.map((item) => ({
+      label: item.label,
+      href: item.href,
+      icon: item.icon,
+    })),
+    ...(adminPath ? [adminPath] : []),
+  ];
 
   return (
     <>
@@ -36,7 +51,7 @@ export default function HeaderMobile() {
         isOpen={isUserDropdownOpen}
         onClose={() => setIsUserDropdownOpen(false)}
         triggerRef={userTriggerRef}
-        items={USER_MENU_ITEMS}
+        items={userMenuItems}
       />
     </>
   );

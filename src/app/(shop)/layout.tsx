@@ -44,7 +44,7 @@ export default async function ShopLayout({
     <section className="flex min-h-screen flex-1 flex-col">
       <header className="bg-paper/80 sticky top-0 z-50 backdrop-blur-md">
         {deviceType === "mobile" ? (
-          <HeaderMobile />
+          <HeaderMobile adminPath={adminPath} />
         ) : (
           <HeaderDesktop adminPath={adminPath} />
         )}
