@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { User, Package, Heart, MapPin, Search, Handbag } from "lucide-react";
-import { useSearch } from "./search/useSearch";
+import { useSearchPanel } from "./search/useSearch";
 import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
 import dynamic from "next/dynamic";
@@ -39,7 +39,7 @@ export default function HeaderDesktop({
     { label: "CONTACT", href: "/contact" },
   ];
   // Header.tsx
-  const { isOpen, open, close } = useSearch();
+  const { isOpen, open, close } = useSearchPanel();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userTriggerRef = useRef<HTMLDivElement>(null);
 
@@ -77,7 +77,7 @@ export default function HeaderDesktop({
           </div>
           <div className="mr-6 flex items-center gap-6">
             <div className="flex items-center justify-end gap-3">
-              <button onClick={open}>
+              <button onClick={open} aria-label="Search">
                 <Search className="cursor-pointer stroke-[1.4]" />
               </button>
 

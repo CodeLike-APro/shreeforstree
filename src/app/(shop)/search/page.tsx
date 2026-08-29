@@ -1,13 +1,13 @@
 "use client";
 import { SearchPanel } from "@/components/shop/search/searchPanel";
-import { useSearch } from "@/components/shop/search/useSearch";
+import { useRouter } from "next/navigation";
 
 export default function Search() {
-  const { isOpen, open, close } = useSearch();
-  if (!isOpen) open();
+  const router = useRouter();
+
   return (
     <div>
-      <SearchPanel isOpen={isOpen} onClose={close} />
+      <SearchPanel isOpen onClose={() => router.back()} />
     </div>
   );
 }
