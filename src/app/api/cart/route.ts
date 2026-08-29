@@ -25,7 +25,15 @@ export async function GET(request: Request) {
     const currentUser = await getCurrentUser(request);
     const sessionId = await getOrCreateSessionId();
 
-    const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
+    const cartResult = await getOrCreateCart(
+      currentUser?.id ?? null,
+      sessionId,
+    );
+    if (cartResult instanceof Response) {
+      return cartResult;
+    }
+
+    const cart = cartResult;
 
     if (!cart.cartItems || cart.cartItems.length === 0) {
       return ok("No items in cart", {
@@ -154,11 +162,17 @@ export async function POST(request: Request) {
     }
 
     const updatedItem = await db.transaction(async (tx) => {
-      const cart = await getOrCreateCart(
+      const cartResult = await getOrCreateCart(
         currentUser?.id ?? null,
         sessionId,
         tx,
       );
+
+      if (cartResult instanceof Response) {
+        return cartResult;
+      }
+
+      const cart = cartResult;
 
       return upsertCartItem(tx, {
         cartId: cart.id,
@@ -183,7 +197,16 @@ export async function DELETE(request: Request) {
     const currentUser = await getCurrentUser(request);
     const sessionId = await getOrCreateSessionId();
 
-    const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
+    const cartResult = await getOrCreateCart(
+      currentUser?.id ?? null,
+      sessionId,
+    );
+
+    if (cartResult instanceof Response) {
+      return cartResult;
+    }
+
+    const cart = cartResult;
 
     const clearedCart = await db
       .delete(cartItems)

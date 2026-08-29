@@ -21,15 +21,17 @@ export async function getOrCreateCart(
   sessionId: string,
   tx?: Tx,
 ) {
+  const conflictTarget = userId
+    ? { target: carts.userId, where: sql`${carts.userId} is not null` }
+    : { target: carts.sessionId, where: sql`${carts.userId} is null` };
+
   try {
     const executor = tx ?? db;
 
     await executor
       .insert(carts)
       .values({ userId, sessionId })
-      .onConflictDoNothing({
-        target: userId ? carts.userId : carts.sessionId,
-      });
+      .onConflictDoNothing(conflictTarget);
 
     const fullCart = await executor.query.carts.findFirst({
       where: (carts, { eq }) =>
@@ -38,7 +40,7 @@ export async function getOrCreateCart(
     });
 
     if (!fullCart) {
-      throw new Error("Failed to get or create cart");
+      return internalServerError("Failed to get or create cart");
     }
 
     return fullCart;

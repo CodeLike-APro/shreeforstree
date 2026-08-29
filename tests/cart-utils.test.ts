@@ -26,7 +26,13 @@ describe("getOrCreateCart", () => {
       cartItems: [],
     });
 
-    const cart = await getOrCreateCart("u1", "sess-1");
+    const cartResult = await getOrCreateCart("u1", "sess-1");
+
+    if (cartResult instanceof Response) {
+      return cartResult;
+    }
+
+    const cart = cartResult;
 
     expect(cart.id).toBe("cart-1");
     expect(valuesMock).toHaveBeenCalledWith({
@@ -50,7 +56,11 @@ describe("getOrCreateCart", () => {
       cartItems: [],
     });
 
-    const cart = await getOrCreateCart(null, "sess-1");
+    const cartResult = await getOrCreateCart(null, "sess-1");
+    if (cartResult instanceof Response) {
+      return cartResult;
+    }
+    const cart = cartResult;
     expect(cart.id).toBe("existing-cart");
   });
 
