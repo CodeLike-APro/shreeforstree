@@ -20,7 +20,7 @@ export default function ProductDescription({
     <div className="relative">
       <p
         className={[
-          "font-serif-alt text-ink mt-5 whitespace-pre-line md:text-xl",
+          "font-serif-alt text-ink mt-5 whitespace-pre-line italic md:text-xl",
           expanded ? "" : "line-clamp-3",
         ].join(" ")}
       >
@@ -28,14 +28,14 @@ export default function ProductDescription({
       </p>
 
       {!expanded && descriptionLength > descriptionCap && (
-        <div className="bg-paper absolute right-23 bottom-0">...</div>
+        <div className="bg-paper absolute right-24 bottom-0">...</div>
       )}
 
       {descriptionLength > descriptionCap && (
         <button
           className={[
             "font-serif-alt text-rose-gold hover:text-rose-gold-dark text-xl font-semibold italic hover:underline",
-            expanded ? "" : "bg-paper absolute right-0 bottom-0 pl-1",
+            expanded ? "" : "bg-paper absolute right-0 bottom-0 pl-2",
           ].join(" ")}
           onClick={() => setExpanded(!expanded)}
         >

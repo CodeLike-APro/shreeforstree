@@ -10,12 +10,14 @@ type ProductPurchaseProps = {
   sizes: (typeof PRODUCT_SIZES)[number][];
   price: number;
   sizeGuide?: string | null;
+  productId: string;
 };
 
 export default function ProductPurchase({
   sizes,
   price,
   sizeGuide,
+  productId,
 }: ProductPurchaseProps) {
   const [selectedSize, setSelectedSize] = useState<
     (typeof PRODUCT_SIZES)[number] | ""
@@ -63,12 +65,12 @@ export default function ProductPurchase({
     <div className="relative flex flex-col gap-6">
       <div>
         <div className="flex items-center justify-between">
-          <h6 className="font-label text-ink text-sm tracking-widest uppercase">
+          <h6 className="font-label text-ink text-xs tracking-widest uppercase">
             Select size
           </h6>
           <button
             onClick={() => setIsOpen(true)}
-            className="font-label text-rose-gold hover:text-rose-gold-dark focus-ring-none cursor-pointer text-sm tracking-widest uppercase hover:underline"
+            className="font-label text-rose-gold hover:text-rose-gold-dark focus-ring-none cursor-pointer text-xs tracking-widest uppercase hover:underline"
           >
             size guide
           </button>
@@ -107,7 +109,7 @@ export default function ProductPurchase({
           </div>
         )}
 
-        <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
+        <div className="mt-4 flex flex-wrap gap-3 text-sm font-semibold">
           {sizes?.map((s) => (
             <button
               className={[
@@ -124,9 +126,14 @@ export default function ProductPurchase({
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div className="mt-4 flex gap-3">
         <QuantitySelector quantity={quantity} OnQuantityChange={setQuantity} />
-        <AddToBag size={selectedSize} quantity={quantity} price={price} />
+        <AddToBag
+          size={selectedSize}
+          quantity={quantity}
+          price={price}
+          productId={productId}
+        />
       </div>
     </div>
   );
