@@ -4,19 +4,17 @@ import { Minus, Plus } from "lucide-react";
 
 type QuantitySelectorProps = {
   quantity: number | "";
-  OnQuantityChange: (quantity: number | "") => void;
+  onQuantityChange: (quantity: number | "") => void;
+  size?: "sm" | "md";
 };
 
 export default function QuantitySelector({
   quantity,
-  OnQuantityChange,
+  onQuantityChange,
+  size = "md",
 }: QuantitySelectorProps) {
   const updateQuantity = (next: number | "") => {
-    OnQuantityChange(next);
-
-    if (next !== "") {
-      OnQuantityChange(next);
-    }
+    onQuantityChange(next);
   };
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,13 +58,22 @@ export default function QuantitySelector({
     }
   };
 
+  const sizeClass =
+    size === "sm" ? "gap-1 px-1.5 py-1 text-sm" : "gap-2 px-2 py-2.5 text-xl";
+
+  const sizeInputClass = size === "sm" ? "w-7 text-sm" : "w-10 text-xl";
+
+  const sizeButtonClass = size === "sm" ? 14 : 24;
+
   return (
-    <div className="border-ink-25 font-display flex w-fit items-center justify-around gap-2 rounded-sm border px-2 py-2.5 text-xl font-bold">
+    <div
+      className={`border-ink-25 font-display flex w-fit items-center justify-around rounded-sm border font-bold ${sizeClass}`}
+    >
       <button
         className="hover:text-rose-gold cursor-pointer"
         onClick={handleDecrement}
       >
-        <Minus />
+        <Minus size={sizeButtonClass} />
       </button>
       <span>
         <input
@@ -76,7 +83,7 @@ export default function QuantitySelector({
           value={quantity}
           onChange={handleInput}
           onBlur={handleBlur}
-          className="focus-ring-0 [appearance-textfield] text-ink w-10 border-none text-center text-xl font-bold focus:ring-offset-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className={`focus-ring-0 [appearance-textfield] text-ink ${sizeInputClass} border-none text-center font-bold focus:ring-offset-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
         />
       </span>
 
@@ -84,7 +91,7 @@ export default function QuantitySelector({
         className="hover:text-rose-gold cursor-pointer"
         onClick={handleIncrement}
       >
-        <Plus />
+        <Plus size={sizeButtonClass} />
       </button>
     </div>
   );
