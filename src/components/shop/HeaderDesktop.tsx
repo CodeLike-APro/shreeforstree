@@ -5,6 +5,7 @@ import { useSearchPanel } from "./search/useSearch";
 import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
 import { SearchPanel } from "./search/searchPanel";
+import Cart from "./Cart";
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },
@@ -34,6 +35,7 @@ export default function HeaderDesktop({
   const { isOpen, open, close } = useSearchPanel();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const userTriggerRef = useRef<HTMLDivElement>(null);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const userMenuItems = [
     ...USER_MENU_ITEMS.map((item) => ({
@@ -81,9 +83,14 @@ export default function HeaderDesktop({
               </Link>
             </div>
             <div>
-              <Link href="/cart">
+              <button
+                onClick={() => {
+                  setIsCartOpen(true);
+                }}
+                aria-label="Cart"
+              >
                 <Handbag className="cursor-pointer stroke-[1.4]" />
-              </Link>
+              </button>
             </div>
             <div ref={userTriggerRef} className="relative">
               <User
@@ -100,6 +107,7 @@ export default function HeaderDesktop({
           </div>
         </div>
       </nav>
+      <Cart isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );
 }
