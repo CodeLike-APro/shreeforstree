@@ -1,4 +1,4 @@
-import ProductGrid from "@/components/shop/productGrid";
+import ProductGrid from "@/components/shop/ProductGridTest";
 import getProducts from "@/lib/queries/products";
 
 interface PageProps {
