@@ -17,13 +17,13 @@ export function Shimmer({ className = "" }: ShimmerProps) {
 /** Placeholder that matches a single product/category card. */
 export function CardShimmer() {
   return (
-    <div className="w-full sm:w-64 shrink-0 select-none">
+    <div className="w-full shrink-0 select-none sm:w-64">
       {/* Image — same footprint as the card's 3:4 media */}
-      <Shimmer className="w-full sm:w-64 aspect-3/4" />
+      <Shimmer className="aspect-3/4 w-full sm:w-64" />
 
       {/* Title + price */}
       <div className="py-2">
-        <div className="min-h-8 flex flex-col gap-2">
+        <div className="flex min-h-8 flex-col gap-2">
           <Shimmer className="h-4 w-3/4" />
           <Shimmer className="h-3 w-1/3" />
         </div>
@@ -38,6 +38,37 @@ export function CardShimmerGrid({ count = 8 }: { count?: number }) {
     <>
       {Array.from({ length: count }).map((_, i) => (
         <CardShimmer key={i} />
+      ))}
+    </>
+  );
+}
+
+export function CartItemShimmer() {
+  return (
+    <>
+      <div className="flex items-center gap-4 py-3">
+        <Shimmer className="aspect-3/4 w-15" />
+        <div className="flex w-full flex-1 flex-col gap-2">
+          <Shimmer className="h-4 w-3/5" />
+          <div className="flex items-center justify-between gap-2">
+            <Shimmer className="h-3 w-1/4" />
+            <Shimmer className="h-3 w-1/4" />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <Shimmer className="h-3 w-1/4" />
+            <Shimmer className="h-3 w-1/4" />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export function CartItemShimmerGrid({ count = 3 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <CartItemShimmer key={i} />
       ))}
     </>
   );
