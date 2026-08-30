@@ -127,7 +127,11 @@ export default function ProductPurchase({
       </div>
 
       <div className="mt-4 flex gap-3">
-        <QuantitySelector quantity={quantity} OnQuantityChange={setQuantity} />
+        <QuantitySelector
+          quantity={quantity}
+          onQuantityChange={setQuantity}
+          size="md"
+        />
         <AddToBag
           size={selectedSize}
           quantity={quantity}
