@@ -4,7 +4,7 @@ import { User, Package, Heart, MapPin, Search, Handbag } from "lucide-react";
 import { useSearchPanel } from "./search/useSearch";
 import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
-import dynamic from "next/dynamic";
+import { SearchPanel } from "./search/searchPanel";
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },
@@ -12,14 +12,6 @@ const USER_MENU_ITEMS = [
   { label: "Wishlist", href: "/wishlist", icon: <Heart /> },
   { label: "Addresses", href: "/account/addresses", icon: <MapPin /> },
 ] as const;
-
-const SearchPanel = dynamic(
-  () =>
-    import("@/components/shop/search/searchPanel").then((m) => m.SearchPanel),
-  {
-    ssr: false,
-  },
-);
 
 type AdminPath = {
   label: string;

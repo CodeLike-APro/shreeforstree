@@ -3,12 +3,16 @@
 import { Clock, Search, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSearch } from "./useSearch";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { categories } from "@/lib/db/schema";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
 type Category = typeof categories.$inferSelect;
+
+const emptySubscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export function SearchPanel({
   isOpen,
@@ -70,6 +74,14 @@ export function SearchPanel({
       document.removeEventListener("keydown", handler);
     };
   }, [isOpen, onClose]);
+
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+
+  if (!mounted) return null;
 
   return createPortal(
     <AnimatePresence>
