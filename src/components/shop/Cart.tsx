@@ -1,14 +1,21 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Handbag, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Image from "next/image";
 import QuantitySelector from "./product/QuantitySelector";
 import { CartItemShimmerGrid } from "../ui/Shimmer";
 import { RazorpayIcon } from "../ui/icon";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { toast } from "sonner";
+import { createPortal } from "react-dom";
 
 type Cart = {
   cartId: string;
@@ -35,6 +42,10 @@ type Cart = {
   total: string;
 };
 
+const emptySubscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function Cart({
   isOpen,
   onClose,
@@ -44,10 +55,13 @@ export default function Cart({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const seqRef = useRef(0);
+  const qtyTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
+    new Map(),
+  );
   const prefersReducedMotion = useReducedMotion();
-  const [loading, setLoading] = useState(false);
-  const [removeId, setRemoveId] = useState<string | null>(null);
-  const [cartError, setCartError] = useState<null | string>(null);
+  const [loading, setLoading] = useState(true);
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Cart | null>(null);
   const [draftQty, setDraftQty] = useState<Record<string, number | "">>({});
 
@@ -82,42 +96,41 @@ export default function Cart({
     };
   }, [isOpen]);
 
-  // Debounce Quantity Change.
-  // Refresh Cart Items after removing.
   // Fix lint.
 
-  const refreshCart = useCallback(
-    async ({ silent = false }: { silent?: boolean }) => {
-      try {
-        setLoading(!silent);
-        setCartError(null);
-        const res = await fetch("/api/cart");
-        if (!res.ok) {
-          setCartError(`Failed to load cart items. Please try again later.`);
-          return;
-        }
-        const result = await res.json();
-        if (!result.success) {
-          setCartError(`Failed to load cart items. Please try again later.`);
-          return;
-        }
-        const cartItems = result.data as Cart;
-        setCart(cartItems);
-        console.log("Cart Items:-", cartItems);
-      } catch (error) {
-        console.error(`Cart Error:- ${error}`);
-        setCartError(`Failed to load cart items. Please try again later.`);
-      } finally {
-        setLoading(false);
+  const refreshCart = useCallback(async () => {
+    try {
+      const refreshSeq = ++seqRef.current;
+      const res = await fetch("/api/cart");
+      if (refreshSeq !== seqRef.current) {
+        console.log("Discarding stale cart response");
+        return;
       }
-    },
-    [],
-  );
+      if (!res.ok) {
+        toast.error(`Failed to load cart items. Please try again later.`);
+        setLoading(false);
+        return;
+      }
+      const result = await res.json();
+      if (!result.success) {
+        toast.error(`Failed to load cart items. Please try again later.`);
+        setLoading(false);
+        return;
+      }
+      const cartItems = result.data as Cart;
+      setCart(cartItems);
+      setLoading(false);
+    } catch (error) {
+      console.error(`Cart Error:- ${error}`);
+      toast.error(`Failed to load cart items. Please try again later.`);
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    refreshCart({ silent: false });
+    refreshCart();
   }, [isOpen, refreshCart]);
 
   const updateQuantity = async (itemId: string, quantity: number) => {
@@ -132,57 +145,80 @@ export default function Cart({
 
       if (!updateItems.ok) {
         toast.error("Failed to update quantity. Please try again later.");
-        return;
+        return false;
       }
       const result = await updateItems.json();
       if (!result.success) {
         toast.error("Failed to update quantity. Please try again later.");
-        return;
+        return false;
       }
+      return true;
     } catch (error) {
       console.error(`Update Quantity Error:- ${error}`);
+      toast.error("Failed to update quantity. Please try again later.");
+      return false;
     }
   };
 
-  const handleQuantityChange = async (itemId: string, next: number | "") => {
+  const handleQuantityChange = (itemId: string, next: number | "") => {
     setDraftQty((prev) => ({ ...prev, [itemId]: next }));
     if (next === "") {
-      setDraftQty((prev) => ({ ...prev, [itemId]: next }));
       return;
     }
-    if (next < 1) {
-      setDraftQty((prev) => ({ ...prev, [itemId]: 1 }));
-      toast.info(`Minimum quantity allowed is 1.`);
-      return;
+
+    const final = Math.min(Math.max(next, 1), MAX_CART_ITEMS);
+
+    if (final !== next) {
+      setDraftQty((prev) => ({ ...prev, [itemId]: final }));
     }
-    if (next > MAX_CART_ITEMS) {
-      setDraftQty((prev) => ({ ...prev, [itemId]: MAX_CART_ITEMS }));
-      toast.info(`Maximum quantity allowed is ${MAX_CART_ITEMS}.`);
-      return;
-    }
-    await updateQuantity(itemId, next);
-    refreshCart({ silent: true });
+
+    const timers = qtyTimers.current;
+    clearTimeout(timers.get(itemId));
+
+    const timer = setTimeout(async () => {
+      timers.delete(itemId);
+      const updated = await updateQuantity(itemId, final);
+      if (!updated) {
+        setDraftQty((prev) => {
+          const updatedDraft = { ...prev };
+          delete updatedDraft[itemId];
+          return updatedDraft;
+        });
+      }
+      await refreshCart();
+    }, 400);
+
+    timers.set(itemId, timer);
   };
+
+  useEffect(() => {
+    const timers = qtyTimers.current;
+
+    const clear = () => {
+      for (const timer of timers.values()) {
+        clearTimeout(timer);
+      }
+    };
+    return clear;
+  }, []);
 
   const handleRemoveItem = async (itemId: string) => {
     try {
-      setRemoveId(itemId);
+      setRemovingIds((prev) => new Set(prev).add(itemId));
       const res = await fetch(`/api/cart/${itemId}`, {
         method: "DELETE",
       });
       if (!res.ok) {
-        setCartError(
-          `Failed to remove item from cart. Please try again later.`,
-        );
+        toast.error(`Failed to remove item from cart. Please try again later.`);
         return;
       }
       const result = await res.json();
       if (!result.success) {
-        setCartError(
-          `Failed to remove item from cart. Please try again later.`,
-        );
+        toast.error(`Failed to remove item from cart. Please try again later.`);
         return;
       }
+
+      await refreshCart();
 
       setCart((prevCart) => {
         if (!prevCart) return prevCart;
@@ -193,13 +229,25 @@ export default function Cart({
       });
     } catch (error) {
       console.error(`Remove Item Error:- ${error}`);
-      setCartError(`Failed to remove item from cart. Please try again later.`);
+      toast.error(`Failed to remove item from cart. Please try again later.`);
     } finally {
-      setRemoveId(null);
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
   };
 
-  return (
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -220,7 +268,7 @@ export default function Cart({
             transition={{ duration: 0.2 }}
             ref={panelRef}
             className={
-              "bg-paper fixed inset-y-0 right-0 z-50 min-h-screen w-[40%] max-w-105 min-w-[320px]"
+              "bg-paper fixed inset-y-0 right-0 z-70 min-h-screen w-[40%] max-w-105 min-w-[320px]"
             }
           >
             <div className="border-ink/10 flex items-center justify-between border-b px-6 py-4">
@@ -233,7 +281,7 @@ export default function Cart({
                 <X size={17} />
               </button>
             </div>
-            <div className="px-5">
+            <div className="h-full px-5">
               {loading ? (
                 <CartItemShimmerGrid count={3} />
               ) : cart ? (
@@ -263,16 +311,18 @@ export default function Cart({
                               </p>
                             </div>
                             <button
-                              disabled={removeId !== null}
+                              disabled={removingIds.has(item.id)}
                               onClick={() => handleRemoveItem(item.id)}
                               className={[
                                 "text-ink-40 text-label text-xs tracking-tight",
-                                removeId !== null
+                                removingIds.has(item.id)
                                   ? "cursor-not-allowed"
                                   : "hover:text-ink hover:underline",
                               ].join(" ")}
                             >
-                              {removeId !== null ? "Removing..." : "Remove"}
+                              {removingIds.has(item.id)
+                                ? "Removing..."
+                                : "Remove"}
                             </button>
                           </div>
                           <div className="flex items-center justify-between">
@@ -356,16 +406,25 @@ export default function Cart({
                     </div>
                   </>
                 ) : (
-                  <p>No items in the cart</p>
+                  <div className="flex h-full flex-col items-center justify-center gap-2 py-10">
+                    <div className="bg-blush flex items-center justify-center rounded-full p-4">
+                      {" "}
+                      <Handbag size={30} strokeWidth={1.7} />
+                    </div>
+                    <h4 className="font-display text-xl">Your bag is empty</h4>
+                    <p className="font-label text-ink-40 text-md text-center">
+                      Nothing chosen yet. The pieces you all will wait for you
+                      here.
+                    </p>
+                    <button className="bg-paper text-rose-gold font-label border-rose-gold hover:bg-rose-gold-dark hover:text-paper hover:border-rose-gold-dark rounded-md border px-4 py-2 text-[0.7rem] font-semibold tracking-[0.2rem] uppercase transition-colors duration-150">
+                      Browse the shop
+                    </button>
+                  </div>
                 )
-              ) : cartError ? (
-                <>
-                  <p className="text-ink">
-                    Error occurred while fetching cart data
-                  </p>
-                </>
               ) : (
-                <p className="text-ink">No cart data available</p>
+                <div className="text-in font-label flex h-full items-center justify-center tracking-widest">
+                  No cart data available
+                </div>
               )}
             </div>
           </motion.div>
@@ -376,10 +435,11 @@ export default function Cart({
             transition={{ duration: 0.2 }}
             aria-hidden="true"
             onClick={onClose}
-            className="bg-ink-40 absolute inset-0 z-40 min-h-screen w-full backdrop-blur-sm"
+            className="bg-ink-40 fixed inset-0 z-60 backdrop-blur-lg"
           ></motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   );
 }
