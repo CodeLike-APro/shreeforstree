@@ -55,7 +55,6 @@ export default function Cart({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
   const seqRef = useRef(0);
   const qtyTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map(),
@@ -73,7 +72,6 @@ export default function Cart({
     const handlePointer = (e: MouseEvent) => {
       const target = e.target as Node;
       if (panelRef.current?.contains(target)) return;
-      if (triggerRef.current?.contains(target)) return;
       onClose();
     };
     const handleKey = (e: KeyboardEvent) => {
@@ -276,7 +274,6 @@ export default function Cart({
             <div className="border-ink/10 flex items-center justify-between border-b px-6 py-4">
               <h3 className="text-ink text-xl">Your bag</h3>
               <button
-                ref={triggerRef}
                 onClick={onClose}
                 className="bg-paper text-ink hover:bg-ink hover:text-paper border-ink-25 z-40 flex cursor-pointer rounded-full border p-2 backdrop-blur-sm transition-colors duration-150"
               >
