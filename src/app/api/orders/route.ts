@@ -3,7 +3,6 @@ import {
   created,
   forbidden,
   internalServerError,
-  notFound,
   paginated,
   unauthorized,
 } from "@/lib/api-response";
@@ -17,6 +16,7 @@ import {
   orders,
   orderStatusEnum,
 } from "@/lib/db/schema";
+import type { addresses } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
@@ -108,17 +108,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { addressId, email } = result.data;
+    const {
+      addressId,
+      email,
+      shippingFullName,
+      shippingPhone,
+      shippingEmail,
+      shippingAddressLine1,
+      shippingAddressLine2,
+      shippingCity,
+      shippingState,
+      shippingPincode,
+      shippingCountry,
+    } = result.data;
 
-    const address = await db.query.addresses.findFirst({
-      where: (addresses, { eq }) => eq(addresses.id, addressId),
-    });
+    let address: typeof addresses.$inferSelect | undefined = undefined;
 
-    if (!address) {
-      return notFound("Address not found");
+    if (addressId) {
+      address = await db.query.addresses.findFirst({
+        where: (addresses, { eq }) => eq(addresses.id, addressId),
+      });
     }
 
-    if (address.userId !== currentSession?.user?.id) {
+    if (address?.userId !== currentSession?.user?.id) {
       return forbidden(
         "Unauthorized access. You can only use your own address.",
       );
@@ -222,15 +234,15 @@ export async function POST(request: NextRequest) {
           orderStatus: "not_placed",
           paymentStatus: "pending",
           addressId: address.id,
-          shippingFullName: address.fullName,
-          shippingPhone: address.phone,
-          shippingEmail: email,
-          shippingAddressLine1: address.addressLine1,
-          shippingAddressLine2: address.addressLine2,
-          shippingCity: address.city,
-          shippingState: address.state,
-          shippingPincode: address.pincode,
-          shippingCountry: address.country,
+          shippingFullName: address.fullName ?? shippingFullName,
+          shippingPhone: address.phone ?? shippingPhone,
+          shippingEmail: email ?? shippingEmail,
+          shippingAddressLine1: address.addressLine1 ?? shippingAddressLine1,
+          shippingAddressLine2: address.addressLine2 ?? shippingAddressLine2,
+          shippingCity: address.city ?? shippingCity,
+          shippingState: address.state ?? shippingState,
+          shippingPincode: address.pincode ?? shippingPincode,
+          shippingCountry: address.country ?? shippingCountry,
         })
         .returning();
 
