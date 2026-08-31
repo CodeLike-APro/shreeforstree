@@ -1,0 +1,297 @@
+"use client";
+import { Loader } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+
+const inputBaseClasses =
+  "peer focus:ring-rose-gold border-ink/35 font-label h-9 w-full rounded-sm border-[1.5] px-2 py-3 placeholder:text-sm focus:border-transparent focus:ring-2 focus:outline-none";
+
+const hideSpinButtons =
+  "appearance-text-field [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
+
+const labelBaseClasses =
+  "peer-focus:text-rose-gold-dark bg-paper absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs pointer-events-none";
+
+const focusableSelector: string =
+  "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+export default function AddressModal({
+  isOpen,
+  onClose,
+  title = "new",
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: "new" | "edit";
+}) {
+  const AddressTitle = title === "new" ? "Add new address" : "Edit Address";
+
+  const [label, setLabel] = useState<string | null>(null);
+  const [fullName, setFullName] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [addressLine1, setAddressLine1] = useState<string | null>(null);
+  const [addressLine2, setAddressLine2] = useState<string | null>(null);
+  const [city, setCity] = useState<string | null>(null);
+  const [state, setState] = useState<string | null>(null);
+  const [pincode, setPincode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const panelRef = useRef<HTMLFormElement>(null);
+
+  const addressData = {
+    label: label,
+    fullName: fullName,
+    phone: phone,
+    addressLine1: addressLine1,
+    addressLine2: addressLine2,
+    city: city,
+    state: state,
+    pincode: pincode,
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("api/addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(addressData),
+      });
+      if (!res.ok) {
+        toast.error("Failed to save address");
+        setLoading(false);
+        return;
+      }
+      const result = await res.json();
+      if (!result.success) {
+        toast.error("Failed to save address");
+        setLoading(false);
+        return;
+      }
+      toast.success("Address saved successfully");
+      setLoading(false);
+      onClose();
+      return;
+    } catch (error) {
+      console.error("Error saving address:", error);
+      toast.error("Failed to save address. Please try again.");
+      setLoading(false);
+      return;
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointer = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      onClose();
+    };
+
+    const getFocusable = Array.from(
+      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+    ).filter((el) => el.getClientRects().length > 0) as HTMLElement[];
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      if (getFocusable.length === 0) {
+        e.preventDefault();
+      }
+
+      const first = getFocusable[0];
+      const last = getFocusable[getFocusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [onClose, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  return (
+    <div>
+      {isOpen && (
+        <div className="bg-ink-40 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
+          {" "}
+          <form
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="address-form-title"
+            ref={panelRef}
+            className="bg-paper flex w-[35%] max-w-150 min-w-90 flex-col gap-4 rounded-2xl px-6 py-8"
+          >
+            <div>
+              <h1 id="address-form-title" className="text-xl">
+                {AddressTitle}
+              </h1>
+              <p className="text-ink-55 font-label text-md">
+                We deliver within India only.
+              </p>
+            </div>
+            <div className="relative">
+              <input
+                id="label"
+                name="label"
+                type="text"
+                placeholder=" "
+                className={inputBaseClasses}
+                onChange={(e) => setLabel(e.target.value)}
+              ></input>
+              <label htmlFor="label" className={labelBaseClasses}>
+                Label
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="fullName"
+                name="fullName"
+                type="text"
+                placeholder=" "
+                className={inputBaseClasses}
+                onChange={(e) => setFullName(e.target.value)}
+              ></input>
+              <label htmlFor="fullName" className={labelBaseClasses}>
+                Full Name
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="phone"
+                name="phone"
+                type="number"
+                placeholder=" "
+                className={inputBaseClasses + " " + hideSpinButtons}
+                onChange={(e) => setPhone(e.target.value)}
+              ></input>
+              <label htmlFor="phone" className={labelBaseClasses}>
+                Phone
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="addressLine1"
+                name="addressLine1"
+                type="text"
+                placeholder=" "
+                className={inputBaseClasses}
+                onChange={(e) => setAddressLine1(e.target.value)}
+              ></input>
+              <label htmlFor="addressLine1" className={labelBaseClasses}>
+                Address Line 1
+              </label>
+            </div>
+            <div className="relative">
+              <input
+                id="addressLine2"
+                name="addressLine2"
+                type="text"
+                placeholder=" "
+                className={inputBaseClasses}
+                onChange={(e) => setAddressLine2(e.target.value)}
+              ></input>
+              <label htmlFor="addressLine2" className={labelBaseClasses}>
+                Address Line 2 (optional)
+              </label>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {" "}
+              <div className="relative">
+                <input
+                  id="city"
+                  name="city"
+                  type="text"
+                  placeholder=" "
+                  className={inputBaseClasses}
+                  onChange={(e) => setCity(e.target.value)}
+                ></input>
+                <label htmlFor="city" className={labelBaseClasses}>
+                  City
+                </label>
+              </div>
+              <div className="relative">
+                <input
+                  id="state"
+                  name="state"
+                  type="text"
+                  placeholder=" "
+                  className={inputBaseClasses}
+                  onChange={(e) => setState(e.target.value)}
+                ></input>
+                <label htmlFor="state" className={labelBaseClasses}>
+                  State
+                </label>
+              </div>
+            </div>
+            <div className="relative">
+              <input
+                id="pincode"
+                name="pincode"
+                type="number"
+                placeholder=" "
+                className={inputBaseClasses + " " + hideSpinButtons}
+                onChange={(e) => setPincode(e.target.value)}
+              ></input>
+              <label htmlFor="pincode" className={labelBaseClasses}>
+                Pincode
+              </label>
+            </div>
+            <div className="flex items-center justify-end gap-2 py-2">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => onClose()}
+                className={[
+                  "font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-6 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                  loading ? "cursor-not-allowed opacity-50" : "",
+                ].join(" ")}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => handleSave()}
+                className={[
+                  "font-label border-rose-gold-dark text-rose-gold-dark focus:ring-rose-gold hover:bg-rose-gold-dark hover:text-paper flex items-center justify-center gap-2 rounded-md border px-4 py-1.5 transition-all duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                  loading ? "cursor-not-allowed opacity-50" : "",
+                ].join(" ")}
+              >
+                Save address
+                {loading && <Loader className="animate-spin" size={15} />}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
