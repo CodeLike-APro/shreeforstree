@@ -47,6 +47,9 @@ const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
 const getServerSnapshot = () => false;
 
+const focusableSelector: string =
+  "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
 export default function Cart({
   isOpen,
   onClose,
@@ -74,9 +77,36 @@ export default function Cart({
       if (panelRef.current?.contains(target)) return;
       onClose();
     };
+
+    const getFocusable = Array.from(
+      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+    ).filter((el) => el.getClientRects().length > 0) as HTMLElement[];
+
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+      if (getFocusable.length === 0) {
+        e.preventDefault();
+      }
+
+      const first = getFocusable[0];
+      const last = getFocusable[getFocusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+        return;
       }
     };
 
