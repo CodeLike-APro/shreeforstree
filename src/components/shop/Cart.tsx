@@ -16,6 +16,7 @@ import { RazorpayIcon } from "../ui/icon";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 
 type Cart = {
   cartId: string;
@@ -64,6 +65,7 @@ export default function Cart({
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Cart | null>(null);
   const [draftQty, setDraftQty] = useState<Record<string, number | "">>({});
+  const router = useRouter();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -390,7 +392,13 @@ export default function Cart({
                         <h6>Total</h6>
                         <p>{cart.total}</p>
                       </div>
-                      <button className="bg-ink text-paper font-label rounded-md py-3 text-xs font-semibold tracking-widest uppercase">
+                      <button
+                        onClick={() => {
+                          router.push("/checkout");
+                          onClose();
+                        }}
+                        className="bg-ink text-paper font-label rounded-md py-3 text-xs font-semibold tracking-widest uppercase"
+                      >
                         Checkout
                       </button>
                       <div className="flex items-center justify-center gap-1 pt-2">
