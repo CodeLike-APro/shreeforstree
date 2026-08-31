@@ -4,6 +4,7 @@ import { EllipsisVertical, X } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
+import Image from "next/image";
 
 export type CardVariant =
   "customer-product" | "admin-product" | "admin-category";
@@ -227,8 +228,9 @@ export default function Card({
         >
           <div className="relative aspect-3/4 w-full sm:w-64">
             {displayImages.map((src, index) => (
-              <img
+              <Image
                 key={index}
+                fill={true}
                 src={src}
                 alt={data.title}
                 loading={index === 0 ? "eager" : "lazy"}
@@ -448,9 +450,10 @@ export default function Card({
               </div>
 
               <div className="mb-6 flex gap-4">
-                <img
+                <Image
                   src={displayImages[0]}
                   alt={data.title}
+                  fill={true}
                   className="h-20 w-20 rounded-sm object-cover shadow-sm"
                 />
                 <div className="flex flex-col justify-center">
