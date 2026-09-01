@@ -89,7 +89,7 @@ export default function HeaderDesktop({
                 }}
                 aria-label="Cart"
               >
-                <Handbag className="cursor-pointer stroke-[1.4]" />
+                <Handbag className="mt-[6] cursor-pointer stroke-[1.4]" />
               </button>
             </div>
             <div ref={userTriggerRef} className="relative">
