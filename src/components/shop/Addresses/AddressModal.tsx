@@ -19,10 +19,12 @@ export default function AddressModal({
   isOpen,
   onClose,
   title = "new",
+  id,
 }: {
   isOpen: boolean;
   onClose: () => void;
   title?: "new" | "edit";
+  id?: string;
 }) {
   const AddressTitle = title === "new" ? "Add new address" : "Edit Address";
 
@@ -35,24 +37,27 @@ export default function AddressModal({
   const [state, setState] = useState<string | null>(null);
   const [pincode, setPincode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
   const panelRef = useRef<HTMLFormElement>(null);
 
   const addressData = {
-    label: label,
-    fullName: fullName,
-    phone: phone,
-    addressLine1: addressLine1,
-    addressLine2: addressLine2,
-    city: city,
-    state: state,
-    pincode: pincode,
+    label: label ? label.trim() : undefined,
+    fullName: fullName ? fullName.trim() : undefined,
+    phone: phone ? phone.trim() : undefined,
+    addressLine1: addressLine1 ? addressLine1.trim() : undefined,
+    addressLine2: addressLine2 ? addressLine2.trim() : undefined,
+    city: city ? city.trim() : undefined,
+    state: state ? state.trim() : undefined,
+    pincode: pincode ? pincode.trim() : undefined,
   };
+
+  const url = title === "new" ? "/api/addresses" : `/api/addresses/${id}`;
 
   const handleSave = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/addresses", {
-        method: "POST",
+      const res = await fetch(url, {
+        method: title === "new" ? "POST" : "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -80,6 +85,46 @@ export default function AddressModal({
       return;
     }
   };
+
+  useEffect(() => {
+    if (title === "edit" && id && isOpen) {
+      const fetchAddress = async () => {
+        setFetchLoading(true);
+        try {
+          const res = await fetch(`/api/addresses/${id}`);
+          if (!res.ok) {
+            toast.error("Failed to fetch address");
+            console.error("Failed to fetch address", res);
+            setFetchLoading(false);
+            return;
+          }
+          const result = await res.json();
+          if (!result.success) {
+            toast.error("Failed to fetch address");
+            console.error("Failed to fetch address", result);
+            setFetchLoading(false);
+            return;
+          }
+          setFetchLoading(false);
+          const data = result.data;
+          setLabel(data.label);
+          setFullName(data.fullName);
+          setPhone(data.phone);
+          setAddressLine1(data.addressLine1);
+          setAddressLine2(data.addressLine2);
+          setCity(data.city);
+          setState(data.state);
+          setPincode(data.pincode);
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          toast.error("Failed to fetch address");
+          setFetchLoading(false);
+          return;
+        }
+      };
+      fetchAddress();
+    }
+  }, [id, title, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -140,155 +185,170 @@ export default function AddressModal({
   return (
     <div>
       {isOpen && (
-        <div className="bg-ink-40 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
-          {" "}
+        <div className="bg-ink-25 fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <form
             role="dialog"
             aria-modal="true"
             aria-labelledby="address-form-title"
             ref={panelRef}
-            className="bg-paper flex w-[45%] max-w-150 min-w-90 flex-col gap-4 rounded-2xl px-6 py-8"
+            className="bg-paper flex w-[45%] max-w-150 min-w-90 flex-col gap-4 rounded-2xl px-6 py-8 transition-all duration-150"
           >
-            <div>
-              <h1 id="address-form-title" className="text-xl">
-                {AddressTitle}
-              </h1>
-              <p className="text-ink-55 font-label text-md">
-                We deliver within India only.
-              </p>
-            </div>
-            <div className="relative">
-              <input
-                id="label"
-                name="label"
-                type="text"
-                placeholder=" "
-                className={inputBaseClasses}
-                onChange={(e) => setLabel(e.target.value)}
-              ></input>
-              <label htmlFor="label" className={labelBaseClasses}>
-                Label
-              </label>
-            </div>
-            <div className="relative">
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                placeholder=" "
-                className={inputBaseClasses}
-                onChange={(e) => setFullName(e.target.value)}
-              ></input>
-              <label htmlFor="fullName" className={labelBaseClasses}>
-                Full Name
-              </label>
-            </div>
-            <div className="relative">
-              <input
-                id="phone"
-                name="phone"
-                type="number"
-                placeholder=" "
-                className={inputBaseClasses + " " + hideSpinButtons}
-                onChange={(e) => setPhone(e.target.value)}
-              ></input>
-              <label htmlFor="phone" className={labelBaseClasses}>
-                Phone
-              </label>
-            </div>
-            <div className="relative">
-              <input
-                id="addressLine1"
-                name="addressLine1"
-                type="text"
-                placeholder=" "
-                className={inputBaseClasses}
-                onChange={(e) => setAddressLine1(e.target.value)}
-              ></input>
-              <label htmlFor="addressLine1" className={labelBaseClasses}>
-                Address Line 1
-              </label>
-            </div>
-            <div className="relative">
-              <input
-                id="addressLine2"
-                name="addressLine2"
-                type="text"
-                placeholder=" "
-                className={inputBaseClasses}
-                onChange={(e) => setAddressLine2(e.target.value)}
-              ></input>
-              <label htmlFor="addressLine2" className={labelBaseClasses}>
-                Address Line 2 (optional)
-              </label>
-            </div>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              {" "}
-              <div className="relative">
-                <input
-                  id="city"
-                  name="city"
-                  type="text"
-                  placeholder=" "
-                  className={inputBaseClasses}
-                  onChange={(e) => setCity(e.target.value)}
-                ></input>
-                <label htmlFor="city" className={labelBaseClasses}>
-                  City
-                </label>
+            {fetchLoading ? (
+              <div className="flex animate-spin items-center justify-center">
+                <Loader size={24} />
               </div>
-              <div className="relative">
-                <input
-                  id="state"
-                  name="state"
-                  type="text"
-                  placeholder=" "
-                  className={inputBaseClasses}
-                  onChange={(e) => setState(e.target.value)}
-                ></input>
-                <label htmlFor="state" className={labelBaseClasses}>
-                  State
-                </label>
-              </div>
-            </div>
-            <div className="relative">
-              <input
-                id="pincode"
-                name="pincode"
-                type="number"
-                placeholder=" "
-                className={inputBaseClasses + " " + hideSpinButtons}
-                onChange={(e) => setPincode(e.target.value)}
-              ></input>
-              <label htmlFor="pincode" className={labelBaseClasses}>
-                Pincode
-              </label>
-            </div>
-            <div className="flex items-center justify-end gap-2 py-2">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => onClose()}
-                className={[
-                  "font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-6 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
-                  loading ? "cursor-not-allowed opacity-50" : "",
-                ].join(" ")}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleSave()}
-                className={[
-                  "font-label border-rose-gold-dark text-rose-gold-dark focus:ring-rose-gold hover:bg-rose-gold-dark hover:text-paper flex items-center justify-center gap-2 rounded-md border px-4 py-1.5 transition-all duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
-                  loading ? "cursor-not-allowed opacity-50" : "",
-                ].join(" ")}
-              >
-                Save address
-                {loading && <Loader className="animate-spin" size={15} />}
-              </button>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <h1 id="address-form-title" className="text-xl">
+                    {AddressTitle}
+                  </h1>
+                  <p className="text-ink-55 font-label text-md">
+                    We deliver within India only.
+                  </p>
+                </div>
+                <div className="relative">
+                  <input
+                    id="label"
+                    name="label"
+                    type="text"
+                    value={label || ""}
+                    placeholder=" "
+                    className={inputBaseClasses}
+                    onChange={(e) => setLabel(e.target.value)}
+                  ></input>
+                  <label htmlFor="label" className={labelBaseClasses}>
+                    Label
+                  </label>
+                </div>
+                <div className="relative">
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    value={fullName || ""}
+                    placeholder=" "
+                    className={inputBaseClasses}
+                    onChange={(e) => setFullName(e.target.value)}
+                  ></input>
+                  <label htmlFor="fullName" className={labelBaseClasses}>
+                    Full Name
+                  </label>
+                </div>
+                <div className="relative">
+                  <input
+                    id="phone"
+                    name="phone"
+                    type="number"
+                    value={phone || ""}
+                    placeholder=" "
+                    className={inputBaseClasses + " " + hideSpinButtons}
+                    onChange={(e) => setPhone(e.target.value)}
+                  ></input>
+                  <label htmlFor="phone" className={labelBaseClasses}>
+                    Phone
+                  </label>
+                </div>
+                <div className="relative">
+                  <input
+                    id="addressLine1"
+                    name="addressLine1"
+                    type="text"
+                    value={addressLine1 || ""}
+                    placeholder=" "
+                    className={inputBaseClasses}
+                    onChange={(e) => setAddressLine1(e.target.value)}
+                  ></input>
+                  <label htmlFor="addressLine1" className={labelBaseClasses}>
+                    Address Line 1
+                  </label>
+                </div>
+                <div className="relative">
+                  <input
+                    id="addressLine2"
+                    name="addressLine2"
+                    type="text"
+                    value={addressLine2 || ""}
+                    placeholder=" "
+                    className={inputBaseClasses}
+                    onChange={(e) => setAddressLine2(e.target.value)}
+                  ></input>
+                  <label htmlFor="addressLine2" className={labelBaseClasses}>
+                    Address Line 2 (optional)
+                  </label>
+                </div>
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {" "}
+                  <div className="relative">
+                    <input
+                      id="city"
+                      name="city"
+                      type="text"
+                      value={city || ""}
+                      placeholder=" "
+                      className={inputBaseClasses}
+                      onChange={(e) => setCity(e.target.value)}
+                    ></input>
+                    <label htmlFor="city" className={labelBaseClasses}>
+                      City
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="state"
+                      name="state"
+                      type="text"
+                      value={state || ""}
+                      placeholder=" "
+                      className={inputBaseClasses}
+                      onChange={(e) => setState(e.target.value)}
+                    ></input>
+                    <label htmlFor="state" className={labelBaseClasses}>
+                      State
+                    </label>
+                  </div>
+                </div>
+                <div className="relative">
+                  <input
+                    id="pincode"
+                    name="pincode"
+                    type="number"
+                    value={pincode || ""}
+                    placeholder=" "
+                    className={inputBaseClasses + " " + hideSpinButtons}
+                    onChange={(e) => setPincode(e.target.value)}
+                  ></input>
+                  <label htmlFor="pincode" className={labelBaseClasses}>
+                    Pincode
+                  </label>
+                </div>
+                <div className="flex items-center justify-end gap-2 py-2">
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => onClose()}
+                    className={[
+                      "font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-6 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                      loading ? "cursor-not-allowed opacity-50" : "",
+                    ].join(" ")}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleSave()}
+                    className={[
+                      "font-label border-rose-gold-dark text-rose-gold-dark focus:ring-rose-gold hover:bg-rose-gold-dark hover:text-paper flex items-center justify-center gap-2 rounded-md border px-4 py-1.5 transition-all duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                      loading ? "cursor-not-allowed opacity-50" : "",
+                    ].join(" ")}
+                  >
+                    Save address
+                    {loading && <Loader className="animate-spin" size={15} />}
+                  </button>
+                </div>
+              </>
+            )}
           </form>
         </div>
       )}
