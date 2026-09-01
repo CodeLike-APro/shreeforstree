@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const inputBaseClasses =
-  "peer focus:ring-rose-gold border-ink/35 font-label h-9 w-full rounded-sm border-[1.5] px-2 py-3 placeholder:text-sm focus:border-transparent focus:ring-2 focus:outline-none";
+  "peer focus:ring-rose-gold border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm focus:border-transparent focus:ring-2 focus:outline-none";
 
 const hideSpinButtons =
   "appearance-text-field [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
@@ -51,7 +51,7 @@ export default function AddressModal({
   const handleSave = async () => {
     try {
       setLoading(true);
-      const res = await fetch("api/addresses", {
+      const res = await fetch("/api/addresses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +147,7 @@ export default function AddressModal({
             aria-modal="true"
             aria-labelledby="address-form-title"
             ref={panelRef}
-            className="bg-paper flex w-[35%] max-w-150 min-w-90 flex-col gap-4 rounded-2xl px-6 py-8"
+            className="bg-paper flex w-[45%] max-w-150 min-w-90 flex-col gap-4 rounded-2xl px-6 py-8"
           >
             <div>
               <h1 id="address-form-title" className="text-xl">
