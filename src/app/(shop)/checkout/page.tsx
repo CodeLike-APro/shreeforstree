@@ -1,6 +1,7 @@
 "use client";
 
-import AddressModal from "@/components/shop/Address";
+import AddressModal from "@/components/shop/Addresses/AddressModal";
+import AllAddresses from "@/components/shop/Addresses/AllAddresses";
 import { useState } from "react";
 
 export default function Checkout() {
@@ -15,9 +16,14 @@ export default function Checkout() {
         </p>
       </div>
 
-      <div>
-        <h4>Delivery Address</h4>
-        <button onClick={() => setIsOpen(true)}>Change address</button>
+      <div className="flex w-full items-center justify-between">
+        <h4 className="font-label font-bold tracking-wide">Delivery Address</h4>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-4 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
+        >
+          Change address
+        </button>
       </div>
       <div className="relative">
         <AddressModal
@@ -25,6 +31,9 @@ export default function Checkout() {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
         />
+      </div>
+      <div className="w-full">
+        <AllAddresses />
       </div>
     </div>
   );
