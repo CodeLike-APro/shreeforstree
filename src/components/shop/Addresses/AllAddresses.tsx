@@ -22,10 +22,18 @@ type Address = {
   isDefault: boolean;
 };
 
+type IsModalOpen = {
+  modalMode: "new" | "edit" | null;
+  editingId?: string | null;
+};
+
 export default function AllAddresses() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isDropdownOpenId, setIsDropdownOpenId] = useState<string | null>(null);
-  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState<IsModalOpen>({
+    modalMode: null,
+    editingId: null,
+  });
   const [deleteLoadingIds, setDeleteLoadingIds] = useState<Set<string>>(
     new Set(),
   );
@@ -147,15 +155,12 @@ export default function AllAddresses() {
           <p className="font-label">You do not have any addresses saved.</p>
           <button
             className="font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark rounded-md border px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-150 focus:ring-2 focus:outline-none"
-            onClick={() => setIsAddressModalOpen(true)}
+            onClick={() =>
+              setIsAddressModalOpen({ modalMode: "new", editingId: null })
+            }
           >
             Add Address
           </button>
-          <AddressModal
-            isOpen={isAddressModalOpen}
-            title="new"
-            onClose={() => setIsAddressModalOpen(false)}
-          />
         </div>
       ) : (
         <div className="flex w-full flex-col gap-4 rounded-xl">
@@ -206,7 +211,12 @@ export default function AllAddresses() {
                   className="border-ink-25 bg-paper absolute top-7 right-7 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
                 >
                   <button
-                    onClick={() => setIsAddressModalOpen(true)}
+                    onClick={() =>
+                      setIsAddressModalOpen({
+                        modalMode: "edit",
+                        editingId: address.id,
+                      })
+                    }
                     className="hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none"
                   >
                     <div className="flex w-[40%] items-center justify-start">
@@ -241,16 +251,18 @@ export default function AllAddresses() {
                   </button>
                 </div>
               )}
-              <AddressModal
-                isOpen={isAddressModalOpen}
-                title="edit"
-                id={address.id}
-                onClose={() => setIsAddressModalOpen(false)}
-              />
             </div>
           ))}
         </div>
       )}
+      <AddressModal
+        isOpen={isAddressModalOpen.modalMode !== null}
+        title={isAddressModalOpen.modalMode ?? undefined}
+        id={isAddressModalOpen.editingId ?? undefined}
+        onClose={() =>
+          setIsAddressModalOpen({ modalMode: null, editingId: null })
+        }
+      />
     </div>
   );
 }
