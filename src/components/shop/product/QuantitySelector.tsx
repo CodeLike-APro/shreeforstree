@@ -70,7 +70,7 @@ export default function QuantitySelector({
       className={`border-ink-25 font-display flex w-fit items-center justify-around rounded-sm border font-bold ${sizeClass}`}
     >
       <button
-        className="hover:text-rose-gold cursor-pointer"
+        className="hover:text-rose-gold btn-focus cursor-pointer"
         onClick={handleDecrement}
       >
         <Minus size={sizeButtonClass} />
@@ -83,12 +83,12 @@ export default function QuantitySelector({
           value={quantity}
           onChange={handleInput}
           onBlur={handleBlur}
-          className={`focus-ring-0 [appearance-textfield] text-ink ${sizeInputClass} border-none text-center font-bold focus:ring-offset-0 focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
+          className={`[appearance-textfield] text-ink ${sizeInputClass} btn-focus border-none text-center font-bold [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none`}
         />
       </span>
 
       <button
-        className="hover:text-rose-gold cursor-pointer"
+        className="hover:text-rose-gold btn-focus cursor-pointer"
         onClick={handleIncrement}
       >
         <Plus size={sizeButtonClass} />

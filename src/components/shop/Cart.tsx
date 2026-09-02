@@ -305,7 +305,7 @@ export default function Cart({
               <h3 className="text-ink text-xl">Your bag</h3>
               <button
                 onClick={onClose}
-                className="bg-paper text-ink hover:bg-ink hover:text-paper border-ink-25 z-40 flex cursor-pointer rounded-full border p-2 backdrop-blur-sm transition-colors duration-150"
+                className="bg-paper text-ink hover:bg-ink hover:text-paper border-ink-25 btn-focus z-40 flex cursor-pointer rounded-full border p-2 backdrop-blur-sm transition-colors duration-150"
               >
                 <X size={17} />
               </button>
@@ -343,7 +343,7 @@ export default function Cart({
                               disabled={removingIds.has(item.id)}
                               onClick={() => handleRemoveItem(item.id)}
                               className={[
-                                "text-ink-40 text-label text-xs tracking-tight",
+                                "text-ink-40 text-label btn-focus rounded-md px-2 py-0.5 text-xs tracking-tight",
                                 removingIds.has(item.id)
                                   ? "cursor-not-allowed"
                                   : "hover:text-ink hover:underline",
@@ -424,7 +424,7 @@ export default function Cart({
                           router.push("/checkout");
                           onClose();
                         }}
-                        className="bg-ink text-paper font-label rounded-md py-3 text-xs font-semibold tracking-widest uppercase"
+                        className="bg-ink text-paper font-label btn-focus rounded-md py-3 text-xs font-semibold tracking-widest uppercase"
                       >
                         Checkout
                       </button>

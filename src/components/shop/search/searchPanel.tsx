@@ -122,7 +122,7 @@ export function SearchPanel({
                   }
                 }}
                 placeholder="Search the atelier..."
-                className="font-display placeholder-ink-25 w-full py-2 text-2xl leading-5 font-bold focus:ring-0 focus:outline-none md:text-4xl"
+                className="font-display placeholder-ink-25 btn-focus w-full py-2 text-2xl leading-5 font-bold md:text-4xl"
               />
               <div
                 className="border-ink-25 group hover:bg-ink cursor-pointer rounded-full border-[0.5] p-2.5 transition-all duration-300 ease-in-out"
@@ -163,7 +163,7 @@ export function SearchPanel({
                             e.stopPropagation();
                             removeRecent(item);
                           }}
-                          className="text-ink-40 hover:text-rose-gold text-xs"
+                          className="text-ink-40 hover:text-rose-gold btn-focus text-xs"
                         >
                           <X size={13} />
                         </button>

@@ -83,8 +83,8 @@ function getSafeRedirect(): string {
 }
 
 const inputBase =
-  "focus:outline-none focus:ring-1 rounded-sm border px-2 h-9 w-full placeholder:text-sm transition-colors duration-300";
-const inputOk = "border-ink-40 focus:ring-ink";
+  "rounded-sm border px-2 h-9 w-full placeholder:text-sm btn-focus";
+const inputOk = "border-ink-40 btn-focus";
 const inputErr = "border-red-500 focus:ring-red-500 bg-red-500/[0.03]";
 
 // Inline error message that smoothly expands/collapses below a field

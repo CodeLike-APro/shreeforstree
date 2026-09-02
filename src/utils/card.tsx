@@ -443,7 +443,7 @@ export default function Card({
                     setIsDeleteDialogOpen(false);
                     setDeleteInput("");
                   }}
-                  className="text-ink-40 hover:text-ink transition-colors"
+                  className="text-ink-40 hover:text-ink btn-focus"
                 >
                   <X size={20} />
                 </button>
@@ -480,7 +480,7 @@ export default function Card({
                   value={deleteInput}
                   onChange={(e) => setDeleteInput(e.target.value)}
                   placeholder={data.title}
-                  className="border-ink-25 text-ink focus:border-ink w-full rounded-sm border px-3 py-2 transition-colors outline-none"
+                  className="border-ink-25 text-ink btn-focus w-full rounded-sm border px-3 py-2 transition-colors outline-none"
                 />
               </div>
 
@@ -491,7 +491,7 @@ export default function Card({
                     setIsDeleteDialogOpen(false);
                     setDeleteInput("");
                   }}
-                  className="text-ink border-ink-25 hover:bg-ink-05 rounded-sm border px-4 py-2 transition-colors"
+                  className="text-ink border-ink-25 hover:bg-ink-05 btn-focus rounded-sm border px-4 py-2"
                 >
                   Cancel
                 </button>
@@ -504,7 +504,7 @@ export default function Card({
                     deleteInput.trim().toLowerCase() !==
                     data.title.trim().toLowerCase()
                   }
-                  className="bg-rust text-paper rounded-sm px-4 py-2 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="bg-rust text-paper btn-focus rounded-sm px-4 py-2 transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Delete
                 </button>

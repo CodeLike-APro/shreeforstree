@@ -70,7 +70,7 @@ export default function ProductPurchase({
           </h6>
           <button
             onClick={() => setIsOpen(true)}
-            className="font-label text-rose-gold hover:text-rose-gold-dark focus-ring-none cursor-pointer text-xs tracking-widest uppercase hover:underline"
+            className="font-label text-rose-gold hover:text-rose-gold-dark btn-focus cursor-pointer text-xs tracking-widest uppercase hover:underline"
           >
             size guide
           </button>
@@ -89,7 +89,7 @@ export default function ProductPurchase({
                   Size Guide
                 </h4>
                 <button
-                  className="text-ink hover:text-paper hover:bg-ink border-ink cursor-pointer rounded-full border p-2 transition-colors duration-300"
+                  className="text-ink hover:text-paper hover:bg-ink border-ink btn-focus cursor-pointer rounded-full border p-2"
                   onClick={() => setIsOpen(false)}
                 >
                   <X size={16} />
@@ -113,7 +113,7 @@ export default function ProductPurchase({
           {sizes?.map((s) => (
             <button
               className={[
-                "border-ink-25 hover:border-ink-40 rounded-sm border px-4 py-2 transition-colors duration-300",
+                "border-ink-25 hover:border-ink-40 btn-focus rounded-sm border px-4 py-2",
                 selectedSize === s ? "bg-ink text-paper" : "",
               ].join(" ")}
               key={s}
