@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const inputBaseClasses =
-  "peer focus:ring-rose-gold border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm focus:border-transparent focus:ring-2 focus:outline-none";
+  "peer border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm btn-focus";
 
 const hideSpinButtons =
   "appearance-text-field [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
@@ -344,7 +344,7 @@ export default function AddressModal({
                     disabled={loading}
                     onClick={() => onClose()}
                     className={[
-                      "font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-6 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                      "font-label border-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-6 py-1.5",
                       loading ? "cursor-not-allowed opacity-50" : "",
                     ].join(" ")}
                   >
@@ -355,7 +355,7 @@ export default function AddressModal({
                     disabled={loading}
                     onClick={() => handleSave()}
                     className={[
-                      "font-label border-rose-gold-dark text-rose-gold-dark focus:ring-rose-gold hover:bg-rose-gold-dark hover:text-paper flex items-center justify-center gap-2 rounded-md border px-4 py-1.5 transition-all duration-150 focus:border-transparent focus:ring-2 focus:outline-none",
+                      "font-label border-rose-gold-dark text-rose-gold-dark hover:bg-rose-gold-dark hover:text-paper btn-focus flex items-center justify-center gap-2 rounded-md border px-4 py-1.5",
                       loading ? "cursor-not-allowed opacity-50" : "",
                     ].join(" ")}
                   >
