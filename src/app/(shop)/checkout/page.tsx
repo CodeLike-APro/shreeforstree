@@ -23,7 +23,7 @@ export default function Checkout() {
           {!isExpanded && (
             <button
               onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
-              className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper focus:ring-rose-gold rounded-md border px-4 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
+              className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
             >
               Change Address
             </button>
