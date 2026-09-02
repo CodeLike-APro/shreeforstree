@@ -164,6 +164,13 @@ export default function AllAddresses({
     ? addresses
     : addresses.filter((a) => a.id === selectedId);
 
+  const confirmAddress = (id: string) => {
+    if (!expand) return;
+    setIsDropdownOpenId(null);
+    setSelectedId(id);
+    onCollapse();
+  };
+
   return (
     <div className="border-ink flex min-h-40 w-full items-center justify-center rounded-xl py-4">
       {loading ? (
@@ -181,7 +188,11 @@ export default function AllAddresses({
           </button>
         </div>
       ) : (
-        <div className="flex w-full flex-col gap-4 rounded-xl">
+        <div
+          role="radiogroup"
+          aria-label="Delivery address"
+          className="flex w-full flex-col gap-4 rounded-xl"
+        >
           {expand && (
             <button
               onClick={() =>
@@ -204,15 +215,7 @@ export default function AllAddresses({
                 transition={{
                   layout: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
                 }}
-                onClick={
-                  expand
-                    ? () => {
-                        setIsDropdownOpenId(null);
-                        setSelectedId(address.id);
-                        onCollapse();
-                      }
-                    : undefined
-                }
+                onClick={() => confirmAddress(address.id)}
                 key={address.id}
                 layout
                 className={[
@@ -220,18 +223,32 @@ export default function AllAddresses({
                   expand ? "cursor-pointer" : "",
                 ].join(" ")}
               >
-                <input
-                  type="radio"
-                  className="peer sr-only"
-                  name="address"
-                  id={address.id}
-                  checked={selectedId === address.id}
-                  onChange={() => setSelectedId(address.id)}
-                />
-                <label
-                  htmlFor={address.id}
-                  className="btn-focus absolute inset-0 cursor-pointer rounded-xl"
-                />
+                {expand && (
+                  <>
+                    <input
+                      type="radio"
+                      aria-label={`${address.label}, ${address.fullName}, ${address.addressLine1}, ${address.addressLine2 ?? ""}, ${address.city}, ${address.state}, ${address.pincode}`}
+                      className="peer sr-only"
+                      name="address"
+                      id={address.id}
+                      checked={selectedId === address.id}
+                      onChange={() => setSelectedId(address.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          confirmAddress(address.id);
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={address.id}
+                      className={[
+                        "peer-focus-ring absolute inset-0 rounded-xl",
+                        expand ? "cursor-pointer" : "",
+                      ].join(" ")}
+                    />
+                  </>
+                )}
                 <div className="flex flex-col items-start justify-center gap-3">
                   <div className="flex items-center justify-center gap-2">
                     {address.isDefault && (
