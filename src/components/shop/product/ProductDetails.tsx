@@ -36,7 +36,7 @@ export default function ProductDetails({
         <button
           onClick={() => setShowDetails(true)}
           className={[
-            "font-label rounded-pill border px-7 py-1.5 text-sm font-semibold tracking-wide uppercase transition-colors duration-300",
+            "font-label rounded-pill btn-focus border px-7 py-1.5 text-sm font-semibold tracking-wide uppercase transition-colors duration-300",
             showDetails
               ? "bg-ink text-paper border-ink"
               : "bg-paper text-ink border-ink-40",
@@ -48,7 +48,7 @@ export default function ProductDetails({
           <button
             onClick={() => setShowDetails(false)}
             className={[
-              "font-label rounded-pill border px-7 py-1.5 text-sm font-semibold tracking-wide uppercase transition-colors duration-300",
+              "font-label rounded-pill btn-focus border px-7 py-1.5 text-sm font-semibold tracking-wide uppercase transition-colors duration-300",
               showDetails
                 ? "bg-paper text-ink border-ink-40"
                 : "bg-ink text-paper border-ink",

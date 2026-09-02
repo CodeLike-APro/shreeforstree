@@ -41,6 +41,7 @@ export default function ProductGallery({
                 e.currentTarget.scrollHeight - e.currentTarget.clientHeight,
               );
             }}
+            tabIndex={-1}
             className={[
               "absolute inset-0 flex scrollbar-none flex-col gap-3 overflow-y-auto px-0.5 py-0.5",
 
@@ -52,32 +53,36 @@ export default function ProductGallery({
             ].join(" ")}
           >
             {productMedia.map((m) => (
-              <Image
-                onClick={() => {
-                  setActiveUrl(m.url);
-                }}
-                key={m.id}
-                src={m.url}
-                alt={productTitle ?? "Product Image"}
-                width={300}
-                height={400}
-                className={[
-                  "aspect-3/4 w-24 rounded-md object-cover",
-                  activeUrl === m.url ? "border-rose-gold border-[2.5]" : "",
-                ].join(" ")}
-              />
+              <button key={m.id} className="btn-focus w-24 rounded-md">
+                <Image
+                  onClick={() => {
+                    setActiveUrl(m.url);
+                  }}
+
+                  src={m.url}
+                  alt={productTitle ?? "Product Image"}
+                  width={300}
+                  height={400}
+                  className={[
+                    "aspect-3/4 w-24 rounded-md object-cover",
+                    activeUrl === m.url ? "border-rose-gold border-[2.5]" : "",
+                  ].join(" ")}
+                />
+              </button>
             ))}
           </div>
         </div>
 
         <div className="w-[80%]">
-          <Image
-            src={activeUrl}
-            alt={productTitle ?? "Product Image"}
-            width={600}
-            height={800}
-            className="aspect-3/4 rounded-md object-cover"
-          />
+          <button className="btn-focus w-full rounded-md">
+            <Image
+              src={activeUrl}
+              alt={productTitle ?? "Product Image"}
+              width={600}
+              height={800}
+              className="aspect-3/4 rounded-md object-cover"
+            />
+          </button>
         </div>
       </div>
     </div>

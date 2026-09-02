@@ -34,8 +34,8 @@ export default function ProductDescription({
       {descriptionLength > descriptionCap && (
         <button
           className={[
-            "font-serif-alt text-rose-gold hover:text-rose-gold-dark text-xl font-semibold italic hover:underline",
-            expanded ? "" : "bg-paper absolute right-0 bottom-0 pl-2",
+            "font-serif-alt text-rose-gold btn-focus hover:text-rose-gold-dark rounded-md px-2 text-xl font-semibold italic hover:underline",
+            expanded ? "" : "bg-paper absolute right-0 bottom-0",
           ].join(" ")}
           onClick={() => setExpanded(!expanded)}
         >

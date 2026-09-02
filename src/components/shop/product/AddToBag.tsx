@@ -64,7 +64,7 @@ export default function AddToBag({
         disabled={!size || loading}
         onClick={handleAddToBag}
         className={[
-          "bg-ink text-paper font-label border-ink w-full rounded-sm border px-4 py-3 tracking-widest uppercase",
+          "bg-ink btn-focus text-paper font-label border-ink w-full rounded-sm border px-4 py-3 tracking-widest uppercase",
           size && !loading ? "cursor-pointer" : "cursor-not-allowed",
         ].join(" ")}
       >

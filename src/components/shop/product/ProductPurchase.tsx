@@ -70,7 +70,7 @@ export default function ProductPurchase({
           </h6>
           <button
             onClick={() => setIsOpen(true)}
-            className="font-label text-rose-gold hover:text-rose-gold-dark btn-focus cursor-pointer text-xs tracking-widest uppercase hover:underline"
+            className="font-label text-rose-gold hover:text-rose-gold-dark btn-focus cursor-pointer rounded-md px-2 py-1 text-xs tracking-widest uppercase hover:underline"
           >
             size guide
           </button>
