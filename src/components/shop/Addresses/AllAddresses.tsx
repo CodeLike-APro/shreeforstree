@@ -4,6 +4,7 @@ import { EllipsisVertical, Loader, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
+import { AnimatePresence, motion } from "motion/react";
 
 type Address = {
   id: string;
@@ -27,7 +28,13 @@ type IsModalOpen = {
   editingId?: string | null;
 };
 
-export default function AllAddresses() {
+export default function AllAddresses({
+  expand,
+  onCollapse,
+}: {
+  expand: boolean;
+  onCollapse: () => void;
+}) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isDropdownOpenId, setIsDropdownOpenId] = useState<string | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState<IsModalOpen>({
@@ -38,6 +45,7 @@ export default function AllAddresses() {
     new Set(),
   );
   const [loading, setLoading] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
 
@@ -60,6 +68,12 @@ export default function AllAddresses() {
       }
       const data = result.data;
       setAddresses(data);
+      setSelectedId((prev) => {
+        if (prev && data.some((a: Address) => a.id === prev)) return prev;
+        return (
+          data.find((a: Address) => a.isDefault)?.id ?? data[0]?.id ?? null
+        );
+      });
       setLoading(false);
       return data;
     } catch (error) {
@@ -147,122 +161,281 @@ export default function AllAddresses() {
   }, [isDropdownOpenId]);
 
   return (
-    <div className="flex min-h-40 w-full items-center justify-center rounded-xl">
-      {loading ? (
-        <p className="font-label">Loading...</p>
-      ) : addresses.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4">
-          <p className="font-label">You do not have any addresses saved.</p>
-          <button
-            className="font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark rounded-md border px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-150 focus:ring-2 focus:outline-none"
-            onClick={() =>
-              setIsAddressModalOpen({ modalMode: "new", editingId: null })
-            }
-          >
-            Add Address
-          </button>
-        </div>
-      ) : (
-        <div className="flex w-full flex-col gap-4 rounded-xl">
-          {addresses.map((address) => (
-            <div
-              key={address.id}
-              className="font-label border-ink relative flex w-full justify-between rounded-xl border p-4"
+    <AnimatePresence>
+      <div className="flex min-h-40 w-full items-center justify-center rounded-xl">
+        {loading ? (
+          <p className="font-label">Loading...</p>
+        ) : addresses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-4">
+            <p className="font-label">You do not have any addresses saved.</p>
+            <button
+              className="font-label border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark rounded-md border px-4 py-2 text-sm font-semibold tracking-widest transition-colors duration-150 focus:ring-2 focus:outline-none"
+              onClick={() =>
+                setIsAddressModalOpen({ modalMode: "new", editingId: null })
+              }
             >
-              <div className="flex flex-col items-start justify-center gap-3">
-                <div className="flex items-center justify-center gap-2">
-                  {address.isDefault && (
-                    <label className="bg-blush rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
-                      Default
-                    </label>
-                  )}
-                  <label className="bg-ink text-paper rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
-                    {address.label}
-                  </label>
-                </div>
-                <div className="flex flex-col items-start justify-center">
-                  <h6 className="font-display text-lg font-bold">
-                    {address.fullName}
-                  </h6>
-                  <p className="text-ink-55">{address.phone}</p>
-                </div>
-              </div>
-              <div className="font-label flex w-[60%] flex-col">
-                <p>{address.addressLine1}</p>
-                {address.addressLine2 && <p>{address.addressLine2}</p>}
-                <p>
-                  {address.city}, {address.state}
-                </p>
-                <p>{address.pincode}</p>
-              </div>
-              <button
-                onClick={() => {
-                  toggleDropdown(address.id);
-                }}
-                className="border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark absolute top-1 right-2 flex rounded-full border px-px py-1 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
-              >
-                <div>
-                  <EllipsisVertical size={17} />
-                </div>
-              </button>
-              {isDropdownOpenId === address.id && (
-                <div
-                  ref={panelRef}
-                  className="border-ink-25 bg-paper absolute top-7 right-7 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
-                >
+              Add Address
+            </button>
+          </div>
+        ) : (
+          <motion.div className="flex w-full flex-col gap-4 rounded-xl">
+            {!expand ? (
+              <>
+                {selectedId &&
+                  (() => {
+                    const selectedAddress = addresses.find(
+                      (addr) => addr.id === selectedId,
+                    );
+                    const selectedAddressId = selectedAddress?.id ?? null;
+
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{
+                          layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                        }}
+                        layoutId={selectedId}
+                        key={selectedId}
+                        className="font-label border-ink relative flex w-full justify-between rounded-xl border p-4"
+                      >
+                        <div className="flex flex-col items-start justify-center gap-3">
+                          <div className="flex items-center justify-center gap-2">
+                            {selectedAddress?.isDefault && (
+                              <label className="bg-blush rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                                Default
+                              </label>
+                            )}
+                            <label className="bg-ink text-paper rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                              {selectedAddress?.label}
+                            </label>
+                          </div>
+                          <div className="flex flex-col items-start justify-center">
+                            <h6 className="font-display text-lg font-bold">
+                              {selectedAddress?.fullName}
+                            </h6>
+                            <p className="text-ink-55">
+                              {selectedAddress?.phone}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="font-label flex w-[60%] flex-col">
+                          <p>{selectedAddress?.addressLine1}</p>
+                          {selectedAddress?.addressLine2 && (
+                            <p>{selectedAddress.addressLine2}</p>
+                          )}
+                          <p>
+                            {selectedAddress?.city}, {selectedAddress?.state}
+                          </p>
+                          <p>{selectedAddress?.pincode}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            toggleDropdown(selectedAddressId ?? "");
+                          }}
+                          className="border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark absolute top-1 right-2 flex rounded-full border px-px py-1 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
+                        >
+                          <div>
+                            <EllipsisVertical size={17} />
+                          </div>
+                        </button>
+                        {isDropdownOpenId === selectedAddressId && (
+                          <div
+                            ref={panelRef}
+                            className="border-ink-25 bg-paper absolute top-7 right-7 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
+                          >
+                            <button
+                              onClick={() =>
+                                setIsAddressModalOpen({
+                                  modalMode: "edit",
+                                  editingId: selectedAddressId,
+                                })
+                              }
+                              className="hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none"
+                            >
+                              <div className="flex w-[40%] items-center justify-start">
+                                <Pencil size={14} />
+                              </div>
+                              <div className="text-md mt-0.5 w-full self-start font-medium">
+                                <p className="text-start">Edit</p>
+                              </div>
+                            </button>
+                            <div className="bg-ink-25 h-px w-full"></div>
+                            <button
+                              disabled={
+                                selectedAddressId !== null &&
+                                deleteLoadingIds.has(selectedAddressId)
+                              }
+                              onClick={() => {
+                                if (!selectedAddressId) return;
+                                handleDeleteAddress(selectedAddressId);
+                              }}
+                              className={[
+                                "hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none",
+                                selectedAddressId !== null &&
+                                deleteLoadingIds.has(selectedAddressId)
+                                  ? "cursor-not-allowed opacity-50"
+                                  : "",
+                              ].join(" ")}
+                            >
+                              <div className="flex w-[40%] items-center justify-start">
+                                <Trash2 size={14} />
+                              </div>
+                              <div className="text-md mt-0.5 w-full self-start font-medium">
+                                <p className="text-start">Delete</p>
+                              </div>
+                              {selectedAddressId !== null &&
+                                deleteLoadingIds.has(selectedAddressId) && (
+                                  <div className="animate-spin">
+                                    <Loader size={14} />
+                                  </div>
+                                )}
+                            </button>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })()}
+              </>
+            ) : (
+              <>
+                {expand && (
                   <button
                     onClick={() =>
                       setIsAddressModalOpen({
-                        modalMode: "edit",
-                        editingId: address.id,
+                        modalMode: "new",
+                        editingId: null,
                       })
                     }
-                    className="hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none"
+                    className="font-label text-md border-ink text-ink hover:bg-ink hover:text-paper focus:ring-rose-gold absolute top-0 right-0 z-9999 rounded-md border px-4 py-1.5 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
                   >
-                    <div className="flex w-[40%] items-center justify-start">
-                      <Pencil size={14} />
-                    </div>
-                    <div className="text-md mt-0.5 w-full self-start font-medium">
-                      <p className="text-start">Edit</p>
-                    </div>
+                    Add Address
                   </button>
-                  <div className="bg-ink-25 h-px w-full"></div>
-                  <button
-                    disabled={deleteLoadingIds.has(address.id)}
-                    onClick={() => handleDeleteAddress(address.id)}
-                    className={[
-                      "hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none",
-                      deleteLoadingIds.has(address.id)
-                        ? "cursor-not-allowed opacity-50"
-                        : "",
-                    ].join(" ")}
-                  >
-                    <div className="flex w-[40%] items-center justify-start">
-                      <Trash2 size={14} />
-                    </div>
-                    <div className="text-md mt-0.5 w-full self-start font-medium">
-                      <p className="text-start">Delete</p>
-                    </div>
-                    {deleteLoadingIds.has(address.id) && (
-                      <div className="animate-spin">
-                        <Loader size={14} />
+                )}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  key="address-list"
+                  transition={{ duration: 0.2 }}
+                  className="flex w-full flex-col gap-4 rounded-xl"
+                >
+                  {addresses.map((address) => (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{
+                        layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                      }}
+                      onClick={() => {
+                        setSelectedId(address.id);
+                        onCollapse();
+                      }}
+                      key={address.id}
+                      layoutId={address.id}
+                      className="font-label border-ink relative flex w-full justify-between rounded-xl border p-4"
+                    >
+                      <div className="flex flex-col items-start justify-center gap-3">
+                        <div className="flex items-center justify-center gap-2">
+                          {address.isDefault && (
+                            <label className="bg-blush rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                              Default
+                            </label>
+                          )}
+                          <label className="bg-ink text-paper rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                            {address.label}
+                          </label>
+                        </div>
+                        <div className="flex flex-col items-start justify-center">
+                          <h6 className="font-display text-lg font-bold">
+                            {address.fullName}
+                          </h6>
+                          <p className="text-ink-55">{address.phone}</p>
+                        </div>
                       </div>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <AddressModal
-        isOpen={isAddressModalOpen.modalMode !== null}
-        title={isAddressModalOpen.modalMode ?? undefined}
-        id={isAddressModalOpen.editingId ?? undefined}
-        onClose={() =>
-          setIsAddressModalOpen({ modalMode: null, editingId: null })
-        }
-      />
-    </div>
+                      <div className="font-label flex w-[60%] flex-col">
+                        <p>{address.addressLine1}</p>
+                        {address.addressLine2 && <p>{address.addressLine2}</p>}
+                        <p>
+                          {address.city}, {address.state}
+                        </p>
+                        <p>{address.pincode}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          toggleDropdown(address.id);
+                        }}
+                        className="border-ink hover:bg-ink hover:text-paper focus:ring-rose-gold-dark absolute top-1 right-2 flex rounded-full border px-px py-1 transition-colors duration-150 focus:border-transparent focus:ring-2 focus:outline-none"
+                      >
+                        <div>
+                          <EllipsisVertical size={17} />
+                        </div>
+                      </button>
+                      {isDropdownOpenId === address.id && (
+                        <div
+                          ref={panelRef}
+                          className="border-ink-25 bg-paper absolute top-7 right-7 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
+                        >
+                          <button
+                            onClick={() =>
+                              setIsAddressModalOpen({
+                                modalMode: "edit",
+                                editingId: address.id,
+                              })
+                            }
+                            className="hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none"
+                          >
+                            <div className="flex w-[40%] items-center justify-start">
+                              <Pencil size={14} />
+                            </div>
+                            <div className="text-md mt-0.5 w-full self-start font-medium">
+                              <p className="text-start">Edit</p>
+                            </div>
+                          </button>
+                          <div className="bg-ink-25 h-px w-full"></div>
+                          <button
+                            disabled={deleteLoadingIds.has(address.id)}
+                            onClick={() => handleDeleteAddress(address.id)}
+                            className={[
+                              "hover:bg-ink/10 focus:ring-rose-gold-dark flex w-full items-center justify-center gap-1 rounded-md px-2 py-1 focus:ring-2 focus:outline-none",
+                              deleteLoadingIds.has(address.id)
+                                ? "cursor-not-allowed opacity-50"
+                                : "",
+                            ].join(" ")}
+                          >
+                            <div className="flex w-[40%] items-center justify-start">
+                              <Trash2 size={14} />
+                            </div>
+                            <div className="text-md mt-0.5 w-full self-start font-medium">
+                              <p className="text-start">Delete</p>
+                            </div>
+                            {deleteLoadingIds.has(address.id) && (
+                              <div className="animate-spin">
+                                <Loader size={14} />
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </>
+            )}
+          </motion.div>
+        )}
+        <AddressModal
+          isOpen={isAddressModalOpen.modalMode !== null}
+          title={isAddressModalOpen.modalMode ?? undefined}
+          id={isAddressModalOpen.editingId ?? undefined}
+          onSaved={fetchAddresses}
+          onClose={() =>
+            setIsAddressModalOpen({ modalMode: null, editingId: null })
+          }
+        />
+      </div>
+    </AnimatePresence>
   );
 }
