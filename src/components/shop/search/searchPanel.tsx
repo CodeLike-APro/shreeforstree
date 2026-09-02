@@ -147,18 +147,20 @@ export function SearchPanel({
                       <div
                         key={item}
                         className="border-ink-25 group flex cursor-pointer items-center gap-3 border-b px-1 pb-2"
-                        onClick={() => {
-                          submit(item);
-                          onClose();
-                        }}
                       >
                         <Clock
                           size={14}
                           className="text-ink-40 group-hover:text-rose-gold"
                         />
-                        <p className="text-ink group-hover:text-rose-gold flex-1 text-sm">
-                          {item}
-                        </p>
+                        <button
+                          onClick={() => {
+                            submit(item);
+                            onClose();
+                          }}
+                          className="text-ink btn-focus group-hover:text-rose-gold flex-1 items-center justify-start rounded-md px-2 text-sm"
+                        >
+                          <p className="text-start">{item}</p>
+                        </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();

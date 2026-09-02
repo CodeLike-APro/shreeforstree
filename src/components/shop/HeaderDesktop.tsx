@@ -51,7 +51,7 @@ export default function HeaderDesktop({
       <nav className="flex w-full items-center gap-4">
         <Link
           href="/"
-          className="font-display text-ink h-35px w-186px mx-6 text-2xl text-[26px] leading-none font-bold tracking-[2]"
+          className="font-display btn-focus text-ink h-35px w-186px mx-6 rounded-lg px-2 py-1 text-2xl text-[26px] leading-none font-bold tracking-[2]"
         >
           shreeforstree
         </Link>
@@ -62,7 +62,7 @@ export default function HeaderDesktop({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="font-label text-ink h-11.5px w-37px text-lg text-[12.5px] leading-2.5 font-semibold tracking-[1.75] uppercase"
+                  className="font-label btn-focus text-ink h-11.5px w-37px rounded-md pt-2 pr-1 pb-1 pl-1.5 text-lg text-[12.5px] leading-2.5 font-semibold tracking-[1.75] uppercase"
                 >
                   {item.label}
                 </Link>
@@ -71,32 +71,39 @@ export default function HeaderDesktop({
           </div>
           <div className="mr-6 flex items-center gap-6">
             <div className="flex items-center justify-end gap-3">
-              <button onClick={open} aria-label="Search">
+              <button
+                className="btn-focus rounded-md p-0.5"
+                onClick={open}
+                aria-label="Search"
+              >
                 <Search className="cursor-pointer stroke-[1.4]" />
               </button>
 
               <SearchPanel isOpen={isOpen} onClose={close} />
             </div>
-            <div>
-              <Link href="/wishlist">
+            <div className="flex items-center justify-center">
+              <Link href="/wishlist" className="btn-focus rounded-md p-0.5">
                 <Heart className="cursor-pointer stroke-[1.4]" />
               </Link>
             </div>
             <div>
               <button
+                className="btn-focus mt-[6] rounded-md p-0.5"
                 onClick={() => {
                   setIsCartOpen(true);
                 }}
                 aria-label="Cart"
               >
-                <Handbag className="mt-[6] cursor-pointer stroke-[1.4]" />
+                <Handbag className="cursor-pointer stroke-[1.4]" />
               </button>
             </div>
             <div ref={userTriggerRef} className="relative">
-              <User
-                className="cursor-pointer stroke-[1.4]"
+              <button
+                className="btn-focus mt-[6] rounded-md p-0.5"
                 onClick={() => setIsUserDropdownOpen((prev) => !prev)}
-              />
+              >
+                <User className="cursor-pointer stroke-[1.4]" />
+              </button>
               <UserDropdown
                 isOpen={isUserDropdownOpen}
                 onClose={() => setIsUserDropdownOpen(false)}
