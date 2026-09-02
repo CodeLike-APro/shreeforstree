@@ -102,14 +102,15 @@ export function SearchPanel({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="border-ink flex items-center justify-between gap-6 border-b-2 py-2">
-              <Search
-                size={32}
-                className="text-rose-gold cursor-pointer"
+              <button
+                className="btn-focus cursor-pointer rounded-full p-2"
                 onClick={() => {
                   submit();
                   onClose();
                 }}
-              />
+              >
+                <Search size={32} className="text-rose-gold" />
+              </button>
               <input
                 ref={inputRef}
                 type="text"
@@ -122,17 +123,17 @@ export function SearchPanel({
                   }
                 }}
                 placeholder="Search the atelier..."
-                className="font-display placeholder-ink-25 btn-focus w-full py-2 text-2xl leading-5 font-bold md:text-4xl"
+                className="font-display placeholder-ink-25 w-full py-2 text-2xl leading-5 font-bold focus:outline-none md:text-4xl"
               />
-              <div
-                className="border-ink-25 group hover:bg-ink cursor-pointer rounded-full border-[0.5] p-2.5 transition-all duration-300 ease-in-out"
+              <button
+                className="btn-focus border-ink-25 group hover:bg-ink cursor-pointer rounded-full border-[0.5] p-2.5 transition-all duration-300 ease-in-out"
                 onClick={onClose}
               >
                 <X
                   size={18}
                   className="text-ink stroke-[1.7] transition-colors duration-300 ease-in-out group-hover:text-white"
                 />
-              </div>
+              </button>
             </div>
 
             <div className="flex flex-col gap-12 md:flex-row">
@@ -163,7 +164,7 @@ export function SearchPanel({
                             e.stopPropagation();
                             removeRecent(item);
                           }}
-                          className="text-ink-40 hover:text-rose-gold btn-focus text-xs"
+                          className="text-ink-40 hover:text-rose-gold btn-focus rounded-full p-1 text-xs"
                         >
                           <X size={13} />
                         </button>
