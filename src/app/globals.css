@@ -159,3 +159,7 @@
 
   @apply focus-visible:ring-rose-gold-dark focus-visible:ring-2;
 }
+
+.peer-focus-ring {
+  @apply peer-focus-visible:ring-rose-gold-dark peer-focus-visible:ring-2;
+}
