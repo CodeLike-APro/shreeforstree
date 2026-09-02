@@ -307,7 +307,7 @@ export default function UserDropdown({
                   type="button"
                   onClick={onClose}
                   aria-label="Close menu"
-                  className="group border-ink-15 hover:bg-ink shrink-0 rounded-full border p-2.5 transition-all duration-300 ease-in-out"
+                  className="group border-ink-15 btn-focus hover:bg-ink shrink-0 rounded-full border p-2.5 transition-all duration-300 ease-in-out"
                 >
                   <X
                     size={16}
@@ -372,7 +372,7 @@ export default function UserDropdown({
                         <Link
                           href={href}
                           onClick={onClose}
-                          className="group hover:bg-ink-05 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200"
+                          className="group btn-focus hover:bg-ink-05 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200"
                         >
                           {React.isValidElement(icon) &&
                             React.cloneElement(
@@ -409,7 +409,7 @@ export default function UserDropdown({
                         type="button"
                         onClick={handleSignOut}
                         disabled={signingOut}
-                        className="group text-rust hover:bg-rust/10 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 disabled:opacity-60"
+                        className="group text-rust btn-focus hover:bg-rust/10 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 disabled:opacity-60"
                       >
                         <LogOut
                           size={18}
@@ -435,7 +435,7 @@ export default function UserDropdown({
                       <Link
                         href="/sign-in"
                         onClick={onClose}
-                        className="bg-ink font-label text-paper hover:bg-rose-gold flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
+                        className="bg-ink font-label btn-focus text-paper hover:bg-rose-gold flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
                       >
                         Sign In
                       </Link>
@@ -445,7 +445,7 @@ export default function UserDropdown({
                       <Link
                         href="/sign-up"
                         onClick={onClose}
-                        className="border-ink-15 font-label text-ink hover:border-rose-gold hover:text-rose-gold mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
+                        className="border-ink-15 btn-focus font-label text-ink hover:border-rose-gold hover:text-rose-gold mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
                       >
                         Create Account
                       </Link>
