@@ -17,11 +17,13 @@ const focusableSelector: string =
 
 export default function AddressModal({
   isOpen,
+  onSaved,
   onClose,
   title = "new",
   id,
 }: {
   isOpen: boolean;
+  onSaved?: () => void;
   onClose: () => void;
   title?: "new" | "edit";
   id?: string;
@@ -76,6 +78,7 @@ export default function AddressModal({
       }
       toast.success("Address saved successfully");
       setLoading(false);
+      onSaved?.();
       onClose();
       return;
     } catch (error) {
@@ -123,6 +126,19 @@ export default function AddressModal({
         }
       };
       fetchAddress();
+    } else if (title === "new" && isOpen) {
+      const resetTimeout = window.setTimeout(() => {
+        setLabel(null);
+        setFullName(null);
+        setPhone(null);
+        setAddressLine1(null);
+        setAddressLine2(null);
+        setCity(null);
+        setState(null);
+        setPincode(null);
+      }, 0);
+
+      return () => window.clearTimeout(resetTimeout);
     }
   }, [id, title, isOpen]);
 
