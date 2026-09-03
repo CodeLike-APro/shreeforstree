@@ -9,7 +9,6 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
-import { auth } from "@/lib/db/auth";
 import {
   cartItems,
   orderItems,
@@ -21,6 +20,7 @@ import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import crypto from "crypto";
+import { getOrCreateSessionId } from "@/lib/cart-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -90,13 +90,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const currentSession = await auth.api.getSession({
-      headers: request.headers,
-    });
-
-    if (!currentSession) {
-      return unauthorized("Unauthorized access");
-    }
+    const currentUser = await getCurrentUser(request);
+    const sessionId = await getOrCreateSessionId();
 
     const body = await request.json();
     const result = await createOrderSchema.safeParseAsync(body);
@@ -113,7 +108,6 @@ export async function POST(request: NextRequest) {
       email,
       shippingFullName,
       shippingPhone,
-      shippingEmail,
       shippingAddressLine1,
       shippingAddressLine2,
       shippingCity,
@@ -130,20 +124,45 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (address?.userId !== currentSession?.user?.id) {
+    if (address?.userId !== currentUser?.id) {
       return forbidden(
         "Unauthorized access. You can only use your own address.",
       );
     }
 
+    const resolvedFullName = address?.fullName ?? shippingFullName;
+    const resolvedPhone = address?.phone ?? shippingPhone;
+    const resolvedAddressLine1 = address?.addressLine1 ?? shippingAddressLine1;
+    const resolvedAddressLine2 = address?.addressLine2 ?? shippingAddressLine2;
+    const resolvedCity = address?.city ?? shippingCity;
+    const resolvedState = address?.state ?? shippingState;
+    const resolvedPincode = address?.pincode ?? shippingPincode;
+    const resolvedCountry = address?.country ?? shippingCountry;
+
+    if (
+      !resolvedFullName ||
+      !resolvedPhone ||
+      !resolvedAddressLine1 ||
+      !resolvedCity ||
+      !resolvedState ||
+      !resolvedPincode ||
+      !resolvedCountry
+    ) {
+      return badRequest("Shipping details are required");
+    }
+
     let guestToken: string | undefined = undefined;
 
-    if (!currentSession.user) {
+    if (!currentUser) {
       guestToken = crypto.randomBytes(16).toString("hex");
     }
 
     const cart = await db.query.carts.findFirst({
-      where: (carts, { eq }) => eq(carts.sessionId, currentSession.session.id),
+      where: (carts, { eq }) =>
+        eq(
+          currentUser ? carts.userId : carts.sessionId,
+          currentUser ? currentUser.id : sessionId,
+        ),
       with: {
         cartItems: {
           with: {
@@ -224,7 +243,7 @@ export async function POST(request: NextRequest) {
       const [order] = await tx
         .insert(orders)
         .values({
-          userId: currentSession?.user?.id,
+          userId: currentUser?.id ?? null,
           guestToken: guestToken,
           originalAmount: originalAmount.toString(),
           discountAmount: discountAmount.toString(),
@@ -233,16 +252,16 @@ export async function POST(request: NextRequest) {
           totalAmount: totalAmount.toString(),
           orderStatus: "not_placed",
           paymentStatus: "pending",
-          addressId: address.id,
-          shippingFullName: address.fullName ?? shippingFullName,
-          shippingPhone: address.phone ?? shippingPhone,
-          shippingEmail: email ?? shippingEmail,
-          shippingAddressLine1: address.addressLine1 ?? shippingAddressLine1,
-          shippingAddressLine2: address.addressLine2 ?? shippingAddressLine2,
-          shippingCity: address.city ?? shippingCity,
-          shippingState: address.state ?? shippingState,
-          shippingPincode: address.pincode ?? shippingPincode,
-          shippingCountry: address.country ?? shippingCountry,
+          addressId: address?.id,
+          shippingFullName: resolvedFullName,
+          shippingPhone: resolvedPhone,
+          shippingEmail: email,
+          shippingAddressLine1: resolvedAddressLine1,
+          shippingAddressLine2: resolvedAddressLine2,
+          shippingCity: resolvedCity,
+          shippingState: resolvedState,
+          shippingPincode: resolvedPincode,
+          shippingCountry: resolvedCountry,
         })
         .returning();
 
