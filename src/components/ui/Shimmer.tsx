@@ -144,3 +144,48 @@ export function OrderItemsShimmerGrid({ count = 3 }: { count?: number }) {
     </>
   );
 }
+
+export function PaymentSummaryShimmer() {
+  return (
+    <div className="border-ink/10 bg-paper flex w-full flex-col items-start justify-center gap-2 rounded-xl border">
+      <div className="border-b-ink/10 flex w-full items-center justify-between border-b p-4 uppercase">
+        <h4 className="font-label text-ink-40 text-xs font-normal tracking-[0.2rem]">
+          Payment Summary
+        </h4>
+      </div>
+      <div className="font-label flex w-full flex-col items-start justify-center gap-2 px-4 py-2">
+        <div className="flex w-full items-center justify-between">
+          <h6 className="text-ink-55 font-normal">Price</h6>
+          <Shimmer className="h-5 w-25" />
+        </div>
+        <div className="flex w-full items-center justify-between">
+          <h6 className="text-ink-55 font-normal">Discount</h6>
+          <Shimmer className="h-5 w-25" />
+        </div>
+        <div className="flex w-full items-center justify-between">
+          <h6 className="text-ink-55 font-normal">Subtotal</h6>
+          <Shimmer className="h-5 w-25" />
+        </div>
+        <div className="border-ink/10 flex w-full items-center justify-between border-b pb-4">
+          <h6 className="text-ink-55 font-normal">Shipping</h6>
+          <Shimmer className="h-5 w-25" />
+        </div>
+      </div>
+      <div className="font-label flex w-full items-center justify-between gap-4 px-4 pb-2">
+        <h6>Total</h6>
+        <div className="font-bold">
+          <Shimmer className="h-5 w-25" />
+        </div>
+      </div>
+      <div className="border-ink/10 flex w-full items-center justify-center border-b px-4 pb-4">
+        <div className="w-full overflow-hidden rounded-lg">
+          <Shimmer className="h-10 w-full" />
+        </div>
+      </div>
+      <div className="font-label text-ink-55 flex w-full flex-col items-center justify-center gap-2 px-4 py-3 text-center font-normal">
+        <Shimmer className="h-4 w-full" />
+        <Shimmer className="h-4 w-full" />
+      </div>
+    </div>
+  );
+}

@@ -1,7 +1,10 @@
 "use client";
 
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
-import { OrderItemsShimmerGrid } from "@/components/ui/Shimmer";
+import {
+  OrderItemsShimmerGrid,
+  PaymentSummaryShimmer,
+} from "@/components/ui/Shimmer";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -222,8 +225,8 @@ export default function Checkout() {
         </div>
         <div className="w-[40%]">
           {isLoading ? (
-            <div>
-              <p>Loading payment summary</p>
+            <div className="sticky top-32 w-full">
+              <PaymentSummaryShimmer />
             </div>
           ) : !cartItems ? (
             <div>
