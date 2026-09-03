@@ -73,3 +73,28 @@ export function CartItemShimmerGrid({ count = 3 }: { count?: number }) {
     </>
   );
 }
+
+export function AddressShimmer() {
+  return (
+    <div className="border-ink/10 flex w-full gap-2 rounded-xl border p-4">
+      <div className="flex h-full w-[40%] flex-col gap-5">
+        <div className="flex gap-2">
+          <Shimmer className="h-5 w-1/4" />
+          <Shimmer className="h-5 w-1/4" />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Shimmer className="h-7 w-1/2" />
+          <Shimmer className="h-4 w-1/2" />
+        </div>
+      </div>
+      <div className="flex w-[60%] flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <Shimmer className="h-4 w-3/4" />
+          <Shimmer className="h-4 w-3/4" />
+          <Shimmer className="h-4 w-3/4" />
+          <Shimmer className="h-4 w-1/4" />
+        </div>
+      </div>
+    </div>
+  );
+}

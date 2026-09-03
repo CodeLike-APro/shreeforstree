@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import { AnimatePresence, motion } from "motion/react";
+import { AddressShimmer } from "@/components/ui/Shimmer";
 
 type Address = {
   id: string;
@@ -203,7 +204,7 @@ export default function AllAddresses({
       className="border-ink flex min-h-40 w-full items-center justify-center rounded-xl py-4"
     >
       {loading ? (
-        <p className="font-label">Loading...</p>
+        <AddressShimmer />
       ) : addresses.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4">
           <p className="font-label">You do not have any addresses saved.</p>
