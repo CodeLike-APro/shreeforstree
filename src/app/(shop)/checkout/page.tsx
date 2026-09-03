@@ -3,6 +3,7 @@
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
 import { Loader } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -77,131 +78,245 @@ export default function Checkout() {
   }, []);
 
   return (
-    <div className="flex flex-col items-start gap-2 px-10 py-10">
-      <div>
-        <h1 className="text-3xl font-bold tracking-wide">Checkout</h1>
-        <p className="text-ink-40 text-md font-label">
-          Confirm where this is going, then place your order.
-        </p>
-      </div>
+    <div className="mt-10 flex min-h-screen w-full items-center justify-center gap-4 self-center px-10 pb-20">
+      <div className="flex min-h-screen w-full max-w-7xl justify-center gap-10">
+        <div className="flex w-full flex-col items-center gap-2 self-center">
+          <div className="flex w-full flex-col items-start justify-center gap-2">
+            <h1 className="text-3xl font-bold tracking-wide">Checkout</h1>
+            <p className="text-ink-40 text-md font-label">
+              Confirm where this is going, then place your order.
+            </p>
+          </div>
 
-      <div className="relative flex w-full flex-col items-center justify-between gap-2">
-        <div className="flex h-10 w-full items-center justify-between">
-          <h4 className="font-label font-bold tracking-wide">
-            Delivery Address
-          </h4>
-          {!isExpanded && (
-            <button
-              onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
-              className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
-            >
-              Change Address
-            </button>
-          )}
-        </div>
-        <div className="w-full">
-          <AllAddresses
-            expand={isExpanded}
-            onCollapse={() => setIsExpanded(false)}
-          />
-        </div>
-      </div>
-
-      <div className="w-full">
-        <div className="border-b-ink/10 flex h-10 w-full items-center justify-between border-b pb-3">
-          <h4 className="font-label font-bold tracking-wide">Order Items</h4>
-        </div>
-        <div className="w-full py-5">
-          {isLoading ? (
-            <div className="flex w-full flex-col items-center justify-center gap-2">
-              <div className="animate-spin">
-                <Loader size={20} />
-              </div>
-              <p className="font-label text-lg">
-                Loading your items to order...
-              </p>
-            </div>
-          ) : !cartItems ? (
-            <div className="flex w-full flex-col items-center justify-center gap-2">
-              <p className="font-label text-lg">
-                Something went wrong while fetching your items to order.
-              </p>
-            </div>
-          ) : cartItems.items.length === 0 ? (
-            <div className="flex w-full flex-col items-center justify-center gap-2">
-              <p className="font-label text-lg">
-                No items in your cart to order.
-              </p>
-            </div>
-          ) : (
-            <div className="flex w-full flex-col gap-4">
-              {cartItems.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="border-b-ink/10 flex h-full w-full items-center justify-start gap-4 border-b pb-4"
+          <div className="relative flex w-full flex-col items-center justify-between gap-2">
+            <div className="flex h-10 w-full items-center justify-between">
+              <h4 className="font-label font-bold tracking-wide">
+                Delivery Address
+              </h4>
+              {!isExpanded && (
+                <button
+                  onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
+                  className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
                 >
-                  <div className="relative flex aspect-3/4 w-18 overflow-hidden rounded-lg">
-                    <Image
-                      src={item.product.imageUrl}
-                      alt={item.product.title}
-                      fill={true}
-                      className="aspect-3/4 h-auto w-18 object-cover"
-                    />
+                  Change Address
+                </button>
+              )}
+            </div>
+            <div className="w-full">
+              <AllAddresses
+                expand={isExpanded}
+                onCollapse={() => setIsExpanded(false)}
+              />
+            </div>
+          </div>
+
+          <div className="w-full">
+            <div className="border-b-ink/10 flex h-10 w-full items-center justify-between border-b pb-3">
+              <h4 className="font-label font-bold tracking-wide">
+                Order Items
+              </h4>
+            </div>
+            <div className="w-full py-5">
+              {isLoading ? (
+                <div className="flex w-full flex-col items-center justify-center gap-2">
+                  <div className="animate-spin">
+                    <Loader size={20} />
                   </div>
-                  <div className="flex h-full flex-col items-start justify-between gap-6">
-                    <div>
-                      <div className="font-label flex items-center justify-center text-lg">
-                        <h4 className="font-label font-bold">
-                          {item.product.title}
-                        </h4>
+                  <p className="font-label text-lg">
+                    Loading your items to order...
+                  </p>
+                </div>
+              ) : !cartItems ? (
+                <div className="flex w-full flex-col items-center justify-center gap-2">
+                  <p className="font-label text-lg">
+                    Something went wrong while fetching your items to order.
+                  </p>
+                </div>
+              ) : cartItems.items.length === 0 ? (
+                <div className="flex w-full flex-col items-center justify-center gap-2">
+                  <p className="font-label text-lg">
+                    No items in your cart to order.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex w-full flex-col gap-4">
+                  {cartItems.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="border-b-ink/10 flex h-full w-full items-center justify-start gap-4 border-b pb-4"
+                    >
+                      <div className="relative flex aspect-3/4 w-18 overflow-hidden rounded-lg">
+                        <Image
+                          src={item.product.imageUrl}
+                          alt={item.product.title}
+                          fill={true}
+                          className="aspect-3/4 h-auto w-18 object-cover"
+                        />
                       </div>
-                      <div className="flex items-center justify-around gap-4">
-                        <div className="font-label text-paper rounded-pill bg-ink flex items-center justify-center overflow-hidden px-2 py-1 text-sm leading-none font-semibold">
-                          <p className="h-full w-full text-center">
-                            {item.size}
-                          </p>
+                      <div className="flex h-full flex-col items-start justify-between gap-6">
+                        <div>
+                          <div className="font-label flex items-center justify-center text-lg">
+                            <h4 className="font-label font-bold">
+                              {item.product.title}
+                            </h4>
+                          </div>
+                          <div className="flex items-center justify-around gap-4">
+                            <div className="font-label text-paper rounded-pill bg-ink flex items-center justify-center overflow-hidden px-2 py-1 text-sm leading-none font-semibold">
+                              <p className="h-full w-full text-center">
+                                {item.size}
+                              </p>
+                            </div>
+                            <div className="font-label text-sm font-semibold uppercase">
+                              <p className="h-full w-full text-center">
+                                Qty: {item.quantity}
+                              </p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="font-label text-sm font-semibold uppercase">
-                          <p className="h-full w-full text-center">
-                            Qty: {item.quantity}
-                          </p>
+                        <div className="flex items-center justify-center gap-4">
+                          {item.product.discountedPrice ? (
+                            <div className="flex items-end justify-center gap-2">
+                              <p className="font-labe h-full w-full text-lg font-bold">
+                                &#8377;
+                                {Number(item.product.discountedPrice) *
+                                  Number(item.quantity)}
+                              </p>
+                              <p className="font-label text-ink-40 text-sm font-semibold line-through">
+                                &#8377;
+                                {Number(item.product.price) *
+                                  Number(item.quantity)}
+                              </p>
+                              <p className="font-label rounded-pill bg-sage/10 text-sage px-1 py-0.5 text-xs font-semibold">
+                                -
+                                {Math.floor(
+                                  ((Number(item.product.price) -
+                                    Number(item.product.discountedPrice)) /
+                                    Number(item.product.price)) *
+                                    100,
+                                )}
+                                %
+                              </p>
+                            </div>
+                          ) : (
+                            <div>
+                              <p>
+                                {Number(item.product.price) *
+                                  Number(item.quantity)}
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-center gap-4">
-                      {item.product.discountedPrice ? (
-                        <div className="flex items-end justify-center gap-2">
-                          <p className="font-labe h-full w-full text-lg font-bold">
-                            &#8377;
-                            {Number(item.product.discountedPrice) *
-                              Number(item.quantity)}
-                          </p>
-                          <p className="font-label text-ink-40 text-sm font-semibold line-through">
-                            &#8377;
-                            {Number(item.product.price) * Number(item.quantity)}
-                          </p>
-                          <p className="font-label rounded-pill bg-sage/10 text-sage px-1 py-0.5 text-xs font-semibold">
-                            -
-                            {Math.floor(
-                              ((Number(item.product.price) -
-                                Number(item.product.discountedPrice)) /
-                                Number(item.product.price)) *
-                                100,
-                            )}
-                            %
-                          </p>
-                        </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-5 flex w-full flex-col items-center justify-center gap-6">
+            <div className="stitch-divider h-0.5 w-full"></div>
+            <div className="flex w-full flex-col items-start justify-center">
+              <h6 className="font-serif-alt text-ink text-lg font-bold">
+                Made to order
+              </h6>
+              <p className="font-serif-alt text-ink-55 font-semi-bold text-lg italic">
+                Each piece is cut and finished after you order. We&apos;ll
+                notify you once it ships.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="w-[40%]">
+          {isLoading ? (
+            <div>
+              <p>Loading payment summary</p>
+            </div>
+          ) : !cartItems ? (
+            <div>
+              <p>Something went wrong while loading items to order</p>
+            </div>
+          ) : cartItems.items.length === 0 ? (
+            <div>
+              <p>There are no items to order in your cart.</p>
+            </div>
+          ) : (
+            <div className="sticky top-32 w-full">
+              <div className="border-ink/10 bg-paper flex w-full flex-col items-start justify-center gap-2 rounded-xl border">
+                <div className="border-b-ink/10 flex w-full items-center justify-between border-b p-4 uppercase">
+                  <h4 className="font-label text-ink-40 text-xs font-normal tracking-[0.2rem]">
+                    Payment Summary
+                  </h4>
+                </div>
+                <div className="font-label flex w-full flex-col items-start justify-center gap-2 px-4 py-2">
+                  <div className="flex w-full items-center justify-between">
+                    <h6 className="text-ink-55 font-normal">Price</h6>
+                    <p>
+                      &#8377;
+                      {Number(cartItems.originalPriceTotal).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex w-full items-center justify-between">
+                    <h6 className="text-ink-55 font-normal">Discount</h6>
+                    <p className="text-sage">
+                      - &#8377;
+                      {Number(cartItems.discountAmount).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="flex w-full items-center justify-between">
+                    <h6 className="text-ink-55 font-normal">Subtotal</h6>
+                    <p>
+                      &#8377;
+                      {Number(cartItems.discountedPriceTotal).toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border-ink/10 flex w-full items-center justify-between border-b pb-4">
+                    <h6 className="text-ink-55 font-normal">Shipping</h6>
+                    <div>
+                      {Number(cartItems.shippingCharge) === 0 ? (
+                        <p>Free</p>
                       ) : (
-                        <div>
-                          <p>
-                            {Number(item.product.price) * Number(item.quantity)}
-                          </p>
-                        </div>
+                        <p>
+                          &#8377;
+                          {Number(cartItems.shippingCharge).toFixed(2)}
+                        </p>
                       )}
                     </div>
                   </div>
                 </div>
-              ))}
+                <div className="font-label flex w-full items-center justify-between gap-4 px-4 pb-2">
+                  <h6>Total</h6>
+                  <p className="font-bold">
+                    &#8377;
+                    {Number(cartItems.total).toFixed(2)}
+                  </p>
+                </div>
+                <div className="border-ink/10 flex w-full items-center justify-center border-b px-4 pb-4">
+                  <button className="btn-focus bg-rose-gold text-paper w-full rounded-lg px-4 py-4 text-xs font-semibold tracking-widest uppercase">
+                    Place Order
+                  </button>
+                </div>
+
+                <div className="font-label text-ink-55 flex w-full flex-col items-center justify-center gap-2 px-4 py-2 text-center font-normal">
+                  <p>
+                    Placing an order means you accept our{" "}
+                    <Link
+                      className="hover:text-ink shrink-0 cursor-pointer underline"
+                      href="/terms-&-conditions"
+                    >
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      className="hover:text-ink shrink-0 cursor-pointer underline"
+                      href="/privacy-policy"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
