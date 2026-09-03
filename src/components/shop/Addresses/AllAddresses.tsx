@@ -86,7 +86,7 @@ export default function AllAddresses({
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
     fetchAddresses();
   }, [fetchAddresses]);
 
@@ -128,6 +128,22 @@ export default function AllAddresses({
   const toggleDropdown = (id: string) => {
     setIsDropdownOpenId((prev) => (prev === id ? null : id));
   };
+
+  useEffect(() => {
+    if (!expand) return;
+    if (isDropdownOpenId) return;
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onCollapse();
+        return;
+      }
+    };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+    };
+  });
 
   useEffect(() => {
     if (!isDropdownOpenId) return;
