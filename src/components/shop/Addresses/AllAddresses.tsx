@@ -235,7 +235,10 @@ export default function AllAddresses({
                     layout: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
                     duration: 0.25,
                   }}
-                  onClick={() => confirmAddress(address.id)}
+                  onClick={(e) => {
+                    if (e.detail === 0) return;
+                    confirmAddress(address.id);
+                  }}
                   key={address.id}
                   layout
                   className={[
@@ -263,7 +266,7 @@ export default function AllAddresses({
                       <label
                         htmlFor={address.id}
                         className={[
-                          "peer-focus-ring absolute inset-0 rounded-xl",
+                          "peer-focus-ring absolute inset-0.5 rounded-lg",
                           expand ? "cursor-pointer" : "",
                         ].join(" ")}
                       />
