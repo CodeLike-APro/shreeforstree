@@ -48,6 +48,7 @@ export default function AllAddresses({
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchAddresses = useCallback(async () => {
     try {
@@ -153,6 +154,15 @@ export default function AllAddresses({
   }, [panelRef, isDropdownOpenId]);
 
   useEffect(() => {
+    if (!expand)
+      containerRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    return;
+  }, [expand]);
+
+  useEffect(() => {
     if (!isDropdownOpenId) return;
     document.body.style.overflow = "hidden";
     return () => {
@@ -172,7 +182,10 @@ export default function AllAddresses({
   };
 
   return (
-    <div className="border-ink flex min-h-40 w-full items-center justify-center rounded-xl py-4">
+    <div
+      ref={containerRef}
+      className="border-ink flex min-h-40 w-full items-center justify-center rounded-xl py-4"
+    >
       {loading ? (
         <p className="font-label">Loading...</p>
       ) : addresses.length === 0 ? (
@@ -188,11 +201,7 @@ export default function AllAddresses({
           </button>
         </div>
       ) : (
-        <div
-          role="radiogroup"
-          aria-label="Delivery address"
-          className="flex w-full flex-col gap-4 rounded-xl"
-        >
+        <div className="flex w-full flex-col rounded-xl">
           {expand && (
             <button
               onClick={() =>
@@ -206,139 +215,151 @@ export default function AllAddresses({
               Add Address
             </button>
           )}
-          <AnimatePresence mode="popLayout">
-            {visibleAddress.map((address) => (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{
-                  layout: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
-                }}
-                onClick={() => confirmAddress(address.id)}
-                key={address.id}
-                layout
-                className={[
-                  "font-label border-ink relative flex w-full justify-between rounded-xl border p-4",
-                  expand ? "cursor-pointer" : "",
-                ].join(" ")}
-              >
-                {expand && (
-                  <>
-                    <input
-                      type="radio"
-                      aria-label={`${address.label}, ${address.fullName}, ${address.addressLine1}, ${address.addressLine2 ?? ""}, ${address.city}, ${address.state}, ${address.pincode}`}
-                      className="peer sr-only"
-                      name="address"
-                      id={address.id}
-                      checked={selectedId === address.id}
-                      onChange={() => setSelectedId(address.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          confirmAddress(address.id);
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={address.id}
-                      className={[
-                        "peer-focus-ring absolute inset-0 rounded-xl",
-                        expand ? "cursor-pointer" : "",
-                      ].join(" ")}
-                    />
-                  </>
-                )}
-                <div className="flex flex-col items-start justify-center gap-3">
-                  <div className="flex items-center justify-center gap-2">
-                    {address.isDefault && (
-                      <label className="bg-blush rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
-                        Default
-                      </label>
-                    )}
-                    <label className="bg-ink text-paper rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
-                      {address.label}
-                    </label>
-                  </div>
-                  <div className="flex flex-col items-start justify-center">
-                    <h6 className="font-display text-lg font-bold">
-                      {address.fullName}
-                    </h6>
-                    <p className="text-ink-55">{address.phone}</p>
-                  </div>
-                </div>
-                <div className="font-label flex w-[60%] flex-col">
-                  <p>{address.addressLine1}</p>
-                  {address.addressLine2 && <p>{address.addressLine2}</p>}
-                  <p>
-                    {address.city}, {address.state}
-                  </p>
-                  <p>{address.pincode}</p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleDropdown(address.id);
+          <div
+            role="radiogroup"
+            aria-label="Delivery address"
+            className="relative"
+          >
+            <AnimatePresence mode="popLayout">
+              {visibleAddress.map((address) => (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{
+                    opacity: 0,
+                    height: 0,
+                    marginTop: 0,
+                    marginBottom: 0,
                   }}
-                  className="btn-focus border-ink hover:bg-ink hover:text-paper absolute top-1 right-2 z-10 flex rounded-full border px-px py-1"
+                  transition={{
+                    layout: { duration: 0.2, ease: [0.4, 0, 0.2, 1] },
+                    duration: 0.25,
+                  }}
+                  onClick={() => confirmAddress(address.id)}
+                  key={address.id}
+                  layout
+                  className={[
+                    "font-label border-ink relative mt-4 flex w-full justify-between overflow-hidden rounded-xl border p-4",
+                    expand ? "cursor-pointer" : "",
+                  ].join(" ")}
                 >
-                  <div>
-                    <EllipsisVertical size={17} />
-                  </div>
-                </button>
-                {isDropdownOpenId === address.id && (
-                  <div
-                    ref={panelRef}
-                    className="border-ink-25 bg-paper absolute top-7 right-7 z-20 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setIsAddressModalOpen({
-                          modalMode: "edit",
-                          editingId: address.id,
-                        });
-                      }}
-                      className="hover:bg-ink/10 btn-focus flex w-full items-center justify-center gap-1 rounded-md px-2 py-1"
-                    >
-                      <div className="flex w-[40%] items-center justify-start">
-                        <Pencil size={14} />
-                      </div>
-                      <div className="text-md mt-0.5 w-full self-start font-medium">
-                        <p className="text-start">Edit</p>
-                      </div>
-                    </button>
-                    <div className="bg-ink-25 h-px w-full"></div>
-                    <button
-                      disabled={deleteLoadingIds.has(address.id)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteAddress(address.id);
-                      }}
-                      className={[
-                        "hover:bg-ink/10 btn-focus flex w-full items-center justify-center gap-1 rounded-md px-2 py-1",
-                        deleteLoadingIds.has(address.id)
-                          ? "cursor-not-allowed opacity-50"
-                          : "",
-                      ].join(" ")}
-                    >
-                      <div className="flex w-[40%] items-center justify-start">
-                        <Trash2 size={14} />
-                      </div>
-                      <div className="text-md mt-0.5 w-full self-start font-medium">
-                        <p className="text-start">Delete</p>
-                      </div>
-                      {deleteLoadingIds.has(address.id) && (
-                        <div className="animate-spin">
-                          <Loader size={14} />
-                        </div>
+                  {expand && (
+                    <>
+                      <input
+                        type="radio"
+                        aria-label={`${address.label}, ${address.fullName}, ${address.addressLine1}, ${address.addressLine2 ?? ""}, ${address.city}, ${address.state}, ${address.pincode}`}
+                        className="peer sr-only"
+                        name="address"
+                        id={address.id}
+                        checked={selectedId === address.id}
+                        onChange={() => setSelectedId(address.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            confirmAddress(address.id);
+                          }
+                        }}
+                      />
+                      <label
+                        htmlFor={address.id}
+                        className={[
+                          "peer-focus-ring absolute inset-0 rounded-xl",
+                          expand ? "cursor-pointer" : "",
+                        ].join(" ")}
+                      />
+                    </>
+                  )}
+                  <div className="flex flex-col items-start justify-center gap-3">
+                    <div className="flex items-center justify-center gap-2">
+                      {address.isDefault && (
+                        <label className="bg-blush rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                          Default
+                        </label>
                       )}
-                    </button>
+                      <label className="bg-ink text-paper rounded-md px-2 py-1 text-xs font-semibold tracking-widest uppercase">
+                        {address.label}
+                      </label>
+                    </div>
+                    <div className="flex flex-col items-start justify-center">
+                      <h6 className="font-display text-lg font-bold">
+                        {address.fullName}
+                      </h6>
+                      <p className="text-ink-55">{address.phone}</p>
+                    </div>
                   </div>
-                )}
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  <div className="font-label flex w-[60%] flex-col">
+                    <p>{address.addressLine1}</p>
+                    {address.addressLine2 && <p>{address.addressLine2}</p>}
+                    <p>
+                      {address.city}, {address.state}
+                    </p>
+                    <p>{address.pincode}</p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleDropdown(address.id);
+                    }}
+                    className="btn-focus border-ink hover:bg-ink hover:text-paper absolute top-1 right-2 z-10 flex rounded-full border px-px py-1"
+                  >
+                    <div>
+                      <EllipsisVertical size={17} />
+                    </div>
+                  </button>
+                  {isDropdownOpenId === address.id && (
+                    <div
+                      ref={panelRef}
+                      className="border-ink-25 bg-paper absolute top-7 right-7 z-20 flex w-[10vw] flex-col items-center justify-center gap-1 rounded-2xl border px-2 py-1 shadow-md"
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsAddressModalOpen({
+                            modalMode: "edit",
+                            editingId: address.id,
+                          });
+                        }}
+                        className="hover:bg-ink/10 btn-focus flex w-full items-center justify-center gap-1 rounded-md px-2 py-1"
+                      >
+                        <div className="flex w-[40%] items-center justify-start">
+                          <Pencil size={14} />
+                        </div>
+                        <div className="text-md mt-0.5 w-full self-start font-medium">
+                          <p className="text-start">Edit</p>
+                        </div>
+                      </button>
+                      <div className="bg-ink-25 h-px w-full"></div>
+                      <button
+                        disabled={deleteLoadingIds.has(address.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteAddress(address.id);
+                        }}
+                        className={[
+                          "hover:bg-ink/10 btn-focus flex w-full items-center justify-center gap-1 rounded-md px-2 py-1",
+                          deleteLoadingIds.has(address.id)
+                            ? "cursor-not-allowed opacity-50"
+                            : "",
+                        ].join(" ")}
+                      >
+                        <div className="flex w-[40%] items-center justify-start">
+                          <Trash2 size={14} />
+                        </div>
+                        <div className="text-md mt-0.5 w-full self-start font-medium">
+                          <p className="text-start">Delete</p>
+                        </div>
+                        {deleteLoadingIds.has(address.id) && (
+                          <div className="animate-spin">
+                            <Loader size={14} />
+                          </div>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       )}
       <AddressModal
