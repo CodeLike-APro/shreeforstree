@@ -98,3 +98,49 @@ export function AddressShimmer() {
     </div>
   );
 }
+
+export function OrderItemsShimmer() {
+  return (
+    <div className="border-b-ink/10 flex gap-4 border-b pb-4">
+      <div className="bg-red overflow-hidden rounded-xl">
+        <Shimmer className="aspect-3/4 w-18" />
+      </div>
+      <div className="flex w-[80%] flex-col items-start justify-between">
+        <div className="flex w-full flex-col gap-2">
+          <div className="w-[50%]">
+            <Shimmer className="h-6 w-full" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div>
+              <Shimmer className="h-5 w-12" />
+            </div>
+            <div>
+              <Shimmer className="h-5 w-12" />
+            </div>
+          </div>
+        </div>
+        <div className="flex items-end justify-between gap-2">
+          <div>
+            <Shimmer className="h-5 w-15" />
+          </div>
+          <div>
+            <Shimmer className="h-5 w-10" />
+          </div>
+          <div>
+            <Shimmer className="h-5 w-10" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function OrderItemsShimmerGrid({ count = 3 }: { count?: number }) {
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <OrderItemsShimmer key={i} />
+      ))}
+    </>
+  );
+}

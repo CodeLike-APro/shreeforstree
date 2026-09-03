@@ -1,7 +1,7 @@
 "use client";
 
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
-import { Loader } from "lucide-react";
+import { OrderItemsShimmerGrid } from "@/components/ui/Shimmer";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -118,14 +118,7 @@ export default function Checkout() {
             </div>
             <div className="w-full py-5">
               {isLoading ? (
-                <div className="flex w-full flex-col items-center justify-center gap-2">
-                  <div className="animate-spin">
-                    <Loader size={20} />
-                  </div>
-                  <p className="font-label text-lg">
-                    Loading your items to order...
-                  </p>
-                </div>
+                <OrderItemsShimmerGrid count={3} />
               ) : !cartItems ? (
                 <div className="flex w-full flex-col items-center justify-center gap-2">
                   <p className="font-label text-lg">
