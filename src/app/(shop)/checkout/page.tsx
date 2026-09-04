@@ -1,7 +1,7 @@
 "use client";
 
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
-import {
+import EmailShimmer, {
   OrderItemsShimmerGrid,
   PaymentSummaryShimmer,
 } from "@/components/ui/Shimmer";
@@ -43,11 +43,9 @@ export default function Checkout() {
   const [email, setEmail] = useState<string | null>(null);
   const [editEmail, setEditEmail] = useState(email ? false : true);
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const session = useSession();
-
-  if (session.data?.user?.email && email === null) {
-    setEmail(session.data.user.email);
-  }
+  const { data: session, isPending } = useSession();
+  const emailLoading = isPending;
+  const displayedEmail = email ?? session?.user.email ?? "";
 
   useEffect(() => {
     if (editEmail) emailInputRef.current?.focus();
@@ -116,31 +114,38 @@ export default function Checkout() {
                 Email Address
               </h4>
               <div className="mt-4 flex h-full w-full items-center justify-between self-start">
-                <div className="relative w-[60%]">
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    ref={emailInputRef}
-                    disabled={!editEmail}
-                    value={email || ""}
-                    placeholder=" "
-                    className={[
-                      "peer border-ink/35 font-label btn-focus h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm",
-                      editEmail
-                        ? ""
-                        : "bg-ink-10 text-ink-55 cursor-not-allowed",
-                    ].join(" ")}
-                    onChange={(e) => setEmail(e.target.value)}
-                  ></input>
+                {emailLoading ? (
+                  <EmailShimmer />
+                ) : (
+                  <>
+                    <div className="relative w-[60%]">
+                      <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        ref={emailInputRef}
+                        disabled={!editEmail}
+                        value={displayedEmail}
+                        placeholder=" "
+                        className={[
+                          "peer border-ink/35 font-label btn-focus h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm",
+                          editEmail
+                            ? ""
+                            : "bg-ink-10 text-ink-55 cursor-not-allowed",
+                        ].join(" ")}
+                        onChange={(e) => setEmail(e.target.value)}
+                      ></input>
 
-                  <label
-                    htmlFor="email"
-                    className="peer-focus:text-rose-gold-dark font-label bg-paper pointer-events-none absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs"
-                  >
-                    Email Address
-                  </label>
-                </div>
+                      <label
+                        htmlFor="email"
+                        className="peer-focus:text-rose-gold-dark font-label bg-paper pointer-events-none absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs"
+                      >
+                        Email Address
+                      </label>
+                    </div>
+                  </>
+                )}
+
                 <button
                   onClick={() => {
                     if (!editEmail) {
@@ -295,7 +300,7 @@ export default function Checkout() {
               <PaymentSummaryShimmer />
             </div>
           ) : !cartItems ? (
-            <div>
+            <div className="font-label border-ink/10 sticky top-32 w-full rounded-xl border px-4 py-2">
               <p>Something went wrong while loading items to order</p>
             </div>
           ) : cartItems.items.length === 0 ? (
