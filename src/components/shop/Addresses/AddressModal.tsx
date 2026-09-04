@@ -1,19 +1,27 @@
 "use client";
+
+import { createAddressSchema } from "@/lib/validators/address.validators";
 import { Loader } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const inputBaseClasses =
+const inputBaseClasses: string =
   "peer border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm btn-focus";
 
-const hideSpinButtons =
+const hideSpinButtons: string =
   "appearance-text-field [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
-const labelBaseClasses =
+const labelBaseClasses: string =
   "peer-focus:text-rose-gold-dark font-label bg-paper absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs pointer-events-none";
 
 const focusableSelector: string =
   "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+const errorBaseClasses: string = "font-label mt-1 text-sm text-red-600";
+
+type FieldErrors = Partial<
+  Record<keyof typeof createAddressSchema.shape, string[]>
+>;
 
 export default function AddressModal({
   isOpen,
@@ -21,12 +29,14 @@ export default function AddressModal({
   onClose,
   title = "new",
   id,
+  isGuest = false,
 }: {
   isOpen: boolean;
   onSaved?: () => void;
   onClose: () => void;
   title?: "new" | "edit";
   id?: string;
+  isGuest?: boolean;
 }) {
   const AddressTitle = title === "new" ? "Add new address" : "Edit Address";
 
@@ -40,6 +50,7 @@ export default function AddressModal({
   const [pincode, setPincode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
   const panelRef = useRef<HTMLFormElement>(null);
 
   const addressData = {
@@ -58,29 +69,83 @@ export default function AddressModal({
   const handleSave = async () => {
     try {
       setLoading(true);
-      const res = await fetch(url, {
-        method: title === "new" ? "POST" : "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(addressData),
-      });
-      if (!res.ok) {
-        toast.error("Failed to save address");
-        setLoading(false);
-        return;
-      }
-      const result = await res.json();
+      setErrors({}); // Clear previous errors
+      const result = await createAddressSchema.safeParseAsync(addressData);
       if (!result.success) {
-        toast.error("Failed to save address");
+        const fieldErrors = result.error.flatten(
+          (issue) => issue.message,
+        ).fieldErrors;
+        setErrors(fieldErrors);
+        toast.error("Please fix the highlighted fields."); // render under each input
         setLoading(false);
         return;
       }
-      toast.success("Address saved successfully");
-      setLoading(false);
-      onSaved?.();
-      onClose();
-      return;
+      if (isGuest) {
+        try {
+          if (title === "new") {
+            const raw = localStorage.getItem("guestAddress");
+            const parsed = raw ? JSON.parse(raw) : [];
+            const existingAddresses = Array.isArray(parsed) ? parsed : [];
+            localStorage.setItem(
+              "guestAddress",
+              JSON.stringify([
+                ...existingAddresses,
+                { ...addressData, id: crypto.randomUUID() },
+              ]),
+            );
+            toast.success("Address saved successfully");
+            setLoading(false);
+            onSaved?.();
+            onClose();
+            return;
+          } else if (title === "edit" && id) {
+            const raw = localStorage.getItem("guestAddress");
+            const parsed = raw ? JSON.parse(raw) : [];
+            const existingAddresses = Array.isArray(parsed) ? parsed : [];
+            const updatedAddresses = existingAddresses.map((address) =>
+              address.id === id ? { ...address, ...addressData } : address,
+            );
+            localStorage.setItem(
+              "guestAddress",
+              JSON.stringify(updatedAddresses),
+            );
+            toast.success("Address updated successfully");
+            setLoading(false);
+            onSaved?.();
+            onClose();
+            return;
+          }
+        } catch (error) {
+          console.error("Error saving guest address:", error);
+          toast.error("Failed to save address. Please try again.");
+          setLoading(false);
+          return;
+        }
+      } else {
+        const res = await fetch(url, {
+          method: title === "new" ? "POST" : "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(addressData),
+        });
+        if (!res.ok) {
+          toast.error("Failed to save address");
+          setLoading(false);
+          return;
+        }
+        const result = await res.json();
+        if (!result.success) {
+          toast.error("Failed to save address");
+          setLoading(false);
+          return;
+        }
+        toast.success("Address saved successfully");
+        setLoading(false);
+        onSaved?.();
+        onClose();
+        return;
+      }
     } catch (error) {
       console.error("Error saving address:", error);
       toast.error("Failed to save address. Please try again.");
@@ -91,41 +156,70 @@ export default function AddressModal({
 
   useEffect(() => {
     if (title === "edit" && id && isOpen) {
-      const fetchAddress = async () => {
-        setFetchLoading(true);
+      if (isGuest) {
         try {
-          const res = await fetch(`/api/addresses/${id}`);
-          if (!res.ok) {
-            toast.error("Failed to fetch address");
-            console.error("Failed to fetch address", res);
-            setFetchLoading(false);
-            return;
+          const raw = localStorage.getItem("guestAddress");
+          const parsed = raw ? JSON.parse(raw) : [];
+          const existingAddresses = Array.isArray(parsed) ? parsed : [];
+          const addressToEdit = existingAddresses.find(
+            (address) => address.id === id,
+          );
+          if (addressToEdit) {
+            const resetTimeout = window.setTimeout(() => {
+              setLabel(addressToEdit.label || null);
+              setFullName(addressToEdit.fullName || null);
+              setPhone(addressToEdit.phone || null);
+              setAddressLine1(addressToEdit.addressLine1 || null);
+              setAddressLine2(addressToEdit.addressLine2 || null);
+              setCity(addressToEdit.city || null);
+              setState(addressToEdit.state || null);
+              setPincode(addressToEdit.pincode || null);
+            }, 0);
+
+            return () => window.clearTimeout(resetTimeout);
           }
-          const result = await res.json();
-          if (!result.success) {
-            toast.error("Failed to fetch address");
-            console.error("Failed to fetch address", result);
-            setFetchLoading(false);
-            return;
-          }
-          setFetchLoading(false);
-          const data = result.data;
-          setLabel(data.label);
-          setFullName(data.fullName);
-          setPhone(data.phone);
-          setAddressLine1(data.addressLine1);
-          setAddressLine2(data.addressLine2);
-          setCity(data.city);
-          setState(data.state);
-          setPincode(data.pincode);
         } catch (error) {
-          console.error("Error fetching address:", error);
+          console.error("Error fetching guest address:", error);
           toast.error("Failed to fetch address");
-          setFetchLoading(false);
           return;
         }
-      };
-      fetchAddress();
+      } else {
+        const fetchAddress = async () => {
+          setFetchLoading(true);
+          try {
+            const res = await fetch(`/api/addresses/${id}`);
+            if (!res.ok) {
+              toast.error("Failed to fetch address");
+              console.error("Failed to fetch address", res);
+              setFetchLoading(false);
+              return;
+            }
+            const result = await res.json();
+            if (!result.success) {
+              toast.error("Failed to fetch address");
+              console.error("Failed to fetch address", result);
+              setFetchLoading(false);
+              return;
+            }
+            setFetchLoading(false);
+            const data = result.data;
+            setLabel(data.label);
+            setFullName(data.fullName);
+            setPhone(data.phone);
+            setAddressLine1(data.addressLine1);
+            setAddressLine2(data.addressLine2);
+            setCity(data.city);
+            setState(data.state);
+            setPincode(data.pincode);
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            toast.error("Failed to fetch address");
+            setFetchLoading(false);
+            return;
+          }
+        };
+        fetchAddress();
+      }
     } else if (title === "new" && isOpen) {
       const resetTimeout = window.setTimeout(() => {
         setLabel(null);
@@ -136,11 +230,12 @@ export default function AddressModal({
         setCity(null);
         setState(null);
         setPincode(null);
+        setErrors({}); // Clear previous errors when opening the modal for a new address
       }, 0);
 
       return () => window.clearTimeout(resetTimeout);
     }
-  }, [id, title, isOpen]);
+  }, [id, title, isOpen, isGuest]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -230,12 +325,19 @@ export default function AddressModal({
                     type="text"
                     value={label || ""}
                     placeholder=" "
+                    aria-invalid={errors.label ? "true" : "false"}
+                    aria-describedby={errors.label ? "label-error" : undefined}
                     className={inputBaseClasses}
                     onChange={(e) => setLabel(e.target.value)}
                   ></input>
                   <label htmlFor="label" className={labelBaseClasses}>
                     Label
                   </label>
+                  {errors.label && (
+                    <p id="label-error" className={errorBaseClasses}>
+                      {errors.label[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="relative">
                   <input
@@ -244,12 +346,21 @@ export default function AddressModal({
                     type="text"
                     value={fullName || ""}
                     placeholder=" "
+                    aria-invalid={errors.fullName ? "true" : "false"}
+                    aria-describedby={
+                      errors.fullName ? "fullName-error" : undefined
+                    }
                     className={inputBaseClasses}
                     onChange={(e) => setFullName(e.target.value)}
                   ></input>
                   <label htmlFor="fullName" className={labelBaseClasses}>
                     Full Name
                   </label>
+                  {errors.fullName && (
+                    <p id="fullName-error" className={errorBaseClasses}>
+                      {errors.fullName[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="relative">
                   <input
@@ -258,12 +369,19 @@ export default function AddressModal({
                     type="number"
                     value={phone || ""}
                     placeholder=" "
+                    aria-invalid={errors.phone ? "true" : "false"}
+                    aria-describedby={errors.phone ? "phone-error" : undefined}
                     className={inputBaseClasses + " " + hideSpinButtons}
                     onChange={(e) => setPhone(e.target.value)}
                   ></input>
                   <label htmlFor="phone" className={labelBaseClasses}>
                     Phone
                   </label>
+                  {errors.phone && (
+                    <p id="phone-error" className={errorBaseClasses}>
+                      {errors.phone[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="relative">
                   <input
@@ -271,6 +389,10 @@ export default function AddressModal({
                     name="addressLine1"
                     type="text"
                     value={addressLine1 || ""}
+                    aria-invalid={errors.addressLine1 ? "true" : "false"}
+                    aria-describedby={
+                      errors.addressLine1 ? "addressLine1-error" : undefined
+                    }
                     placeholder=" "
                     className={inputBaseClasses}
                     onChange={(e) => setAddressLine1(e.target.value)}
@@ -278,6 +400,11 @@ export default function AddressModal({
                   <label htmlFor="addressLine1" className={labelBaseClasses}>
                     Address Line 1
                   </label>
+                  {errors.addressLine1 && (
+                    <p id="addressLine1-error" className={errorBaseClasses}>
+                      {errors.addressLine1[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="relative">
                   <input
@@ -286,12 +413,21 @@ export default function AddressModal({
                     type="text"
                     value={addressLine2 || ""}
                     placeholder=" "
+                    aria-invalid={errors.addressLine2 ? "true" : "false"}
+                    aria-describedby={
+                      errors.addressLine2 ? "addressLine2-error" : undefined
+                    }
                     className={inputBaseClasses}
                     onChange={(e) => setAddressLine2(e.target.value)}
                   ></input>
                   <label htmlFor="addressLine2" className={labelBaseClasses}>
                     Address Line 2 (optional)
                   </label>
+                  {errors.addressLine2 && (
+                    <p id="addressLine2-error" className={errorBaseClasses}>
+                      {errors.addressLine2[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   {" "}
@@ -302,12 +438,19 @@ export default function AddressModal({
                       type="text"
                       value={city || ""}
                       placeholder=" "
+                      aria-invalid={errors.city ? "true" : "false"}
+                      aria-describedby={errors.city ? "city-error" : undefined}
                       className={inputBaseClasses}
                       onChange={(e) => setCity(e.target.value)}
                     ></input>
                     <label htmlFor="city" className={labelBaseClasses}>
                       City
                     </label>
+                    {errors.city && (
+                      <p id="city-error" className={errorBaseClasses}>
+                        {errors.city[0]}
+                      </p>
+                    )}
                   </div>
                   <div className="relative">
                     <input
@@ -316,12 +459,21 @@ export default function AddressModal({
                       type="text"
                       value={state || ""}
                       placeholder=" "
+                      aria-invalid={errors.state ? "true" : "false"}
+                      aria-describedby={
+                        errors.state ? "state-error" : undefined
+                      }
                       className={inputBaseClasses}
                       onChange={(e) => setState(e.target.value)}
                     ></input>
                     <label htmlFor="state" className={labelBaseClasses}>
                       State
                     </label>
+                    {errors.state && (
+                      <p id="state-error" className={errorBaseClasses}>
+                        {errors.state[0]}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="relative">
@@ -331,12 +483,21 @@ export default function AddressModal({
                     type="number"
                     value={pincode || ""}
                     placeholder=" "
+                    aria-invalid={errors.pincode ? "true" : "false"}
+                    aria-describedby={
+                      errors.pincode ? "pincode-error" : undefined
+                    }
                     className={inputBaseClasses + " " + hideSpinButtons}
                     onChange={(e) => setPincode(e.target.value)}
                   ></input>
                   <label htmlFor="pincode" className={labelBaseClasses}>
                     Pincode
                   </label>
+                  {errors.pincode && (
+                    <p id="pincode-error" className={errorBaseClasses}>
+                      {errors.pincode[0]}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center justify-end gap-2 py-2">
                   <button
