@@ -158,8 +158,12 @@ export default function Cart({
 
   useEffect(() => {
     if (!isOpen) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    refreshCart();
+
+    const fetchCart = async () => {
+      return await refreshCart();
+    };
+
+    fetchCart();
   }, [isOpen, refreshCart]);
 
   const updateQuantity = async (itemId: string, quantity: number) => {
