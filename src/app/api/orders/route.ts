@@ -3,6 +3,7 @@ import {
   created,
   forbidden,
   internalServerError,
+  notFound,
   paginated,
   unauthorized,
 } from "@/lib/api-response";
@@ -118,16 +119,18 @@ export async function POST(request: NextRequest) {
 
     let address: typeof addresses.$inferSelect | undefined = undefined;
 
-    if (addressId) {
+    if (addressId && currentUser) {
       address = await db.query.addresses.findFirst({
         where: (addresses, { eq }) => eq(addresses.id, addressId),
       });
-    }
 
-    if (address?.userId !== currentUser?.id) {
-      return forbidden(
-        "Unauthorized access. You can only use your own address.",
-      );
+      if (!address) {
+        return notFound("Address not found");
+      }
+
+      if (address.userId !== currentUser.id) {
+        return forbidden("You are not authorized to use this address");
+      }
     }
 
     const resolvedFullName = address?.fullName ?? shippingFullName;
