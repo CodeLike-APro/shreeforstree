@@ -5,9 +5,10 @@ import {
   OrderItemsShimmerGrid,
   PaymentSummaryShimmer,
 } from "@/components/ui/Shimmer";
+import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 type Cart = {
@@ -39,6 +40,25 @@ export default function Checkout() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [cartItems, setCartItems] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState(email ? false : true);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const session = useSession();
+
+  if (session.data?.user?.email && email === null) {
+    setEmail(session.data.user.email);
+    console.log("Email set from session:", session.data.user.email);
+  }
+
+  useEffect(() => {
+    if (editEmail) emailInputRef.current?.focus();
+  }, [editEmail]);
+
+  const handleEditEmail = () => setEditEmail(true);
+
+  const handleSaveEmail = () => {
+    setEditEmail(false);
+  };
 
   useEffect(() => {
     const fetchOrderItems = async () => {
@@ -89,6 +109,53 @@ export default function Checkout() {
             <p className="text-ink-40 text-md font-label">
               Confirm where this is going, then place your order.
             </p>
+          </div>
+
+          <div className="mb-7 flex w-full flex-col items-center justify-start">
+            <div className="flex h-20 w-full flex-col items-center justify-start gap-2">
+              <h4 className="font-label w-full font-bold tracking-wide">
+                Email Address
+              </h4>
+              <div className="mt-4 flex h-full w-full items-center justify-between self-start">
+                <div className="relative w-[60%]">
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    ref={emailInputRef}
+                    disabled={!editEmail}
+                    value={email || ""}
+                    placeholder=" "
+                    className={[
+                      "peer border-ink/35 font-label btn-focus h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm",
+                      editEmail
+                        ? ""
+                        : "bg-ink-10 text-ink-55 cursor-not-allowed",
+                    ].join(" ")}
+                    onChange={(e) => setEmail(e.target.value)}
+                  ></input>
+
+                  <label
+                    htmlFor="email"
+                    className="peer-focus:text-rose-gold-dark font-label bg-paper pointer-events-none absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs"
+                  >
+                    Email Address
+                  </label>
+                </div>
+                <button
+                  onClick={() => {
+                    if (!editEmail) {
+                      handleEditEmail();
+                    } else {
+                      handleSaveEmail();
+                    }
+                  }}
+                  className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
+                >
+                  {editEmail ? "Save" : "Edit Email"}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="relative flex w-full flex-col items-center justify-between gap-2">
