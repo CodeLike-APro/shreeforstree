@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import AddressModal from "./AddressModal";
 import { AnimatePresence, motion } from "motion/react";
 import { AddressShimmer } from "@/components/ui/Shimmer";
+import { useSession } from "@/lib/auth-client";
 
 type Address = {
   id: string;
@@ -50,68 +51,114 @@ export default function AllAddresses({
 
   const panelRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { data: session, isPending } = useSession();
+  const isGuest = !isPending && !session;
 
   const fetchAddresses = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/addresses");
-      if (!res.ok) {
-        toast.error("Failed to fetch addresses");
-        console.error("Failed to fetch addresses", res);
-        setLoading(false);
+      if (isPending) {
         return;
       }
-      const result = await res.json();
-      if (!result.success) {
-        toast.error("Failed to fetch addresses");
-        console.error("Failed to fetch addresses", result);
+      if (!isGuest) {
+        const res = await fetch("/api/addresses");
+        if (!res.ok) {
+          toast.error("Failed to fetch addresses");
+          console.error("Failed to fetch addresses", res);
+          setLoading(false);
+          return;
+        }
+        const result = await res.json();
+        if (!result.success) {
+          toast.error("Failed to fetch addresses");
+          console.error("Failed to fetch addresses", result);
+          setLoading(false);
+          return;
+        }
+        const data = result.data;
+        setAddresses(data);
+        setSelectedId((prev) => {
+          if (prev && data.some((a: Address) => a.id === prev)) return prev;
+          return (
+            data.find((a: Address) => a.isDefault)?.id ?? data[0]?.id ?? null
+          );
+        });
         setLoading(false);
-        return;
+        return data;
+      } else {
+        try {
+          const raw = localStorage.getItem("guestAddress");
+          const parsed = raw ? JSON.parse(raw) : [];
+          const existingAddress: Address[] = Array.isArray(parsed)
+            ? parsed
+            : [];
+          setAddresses(existingAddress);
+          setSelectedId((prev) => {
+            if (prev && existingAddress.some((a: Address) => a.id === prev))
+              return prev;
+            return (
+              existingAddress.find((a: Address) => a.isDefault)?.id ??
+              existingAddress[0]?.id ??
+              null
+            );
+          });
+          setLoading(false);
+          return;
+        } catch (error) {
+          console.error("Error fetching guest addresses:", error);
+          toast.error("Failed to fetch guest addresses");
+          setLoading(false);
+          return;
+        }
       }
-      const data = result.data;
-      setAddresses(data);
-      setSelectedId((prev) => {
-        if (prev && data.some((a: Address) => a.id === prev)) return prev;
-        return (
-          data.find((a: Address) => a.isDefault)?.id ?? data[0]?.id ?? null
-        );
-      });
-      setLoading(false);
-      return data;
     } catch (error) {
       console.error("Error fetching addresses:", error);
       toast.error("Failed to fetch addresses");
       setLoading(false);
       return;
     }
-  }, []);
+  }, [isGuest, isPending]);
 
   useEffect(() => {
-    /* eslint-disable-next-line react-hooks/set-state-in-effect */
-    fetchAddresses();
+    const fetchingAddress = () => {
+      return fetchAddresses();
+    };
+    fetchingAddress();
   }, [fetchAddresses]);
 
   const handleDeleteAddress = async (id: string) => {
     try {
       setDeleteLoadingIds((prev) => new Set(prev).add(id));
-      const res = await fetch(`/api/addresses/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        toast.error("Failed to delete address");
-        console.error("Failed to delete address", res);
+      if (isGuest) {
+        const updatedAddresses = addresses.filter(
+          (address) => address.id !== id,
+        );
+        localStorage.setItem("guestAddress", JSON.stringify(updatedAddresses));
         setDeleteLoadingIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(id);
           return newSet;
         });
-        return;
+      } else {
+        const res = await fetch(`/api/addresses/${id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          toast.error("Failed to delete address");
+          console.error("Failed to delete address", res);
+          setDeleteLoadingIds((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(id);
+            return newSet;
+          });
+          return;
+        }
+        setDeleteLoadingIds((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(id);
+          return newSet;
+        });
       }
-      setDeleteLoadingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(id);
-        return newSet;
-      });
       await fetchAddresses();
       toast.success("Address deleted successfully");
     } catch (error) {
@@ -390,6 +437,7 @@ export default function AllAddresses({
         onClose={() =>
           setIsAddressModalOpen({ modalMode: null, editingId: null })
         }
+        isGuest={isGuest}
       />
     </div>
   );
