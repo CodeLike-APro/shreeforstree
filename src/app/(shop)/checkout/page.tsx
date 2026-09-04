@@ -8,8 +8,11 @@ import EmailShimmer, {
 import { useSession } from "@/lib/auth-client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { addresses } from "@/lib/db/schema";
+
+type Address = typeof addresses.$inferSelect;
 
 type Cart = {
   cartId: string;
@@ -37,15 +40,16 @@ type Cart = {
 };
 
 export default function Checkout() {
+  const { data: session, isPending } = useSession();
   const [isExpanded, setIsExpanded] = useState(false);
   const [cartItems, setCartItems] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
-  const [editEmail, setEditEmail] = useState(email ? false : true);
+  const [editEmail, setEditEmail] = useState(isPending || email ? false : true);
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const { data: session, isPending } = useSession();
   const emailLoading = isPending;
   const displayedEmail = email ?? session?.user.email ?? "";
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   useEffect(() => {
     if (editEmail) emailInputRef.current?.focus();
@@ -97,23 +101,30 @@ export default function Checkout() {
     fetchOrderItems();
   }, []);
 
+  const collapse = useCallback(() => setIsExpanded(false), []);
+
   return (
     <div className="mt-10 flex min-h-screen w-full items-center justify-center gap-4 self-center px-10 pb-20">
       <div className="flex min-h-screen w-full max-w-7xl justify-center gap-10">
         <div className="flex w-full flex-col items-center gap-2 self-center">
-          <div className="flex w-full flex-col items-start justify-center gap-2">
+          <div className="border-ink/10 flex w-full flex-col items-start justify-center gap-2 border-b pb-4">
             <h1 className="text-3xl font-bold tracking-wide">Checkout</h1>
             <p className="text-ink-40 text-md font-label">
               Confirm where this is going, then place your order.
             </p>
           </div>
 
-          <div className="mb-7 flex w-full flex-col items-center justify-start">
-            <div className="flex h-20 w-full flex-col items-center justify-start gap-2">
-              <h4 className="font-label w-full font-bold tracking-wide">
-                Email Address
-              </h4>
-              <div className="mt-4 flex h-full w-full items-center justify-between self-start">
+          <div className="border-ink/10 my-7 flex w-full flex-col items-center justify-start border-b pb-7">
+            <div className="flex w-full flex-col items-center justify-start gap-4">
+              <div className="flex w-full flex-col items-start justify-center">
+                <h4 className="font-label w-full font-bold tracking-wide">
+                  Email Address
+                </h4>
+                <p className="text-ink-55 font-label text-sm">
+                  We need your email address to send you order updates.
+                </p>
+              </div>
+              <div className="flex h-full w-full items-center justify-between self-start">
                 {emailLoading ? (
                   <EmailShimmer />
                 ) : (
@@ -179,7 +190,8 @@ export default function Checkout() {
             <div className="w-full">
               <AllAddresses
                 expand={isExpanded}
-                onCollapse={() => setIsExpanded(false)}
+                onSelect={setSelectedAddress}
+                onCollapse={collapse}
               />
             </div>
           </div>
