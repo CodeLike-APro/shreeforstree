@@ -10,7 +10,7 @@ const hideSpinButtons =
   "appearance-text-field [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
 
 const labelBaseClasses =
-  "peer-focus:text-rose-gold-dark bg-paper absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs pointer-events-none";
+  "peer-focus:text-rose-gold-dark font-label bg-paper absolute -top-2 left-2 px-1 text-xs font-medium text-gray-700 transition-all duration-300 peer-placeholder-shown:translate-y-4 peer-placeholder-shown:text-sm peer-focus:translate-y-0 peer-focus:text-xs pointer-events-none";
 
 const focusableSelector: string =
   "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
