@@ -33,9 +33,11 @@ type IsModalOpen = {
 export default function AllAddresses({
   expand,
   onCollapse,
+  onSelect,
 }: {
   expand: boolean;
   onCollapse: () => void;
+  onSelect: (Address: Address) => void;
 }) {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [isDropdownOpenId, setIsDropdownOpenId] = useState<string | null>(null);
@@ -191,7 +193,7 @@ export default function AllAddresses({
     return () => {
       document.removeEventListener("keydown", handleKey);
     };
-  });
+  }, [onCollapse, expand, isDropdownOpenId]);
 
   useEffect(() => {
     if (!isDropdownOpenId) return;
@@ -244,6 +246,11 @@ export default function AllAddresses({
     setSelectedId(id);
     onCollapse();
   };
+
+  useEffect(() => {
+    const selected = addresses.find((a) => a.id === selectedId);
+    if (selected) onSelect(selected);
+  }, [selectedId, addresses, onSelect]);
 
   return (
     <div
