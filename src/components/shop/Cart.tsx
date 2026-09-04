@@ -133,7 +133,6 @@ export default function Cart({
       const refreshSeq = ++seqRef.current;
       const res = await fetch("/api/cart");
       if (refreshSeq !== seqRef.current) {
-        console.log("Discarding stale cart response");
         return;
       }
       if (!res.ok) {

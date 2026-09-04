@@ -47,7 +47,6 @@ export default function Checkout() {
 
   if (session.data?.user?.email && email === null) {
     setEmail(session.data.user.email);
-    console.log("Email set from session:", session.data.user.email);
   }
 
   useEffect(() => {

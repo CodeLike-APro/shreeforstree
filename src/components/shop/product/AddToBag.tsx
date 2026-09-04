@@ -43,7 +43,6 @@ export default function AddToBag({
       });
 
       if (!res.ok) {
-        console.log("Failed to add to bag", res);
         return;
       }
 
