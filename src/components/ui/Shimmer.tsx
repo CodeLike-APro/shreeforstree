@@ -189,3 +189,11 @@ export function PaymentSummaryShimmer() {
     </div>
   );
 }
+
+export default function EmailShimmer() {
+  return (
+    <div className="border-ink/35 h-9 w-[60%] rounded-lg border-[1.5] px-2 py-1.5">
+      <Shimmer className="h-full w-3/4" />
+    </div>
+  );
+}
