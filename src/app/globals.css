@@ -155,9 +155,9 @@
 .btn-focus {
   @apply transition-colors duration-150;
 
-  @apply focus:border-transparent focus:ring-0 focus:outline-none;
+  @apply focus:ring-0 focus:outline-none;
 
-  @apply focus-visible:ring-rose-gold-dark focus-visible:ring-2;
+  @apply focus-visible:ring-rose-gold-dark focus-visible:border-transparent focus-visible:ring-2;
 }
 
 .peer-focus-ring {
