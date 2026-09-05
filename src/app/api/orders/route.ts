@@ -22,6 +22,7 @@ import { and, count, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { getOrCreateSessionId } from "@/lib/cart-utils";
+import { setGuestOrderCookie } from "@/lib/order-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -288,6 +289,10 @@ export async function POST(request: NextRequest) {
 
       return order;
     });
+
+    if (guestToken) {
+      await setGuestOrderCookie({ orderId: newOrder.id, guestToken });
+    }
 
     return created("Order created successfully", newOrder);
   } catch (error) {
