@@ -10,12 +10,7 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
-import {
-  cartItems,
-  orderItems,
-  orders,
-  orderStatusEnum,
-} from "@/lib/db/schema";
+import { orderItems, orders, orderStatusEnum } from "@/lib/db/schema";
 import type { addresses } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
@@ -248,15 +243,16 @@ export async function POST(request: NextRequest) {
         .insert(orders)
         .values({
           userId: currentUser?.id ?? null,
-          guestToken: guestToken,
+          cartId: cart.id,
           originalAmount: originalAmount.toString(),
           discountAmount: discountAmount.toString(),
           itemsTotal: itemsTotal.toString(),
           shippingCharges: shippingCharge.toString(),
           totalAmount: totalAmount.toString(),
-          orderStatus: "not_placed",
           paymentStatus: "pending",
+          orderStatus: "not_placed",
           addressId: address?.id,
+          guestToken: guestToken,
           shippingFullName: resolvedFullName,
           shippingPhone: resolvedPhone,
           shippingEmail: email,
@@ -283,9 +279,7 @@ export async function POST(request: NextRequest) {
         ).toFixed(2),
       }));
 
-      await tx.insert(orderItems).values(orderItemsData).returning();
-
-      await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
+      await tx.insert(orderItems).values(orderItemsData);
 
       return order;
     });
