@@ -11,6 +11,7 @@ import {
 } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { orders, payments } from "@/lib/db/schema";
+import { resolveGuestToken } from "@/lib/order-utils";
 import { razorpay } from "@/lib/razorpay";
 import { handleResponse } from "@/lib/response-handler";
 import { verifyPaymentSchema } from "@/lib/validators/payment.validator";
@@ -45,10 +46,12 @@ export async function POST(request: Request) {
       return notFound("Order not found");
     }
 
+    const token = await resolveGuestToken(orderId, guestToken);
+
     const ownershipCheck = await assertOrderOwnership(
       order,
       currentUser?.id,
-      guestToken,
+      token,
     );
 
     const ownershipResponse = handleResponse(ownershipCheck);

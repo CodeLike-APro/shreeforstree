@@ -10,6 +10,7 @@ import type { PgTransaction } from "drizzle-orm/pg-core";
 import { NeonQueryResultHKT } from "drizzle-orm/neon-serverless";
 import { handleResponse } from "@/lib/response-handler";
 import * as schema from "@/lib/db/schema/index";
+import { resolveGuestToken } from "@/lib/order-utils";
 
 type Transaction = PgTransaction<
   NeonQueryResultHKT,
@@ -53,6 +54,8 @@ export async function POST(request: Request) {
     }
     const { orderId, guestToken } = result.data;
 
+    const token = await resolveGuestToken(orderId, guestToken);
+
     const createdOrder: orderCreationResult = await db.transaction(
       async (tx) => {
         const [order] = await tx
@@ -68,7 +71,7 @@ export async function POST(request: Request) {
         const ownershipCheck = await assertOrderOwnership(
           order,
           currentUser?.id,
-          guestToken,
+          token,
         );
 
         if (ownershipCheck.kind === "forbidden") {
