@@ -27,6 +27,7 @@ export const payments = pgTable("payments", {
   transactionId: text("transaction_id").unique(),
   method: text("method"),
   status: paymentStatusEnum("status").notNull().default("pending"),
+  paymentFailureReason: text("payment_failure_reason"),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at")
