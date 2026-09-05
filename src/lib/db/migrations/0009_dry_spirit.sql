@@ -1,0 +1,1 @@
+ALTER TABLE "payments" RENAME COLUMN "payment_failure_reason" TO "failure_reason";
