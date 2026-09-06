@@ -94,6 +94,7 @@ export async function POST(request: Request) {
     } else {
       // Handle payment failed event
       console.log("Payment Failed Event:", paymentData);
+      await handleFailed(paymentEntity);
       return ok("Payment failed event processed successfully");
     }
   } catch (error) {
@@ -111,7 +112,7 @@ async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
       .for("update");
 
     if (!payment) {
-      console.error("Payment not found for orderId:", entity.order_id);
+      console.warn("Payment not found for orderId:", entity.order_id);
       return { kind: "ok", message: "Payment not found" };
     }
 
@@ -151,12 +152,12 @@ async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
       .for("update");
 
     if (!order) {
-      console.error("Order not found for orderId:", payment.orderId);
+      console.warn("Order not found for orderId:", payment.orderId);
       return { kind: "ok", message: "Order not found" };
     }
 
     if (order.paymentStatus === "success") {
-      console.error(
+      console.warn(
         "Order already marked as success for orderId:",
         payment.orderId,
       );
@@ -241,4 +242,89 @@ async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
   );
 
   //TODO: Add logic to send confirmation email to the user after successful payment and order placement.
+}
+
+const nonEmptyString = ({
+  string,
+}: {
+  string: Array<string | null | undefined>;
+}): string | null => {
+  const nonEmpty = string.find(
+    (s): s is string =>
+      typeof s === "string" && s.trim().slice(0, 240).length > 0,
+  );
+  return nonEmpty?.trim().slice(0, 240) ?? null;
+};
+
+async function handleFailed(entity: RazorpayPaymentEntity): Promise<void> {
+  const createdPaymentAndOrder = await db.transaction(async (tx) => {
+    const [payment] = await tx
+      .select()
+      .from(payments)
+      .where(eq(payments.razorpayOrderId, entity.order_id))
+      .for("update");
+
+    if (!payment) {
+      console.warn("Payment not found for orderId:", entity.order_id);
+      return { kind: "ok", message: "Payment not found" };
+    }
+
+    if (payment.status === "success" || payment.status === "refunded") {
+      console.info(
+        `Payment already marked as ${payment.status} for orderId:`,
+        entity.order_id,
+      );
+      return {
+        kind: "ok",
+        message: `Payment already marked as ${payment.status}`,
+        data: { payment },
+      };
+    }
+
+    const [existingTransactionId] = await tx
+      .select()
+      .from(payments)
+      .where(eq(payments.transactionId, entity.id));
+
+    if (existingTransactionId) {
+      console.error(
+        "Transaction ID already exists for orderId:",
+        payment.orderId,
+      );
+      return { kind: "ok", message: "Transaction ID already exists" };
+    }
+
+    const [updatedPayment] = await tx
+      .update(payments)
+      .set({
+        status: "failed",
+        transactionId: entity.id,
+        method: entity.method ?? null,
+        failureReason:
+          nonEmptyString({
+            string: [
+              entity.error_description,
+              entity.error_reason,
+              entity.error_code,
+            ],
+          }) ?? "The payment failed due to an unknown reason.",
+      })
+      .where(eq(payments.id, payment.id))
+      .returning();
+
+    if (!updatedPayment) {
+      console.error("Failed to update payment for orderId:", payment.orderId);
+      throw new Error("Failed to update payment");
+    }
+
+    return {
+      kind: "ok",
+      message: "Payment marked as failed",
+      data: { payment: updatedPayment },
+    };
+  });
+
+  console.info(
+    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${JSON.stringify(createdPaymentAndOrder.data)}`,
+  );
 }
