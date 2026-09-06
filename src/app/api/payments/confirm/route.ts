@@ -4,25 +4,18 @@ import {
   notFound,
   ok,
 } from "@/lib/api-response";
-import {
-  assertOrderOwnership,
-  assertPaymentValid,
-  getCurrentUser,
-} from "@/lib/auth-utils";
+import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { orders, payments } from "@/lib/db/schema";
 import { resolveGuestToken } from "@/lib/order-utils";
-import { razorpay } from "@/lib/razorpay";
 import { handleResponse } from "@/lib/response-handler";
-import { verifyPaymentSchema } from "@/lib/validators/payment.validator";
+import { confirmPaymentSchema } from "@/lib/validators/payment.validator";
 import crypto from "crypto";
-import { and, eq, ne } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
     const body = await request.json();
-    const result = await verifyPaymentSchema.safeParseAsync(body);
+    const result = await confirmPaymentSchema.safeParseAsync(body);
     if (!result.success) {
       return badRequest(
         "Invalid payment verification data",
@@ -88,60 +81,20 @@ export async function POST(request: Request) {
       );
 
     if (!isValid) {
-      console.error("Invalid Payment Signature", {
-        orderId: orderId,
-        razorpayOrderId: razorpayOrderId,
-        userId: currentUser?.id,
-      });
-      return badRequest("Payment verification failed");
+      console.error("Invalid Payment Signature");
     }
 
-    const paymentdetails = await razorpay.payments.fetch(razorpayPaymentId);
-
-    const validation = assertPaymentValid(
-      paymentdetails,
-      order,
-      razorpayOrderId,
+    console.info(
+      `Payment verified ${isValid ? "successfully" : "unsuccessfully"}`,
+      {
+        orderId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        signatureVerified: isValid,
+      },
     );
 
-    const validationResponse = handleResponse(validation);
-
-    if (validationResponse.status !== 200) {
-      console.error("Payment validation failed", {
-        orderId: order.id,
-        reason: validation.message,
-      });
-      return validationResponse;
-    }
-
-    const updatedPaymentsAndOrders = await db.transaction(async (tx) => {
-      const [updatedPayment] = await tx
-        .update(payments)
-        .set({
-          status: "success",
-          transactionId: razorpayPaymentId,
-          method: paymentdetails.method ?? null,
-        })
-        .where(and(eq(payments.id, payment.id), ne(payments.status, "success")))
-        .returning();
-
-      if (!updatedPayment) {
-        return null;
-      }
-
-      const [updatedOrder] = await tx
-        .update(orders)
-        .set({
-          paymentStatus: "success",
-          orderStatus: "placed",
-        })
-        .where(eq(orders.id, order.id))
-        .returning();
-
-      return { updatedPayment, updatedOrder };
-    });
-
-    return ok("Payment verified successfully", updatedPaymentsAndOrders);
+    return ok("Payment received, confirming", { orderId });
   } catch (error) {
     return internalServerError(
       "An error occurred while verifying the payment",
