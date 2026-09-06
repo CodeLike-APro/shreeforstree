@@ -1,9 +1,13 @@
 import { badRequest, internalServerError, ok } from "@/lib/api-response";
+import { db } from "@/lib/db";
+import { cartItems, orders, payments } from "@/lib/db/schema";
 import {
+  RazorpayPaymentEntity,
   razorpayPaymentEntitySchema,
   razorpayWebhookEventSchema,
 } from "@/lib/validators/payment.validator";
 import crypto from "crypto";
+import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
   try {
@@ -85,6 +89,7 @@ export async function POST(request: Request) {
     if (event === "payment.captured") {
       // Handle payment captured event
       console.log("Payment Captured Event:", paymentData);
+      await handleCaptured(paymentEntity);
       return ok("Payment captured event processed successfully");
     } else {
       // Handle payment failed event
@@ -95,4 +100,145 @@ export async function POST(request: Request) {
     console.error("Error processing webhook", error);
     return internalServerError("Error processing webhook");
   }
+}
+
+async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
+  const createdPaymentAndOrder = await db.transaction(async (tx) => {
+    const [payment] = await tx
+      .select()
+      .from(payments)
+      .where(eq(payments.razorpayOrderId, entity.order_id))
+      .for("update");
+
+    if (!payment) {
+      console.error("Payment not found for orderId:", entity.order_id);
+      return { kind: "ok", message: "Payment not found" };
+    }
+
+    if (payment.status === "success") {
+      console.info(
+        "Payment already marked as success for orderId:",
+        entity.order_id,
+      );
+      return {
+        kind: "ok",
+        message: "Payment already marked as success",
+        data: { payment },
+      };
+    } else if (payment.status === "refunded") {
+      console.warn(
+        "Payment already marked as refunded for orderId:",
+        entity.order_id,
+      );
+      return {
+        kind: "ok",
+        message: "Payment already marked as refunded",
+        data: { payment },
+      };
+    } else if (payment.status !== "pending") {
+      console.warn(
+        `Payment status: ${payment.status},
+        Payment ID: ${payment.id},
+        Order ID: ${payment.orderId},
+        Entity Order ID: ${entity.order_id}`,
+      );
+    }
+
+    const [order] = await tx
+      .select()
+      .from(orders)
+      .where(eq(orders.id, payment.orderId))
+      .for("update");
+
+    if (!order) {
+      console.error("Order not found for orderId:", payment.orderId);
+      return { kind: "ok", message: "Order not found" };
+    }
+
+    if (order.paymentStatus === "success") {
+      console.error(
+        "Order already marked as success for orderId:",
+        payment.orderId,
+      );
+
+      const [updatedOrder] = await tx
+        .update(orders)
+        .set({ refundRequired: true })
+        .where(eq(orders.id, payment.orderId))
+        .returning();
+
+      return {
+        kind: "ok",
+        message: "Order already marked as success",
+        data: { order: updatedOrder },
+      };
+    }
+
+    if (
+      Math.round(Number(entity.amount)) !==
+      Math.round(Number(order.totalAmount) * 100)
+    ) {
+      console.error("Amount mismatch for orderId:", payment.orderId);
+      return { kind: "ok", message: "Amount mismatch" };
+    }
+
+    if (entity.currency !== "INR") {
+      console.error("Currency mismatch for orderId:", payment.orderId);
+      return { kind: "ok", message: "Currency mismatch" };
+    }
+
+    const [existingTransactionId] = await tx
+      .select()
+      .from(payments)
+      .where(eq(payments.transactionId, entity.id));
+
+    if (existingTransactionId) {
+      console.error(
+        "Transaction ID already exists for orderId:",
+        payment.orderId,
+      );
+      return { kind: "ok", message: "Transaction ID already exists" };
+    }
+
+    const [updatedPayment] = await tx
+      .update(payments)
+      .set({
+        status: "success",
+        transactionId: entity.id,
+        method: entity.method ?? null,
+        failureReason: null,
+      })
+      .where(eq(payments.id, payment.id))
+      .returning();
+
+    const [updatedOrder] = await tx
+      .update(orders)
+      .set({ paymentStatus: "success", orderStatus: "placed" })
+      .where(eq(orders.id, payment.orderId))
+      .returning();
+
+    if (!updatedPayment || !updatedOrder) {
+      throw new Error(
+        `Failed to update ${!updatedPayment ? "payment" : "order"}`,
+      );
+    }
+
+    if (updatedOrder.cartId) {
+      await tx
+        .delete(cartItems)
+        .where(eq(cartItems.cartId, updatedOrder.cartId));
+    }
+
+    return {
+      kind: "ok",
+      message: "Payment and order updated successfully",
+      data: { payment: updatedPayment, order: updatedOrder },
+    };
+  });
+
+  console.info(
+    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${JSON.stringify(createdPaymentAndOrder.data)}`,
+  );
+
+  //TODO: Add logic to send confirmation email to the user after successful payment and order placement.
 }
