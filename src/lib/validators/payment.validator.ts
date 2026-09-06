@@ -5,7 +5,7 @@ export const createPaymentOrderSchema = z4.object({
   guestToken: z4.string().min(1).optional(),
 });
 
-export const verifyPaymentSchema = z4.object({
+export const confirmPaymentSchema = z4.object({
   razorpayOrderId: z4.string().min(1),
   razorpayPaymentId: z4.string().min(1),
   razorpaySignature: z4.string().min(1),
