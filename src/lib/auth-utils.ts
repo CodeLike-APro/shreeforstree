@@ -1,4 +1,3 @@
-import { Payments } from "razorpay/dist/types/payments";
 import { Tx } from "./cart-utils";
 import { db } from "./db";
 import { auth } from "./db/auth";
@@ -113,34 +112,4 @@ export const assertOwnsCartItem = async (
       error: error,
     };
   }
-};
-
-type ValidationResult =
-  { kind: "ok"; message: string } | { kind: "badRequest"; message: string };
-
-export const assertPaymentValid = (
-  paymentdetails: Payments.RazorpayPayment,
-  order: typeof orders.$inferSelect,
-  razorpayOrderId: string,
-): ValidationResult => {
-  if (paymentdetails.order_id !== razorpayOrderId) {
-    return {
-      kind: "badRequest",
-      message: "Payment does not belong to this order",
-    };
-  }
-
-  if (paymentdetails.status !== "captured") {
-    return { kind: "badRequest", message: "Payment not captured" };
-  }
-
-  if (
-    Number(paymentdetails.amount) !==
-      Math.round(Number(order.totalAmount) * 100) ||
-    paymentdetails.currency !== "INR"
-  ) {
-    return { kind: "badRequest", message: "Payment amount mismatch" };
-  }
-
-  return { kind: "ok", message: "Payment is valid" };
 };
