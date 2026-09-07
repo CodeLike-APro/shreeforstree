@@ -129,6 +129,9 @@ export async function POST(request: Request) {
                 amount: order.totalAmount,
                 currency: "INR",
                 keyId: process.env.RAZORPAY_KEY_ID!,
+                name: order.shippingFullName,
+                email: order.shippingEmail,
+                contact: order.shippingPhone,
               },
             };
           }
@@ -172,6 +175,9 @@ export async function POST(request: Request) {
           amount: order.totalAmount,
           currency: razorpayOrder.currency,
           keyId: process.env.RAZORPAY_KEY_ID!,
+          name: order.shippingFullName,
+          email: order.shippingEmail,
+          contact: order.shippingPhone,
         };
 
         return {
