@@ -111,6 +111,23 @@ export default function Checkout() {
 
   const collapse = useCallback(() => setIsExpanded(false), []);
 
+  const handlePlaceOrder = () => {
+    if (!email) {
+      setEmailError("Please provide a valid email address");
+      handleEditEmail();
+      return;
+    }
+    if (!selectedAddress) {
+      toast.error("Please add a delivery address to place your order");
+      return;
+    }
+
+    if (!cartItems || cartItems.items.length === 0) {
+      toast.error("No items in your cart to place an order");
+      return;
+    }
+  };
+
   return (
     <div className="mt-10 flex min-h-screen w-full items-center justify-center gap-4 self-center px-10 pb-20">
       <div className="flex min-h-screen w-full max-w-7xl justify-center gap-10">
@@ -124,7 +141,7 @@ export default function Checkout() {
 
           <div className="border-ink/10 my-7 flex w-full flex-col items-center justify-start border-b pb-7">
             <div className="flex w-full flex-col items-center justify-start gap-4">
-              <div className="flex w-full flex-col items-start justify-center">
+              <div className="flex h-full w-full flex-col items-start justify-center">
                 <h4 className="font-label w-full font-bold tracking-wide">
                   Email Address
                 </h4>
@@ -132,11 +149,11 @@ export default function Checkout() {
                   We need your email address to send you order updates.
                 </p>
               </div>
-              <div className="flex h-full w-full items-center justify-between self-start">
+              <div className="flex h-full w-full items-start justify-between self-start">
                 {emailLoading ? (
                   <EmailShimmer />
                 ) : (
-                  <>
+                  <div className="flex h-full w-full items-center justify-between">
                     <div className="relative w-[60%]">
                       <input
                         id="email"
@@ -174,21 +191,23 @@ export default function Checkout() {
                         </p>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
 
-                <button
-                  onClick={() => {
-                    if (!editEmail) {
-                      handleEditEmail();
-                    } else {
-                      handleSaveEmail();
-                    }
-                  }}
-                  className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
-                >
-                  {editEmail ? "Save" : "Edit Email"}
-                </button>
+                <div className="flex w-[20%] items-start justify-center">
+                  <button
+                    onClick={() => {
+                      if (!editEmail) {
+                        handleEditEmail();
+                      } else {
+                        handleSaveEmail();
+                      }
+                    }}
+                    className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
+                  >
+                    {editEmail ? "Save" : "Edit Email"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -198,7 +217,7 @@ export default function Checkout() {
               <h4 className="font-label font-bold tracking-wide">
                 Delivery Address
               </h4>
-              {!isExpanded && (
+              {!isExpanded && selectedAddress && (
                 <button
                   onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
                   className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
@@ -337,8 +356,10 @@ export default function Checkout() {
               <p>Something went wrong while loading items to order</p>
             </div>
           ) : cartItems.items.length === 0 ? (
-            <div>
-              <p>There are no items to order in your cart.</p>
+            <div className="border-ink/10 bg-paper sticky top-32 flex w-full items-center justify-center gap-2 rounded-xl border p-4">
+              <p className="font-label">
+                There are no items to order in your cart.
+              </p>
             </div>
           ) : (
             <div className="sticky top-32 w-full">
@@ -392,7 +413,10 @@ export default function Checkout() {
                   </p>
                 </div>
                 <div className="border-ink/10 flex w-full items-center justify-center border-b px-4 pb-4">
-                  <button className="btn-focus bg-rose-gold text-paper w-full rounded-lg px-4 py-4 text-xs font-semibold tracking-widest uppercase">
+                  <button
+                    onClick={handlePlaceOrder}
+                    className="btn-focus bg-rose-gold text-paper w-full rounded-lg px-4 py-4 text-xs font-semibold tracking-widest uppercase"
+                  >
                     Place Order
                   </button>
                 </div>
