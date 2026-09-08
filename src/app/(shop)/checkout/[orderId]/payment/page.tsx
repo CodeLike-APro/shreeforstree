@@ -126,7 +126,6 @@ export default function Payment() {
         });
         rzp.open();
       } catch (error) {
-        router.replace("/checkout");
         console.error("Error creating order", error);
         toast.error("Error creating order");
         setFailureMessage("Error creating order");
