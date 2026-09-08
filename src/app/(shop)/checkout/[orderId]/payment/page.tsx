@@ -142,15 +142,19 @@ export default function Payment() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center text-center">
       {failureMessage ? (
-        <div>
-          <p>{failureMessage}</p>
-          <p>Nothing has been charged.</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="btn-focus"
-          >
-            Try Again
-          </button>
+        <div className="font-label flex flex-col items-center justify-between gap-5 rounded-lg p-4 text-lg">
+          <div className="flex flex-col items-center">
+            <p>{failureMessage}</p>
+            <p>Nothing has been charged.</p>
+          </div>
+          <div className="flex w-[60%] flex-col gap-2">
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-focus bg-rose-gold hover:bg-rose-gold-dark text-paper w-full rounded-md px-2 py-4 text-xl"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       ) : (
         <div>Processing payment. Please do not close this tab.</div>
