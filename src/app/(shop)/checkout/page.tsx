@@ -12,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { addresses } from "@/lib/db/schema";
 import z4 from "zod/v4";
+import { useRouter } from "next/navigation";
+import { Loader } from "lucide-react";
 
 type Address = typeof addresses.$inferSelect;
 
@@ -48,10 +50,13 @@ export default function Checkout() {
   const [email, setEmail] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [editEmail, setEditEmail] = useState(isPending || email ? false : true);
+  const [orderError, setOrderError] = useState<string | null>(null);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const emailLoading = isPending;
   const displayedEmail = email ?? session?.user.email ?? "";
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (editEmail) emailInputRef.current?.focus();
@@ -61,7 +66,9 @@ export default function Checkout() {
 
   const handleSaveEmail = () => {
     setEmailError(null);
-    const result = z4.email("Enter a valid email address").safeParse(email);
+    const result = z4
+      .email("Enter a valid email address")
+      .safeParse(displayedEmail);
     if (!result.success) {
       setEmailError("Please enter a valid email address");
       return;
@@ -111,8 +118,8 @@ export default function Checkout() {
 
   const collapse = useCallback(() => setIsExpanded(false), []);
 
-  const handlePlaceOrder = () => {
-    if (!email) {
+  const handlePlaceOrder = async () => {
+    if (!displayedEmail) {
       setEmailError("Please provide a valid email address");
       handleEditEmail();
       return;
@@ -125,6 +132,57 @@ export default function Checkout() {
     if (!cartItems || cartItems.items.length === 0) {
       toast.error("No items in your cart to place an order");
       return;
+    }
+
+    try {
+      setIsPlacingOrder(true);
+      const orderData = {
+        email: displayedEmail,
+        ...(session && { addressId: selectedAddress.id }),
+        shippingFullName: selectedAddress.fullName,
+        shippingPhone: selectedAddress.phone,
+        shippingAddressLine1: selectedAddress.addressLine1,
+        shippingAddressLine2: selectedAddress.addressLine2,
+        shippingCity: selectedAddress.city,
+        shippingState: selectedAddress.state,
+        shippingPincode: selectedAddress.pincode,
+        shippingCountry: selectedAddress.country,
+      };
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) {
+        setIsPlacingOrder(false);
+        setOrderError("Failed to place order");
+        const errorResponse = await res.json();
+        console.error("Failed to place order", errorResponse);
+        toast.error(errorResponse.message || "Failed to place order");
+        return;
+      }
+
+      const result = await res.json();
+
+      if (!result.success) {
+        setIsPlacingOrder(false);
+        setOrderError("Failed to place order");
+        console.error("Failed to place order", result);
+        toast.error(result.message || "Failed to place order");
+        return;
+      }
+
+      const data = result.data;
+      router.replace(`/checkout/${data.id}/payment`);
+    } catch (error) {
+      setIsPlacingOrder(false);
+      setOrderError("Failed to place order");
+      console.error("Error placing order", error);
+      toast.error("Failed to place order");
     }
   };
 
@@ -412,13 +470,27 @@ export default function Checkout() {
                     {Number(cartItems.total).toFixed(2)}
                   </p>
                 </div>
-                <div className="border-ink/10 flex w-full items-center justify-center border-b px-4 pb-4">
+                <div className="border-ink/10 flex w-full flex-col items-center justify-center border-b px-4 pb-4">
                   <button
+                    disabled={isPlacingOrder}
                     onClick={handlePlaceOrder}
-                    className="btn-focus bg-rose-gold text-paper w-full rounded-lg px-4 py-4 text-xs font-semibold tracking-widest uppercase"
+                    className={[
+                      "btn-focus bg-rose-gold text-paper flex w-full items-center justify-center rounded-lg px-4 py-4 text-xs font-semibold tracking-widest uppercase",
+                      isPlacingOrder ? "cursor-not-allowed opacity-50" : "",
+                    ].join(" ")}
                   >
                     Place Order
+                    {isPlacingOrder && (
+                      <div className="ml-2 animate-spin">
+                        <Loader size={17} />
+                      </div>
+                    )}
                   </button>
+                  {orderError && (
+                    <div className="font-label mt-1 ml-1 text-center text-red-500">
+                      {orderError}
+                    </div>
+                  )}
                 </div>
 
                 <div className="font-label text-ink-55 flex w-full flex-col items-center justify-center gap-2 px-4 py-2 text-center font-normal">

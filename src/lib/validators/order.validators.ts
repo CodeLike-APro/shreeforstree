@@ -11,7 +11,7 @@ export const createOrderSchema = z4
     shippingCity: z4.string().max(100).optional(),
     shippingState: z4.string().max(100).optional(),
     shippingPincode: z4.string().min(6).optional(),
-    shippingCountry: z4.string().max(100).optional(),
+    shippingCountry: z4.string().max(100).optional().default("India"),
   })
   .refine((data) => {
     // If addressId is not provided, all shipping fields must be provided
