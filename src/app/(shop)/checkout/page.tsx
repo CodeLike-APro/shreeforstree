@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { addresses } from "@/lib/db/schema";
+import z4 from "zod/v4";
 
 type Address = typeof addresses.$inferSelect;
 
@@ -45,6 +46,7 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [editEmail, setEditEmail] = useState(isPending || email ? false : true);
   const emailInputRef = useRef<HTMLInputElement>(null);
   const emailLoading = isPending;
@@ -58,6 +60,12 @@ export default function Checkout() {
   const handleEditEmail = () => setEditEmail(true);
 
   const handleSaveEmail = () => {
+    setEmailError(null);
+    const result = z4.email("Enter a valid email address").safeParse(email);
+    if (!result.success) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
     setEditEmail(false);
   };
 
@@ -135,6 +143,10 @@ export default function Checkout() {
                         name="email"
                         type="email"
                         ref={emailInputRef}
+                        arai-invalid={emailError ? "true" : "false"}
+                        aria-describedby={
+                          emailError ? "email-error" : undefined
+                        }
                         disabled={!editEmail}
                         value={displayedEmail}
                         placeholder=" "
@@ -153,6 +165,14 @@ export default function Checkout() {
                       >
                         Email Address
                       </label>
+                      {emailError && (
+                        <p
+                          id="email-error"
+                          className="font-label mt-1 ml-1 text-sm text-red-500"
+                        >
+                          {emailError}
+                        </p>
+                      )}
                     </div>
                   </>
                 )}
@@ -229,6 +249,7 @@ export default function Checkout() {
                           src={item.product.imageUrl}
                           alt={item.product.title}
                           fill={true}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           className="aspect-3/4 h-auto w-18 object-cover"
                         />
                       </div>
