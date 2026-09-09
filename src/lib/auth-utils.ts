@@ -4,9 +4,10 @@ import { auth } from "./db/auth";
 import { cartItems, orders } from "./db/schema";
 import crypto from "crypto";
 
-export async function getCurrentUser(request: Request) {
+export async function getCurrentUser(input: Request | Headers) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
+    const headers = input instanceof Headers ? input : input.headers;
+    const session = await auth.api.getSession({ headers });
     return session?.user ?? null;
   } catch (error) {
     console.error(`Error fetching current user: ${error}`);
