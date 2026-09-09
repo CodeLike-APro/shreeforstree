@@ -140,7 +140,7 @@ export default function Payment() {
   }, [singleOrderId, router, confirmPage]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center text-center">
+    <div className="flex min-h-[80vh] flex-col items-center justify-center text-center">
       {failureMessage ? (
         <div className="font-label flex flex-col items-center justify-between gap-5 rounded-lg p-4 text-lg">
           <div className="flex flex-col items-center">
@@ -157,7 +157,14 @@ export default function Payment() {
           </div>
         </div>
       ) : (
-        <div>Processing payment. Please do not close this tab.</div>
+        <div className="font-label h-full text-center text-xl">
+          <h1 className="font-display text-ink text-2xl leading-tight font-bold">
+            Processing payment...
+          </h1>
+          <p className="text-ink-55 text-md font-label mt-2">
+            Please do not close this tab.
+          </p>
+        </div>
       )}
     </div>
   );
