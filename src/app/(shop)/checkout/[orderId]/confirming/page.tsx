@@ -1,5 +1,7 @@
 "use client";
 
+import { Check, RefreshCw, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,16 +10,16 @@ import { toast } from "sonner";
 export default function ConfirmingOrder() {
   const params = useParams();
   const { orderId } = params;
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<
     "pending" | "success" | "failed" | "refunded" | null
   >(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [failureReason, setFailureReason] = useState<string | null>(null);
   const [timeOut, setTimeOut] = useState(false);
   const startTimeRef = useRef<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelledRef = useRef(false);
+  const prefersReducedMotion = useReducedMotion() === true;
 
   useEffect(() => {
     if (startTimeRef.current === null) {
@@ -25,16 +27,40 @@ export default function ConfirmingOrder() {
     }
   }, []);
 
+  useEffect(() => {
+    const fetchOrderImages = async () => {
+      if (!orderId) return;
+      try {
+        const res = await fetch(`/api/orders/${orderId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          console.error("Failed to fetch order images");
+          return;
+        }
+        const data = await res.json();
+        setImageUrls(
+          data.data.orderItems
+            .map((item: { productImageUrl: string }) => item.productImageUrl)
+            .filter(Boolean),
+        );
+      } catch (error) {
+        console.error("Error fetching order images:", error);
+      }
+    };
+    void fetchOrderImages();
+  }, [orderId]);
+
   const confirmOrder = useCallback(async () => {
     try {
-      setErrorMessage(null);
       if (!orderId) {
         console.error("No order ID provided");
-        setErrorMessage("No order ID provided");
         toast.error("No order ID provided");
         return;
       }
-      setIsLoading(true);
       const res = await fetch(`/api/orders/${orderId}/status`, {
         method: "GET",
         headers: {
@@ -44,9 +70,6 @@ export default function ConfirmingOrder() {
 
       if (!res.ok) {
         console.error("Failed to fetch order status");
-        setErrorMessage("Failed to fetch order status");
-        toast.error("Failed to fetch order status");
-        setIsLoading(false);
         return;
       }
 
@@ -54,22 +77,16 @@ export default function ConfirmingOrder() {
 
       if (!result.success) {
         console.error("Failed to fetch order status:", result.message);
-        setErrorMessage(result.message || "Failed to fetch order status");
-        toast.error(result.message || "Failed to fetch order status");
-        setIsLoading(false);
         return;
       }
 
       const data = result.data;
       setOrderStatus(data.status);
       setFailureReason(data.failureReason);
-      setIsLoading(false);
       return data.status;
     } catch (error) {
       console.error("Error confirming order:", error);
-      setErrorMessage("Error confirming order");
       toast.error("Error confirming order");
-      setIsLoading(false);
     }
   }, [orderId]);
 
@@ -93,31 +110,206 @@ export default function ConfirmingOrder() {
     };
   }, [confirmOrder]);
 
+  const outcome =
+    timeOut && (!orderStatus || orderStatus === "pending")
+      ? "timeOut"
+      : (orderStatus ?? "pending");
+
   return (
-    <div>
-      {orderStatus === "success" ? (
-        <div>Order confirmed successfully!</div>
-      ) : orderStatus === "failed" ? (
-        <div>{failureReason}</div>
-      ) : orderStatus === "refunded" ? (
-        <div>Order refunded.</div>
-      ) : timeOut ? (
-        <div>
-          <p>
-            Your order confirmation is taking longer than usual, we&apos;ll
-            email you once it&apos;s confirmed.
-          </p>
-          <Link href="/">Continue Shopping</Link>
-        </div>
-      ) : errorMessage ? (
-        <div>{errorMessage}</div>
-      ) : (
-        <p>
-          {isLoading
-            ? "Loading your order status..."
-            : "Fetching order status..."}
-        </p>
-      )}
+    <div className="font-label flex min-h-[80vh] flex-col items-center justify-center text-center text-xl">
+      <Stage
+        outcome={outcome}
+        image={imageUrls}
+        prefersReducedMotion={prefersReducedMotion}
+      />
+
+      <div className="mt-10">
+        {outcome === "pending" && (
+          <Message
+            title="Processing payment"
+            body={`Holding on while your bank confirms the payment. This usually takes a few seconds, please do not close this tab.`}
+          />
+        )}
+        {outcome === "success" && (
+          <Message
+            title="Payment Received"
+            body={`Your payment was successful. Thank you for your purchase.`}
+          />
+        )}
+        {outcome === "failed" && (
+          <Message
+            title="Payment failed"
+            body={
+              failureReason ??
+              `We're sorry, but your payment failed. Any amount debited will be refunded in 2-3 business days.`
+            }
+          />
+        )}
+        {outcome === "refunded" && (
+          <Message
+            title="Payment refunded"
+            body={`Your payment has been refunded. If you have any questions, please contact support.`}
+          />
+        )}
+        {outcome === "timeOut" && (
+          <>
+            <Message
+              title="Still confirming"
+              body={`Your bank is taking longer than usual. We'll email you once the payment is confirmed.`}
+            />
+            <Link
+              href={"/orders"}
+              className="font-label btn-focus border-ink bg-paper hover:bg-ink hover:text-paper mt-6 inline-flex h-12 items-center justify-center rounded-md border px-8 text-xs font-semibold tracking-widest uppercase transition-colors duration-150"
+            >
+              View your orders
+            </Link>
+          </>
+        )}
+      </div>
     </div>
+  );
+}
+
+type MessageProps = {
+  title: string;
+  body: string;
+};
+
+function Message({ title, body }: MessageProps) {
+  return (
+    <div aria-live="polite">
+      <h1 className="font-display text-ink text-2xl leading-tight font-bold">
+        {title}
+      </h1>
+      <p className="text-ink-55 mt-2 text-sm">{body}</p>
+    </div>
+  );
+}
+
+type StageProps = {
+  outcome: "pending" | "success" | "failed" | "refunded" | "timeOut";
+  image: string[];
+  prefersReducedMotion: boolean;
+};
+
+function Stage({ outcome, image, prefersReducedMotion }: StageProps) {
+  const isResolved =
+    outcome === "success" || outcome === "failed" || outcome === "refunded";
+
+  return (
+    <div className="bg-blush ring-ink-08 relative size-40 overflow-hidden rounded-full ring-1">
+      <AnimatePresence>
+        {!isResolved && (
+          <motion.div
+            key="carousel"
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{
+              duration: prefersReducedMotion ? 0 : 0.5,
+            }}
+            className="absolute inset-0"
+          >
+            <Carousel
+              images={image}
+              prefersReducedMotion={prefersReducedMotion}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isResolved && (
+          <motion.div
+            key="verdict"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={
+              prefersReducedMotion
+                ? { duration: 0 }
+                : { type: "spring", bounce: 0.35, duration: 0.6, delay: 0.3 }
+            }
+            className={[
+              "absolute inset-0 flex items-center justify-center",
+              outcome === "success" && "bg-sage/15",
+              outcome === "failed" && "bg-rust/10",
+              outcome === "refunded" && "bg-ink-05",
+            ].join(" ")}
+          >
+            {outcome === "success" && (
+              <Check
+                size={56}
+                strokeWidth={1.5}
+                className="text-sage"
+                aria-hidden="true"
+              />
+            )}
+            {outcome === "failed" && (
+              <X
+                size={56}
+                strokeWidth={1.5}
+                className="text-rust"
+                aria-hidden="true"
+              />
+            )}
+            {outcome === "refunded" && (
+              <RefreshCw
+                size={56}
+                strokeWidth={1.5}
+                className="text-ink-40"
+                aria-hidden="true"
+              />
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+type CarouselProps = {
+  images: string[];
+  prefersReducedMotion: boolean;
+};
+
+function Carousel({ images, prefersReducedMotion }: CarouselProps) {
+  const [postion, setPosition] = useState(0);
+
+  useEffect(() => {
+    if (images.length < 2 || prefersReducedMotion) return;
+
+    const interval = setInterval(() => {
+      setPosition((prev) => (prev + 1) % images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [images.length, prefersReducedMotion]);
+
+  if (images.length === 0) {
+    return (
+      <motion.div
+        animate={
+          prefersReducedMotion ? undefined : { opacity: [0.35, 0.7, 0.35] }
+        }
+        transition={{
+          duration: 2.6,
+          repeat: Infinity,
+        }}
+        className="bg-rose-gold/20 size-full"
+      ></motion.div>
+    );
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.img
+        key={postion}
+        src={images[postion]}
+        alt=""
+        initial={{ opacity: 0, scale: 1.08 }}
+        animate={{ opacity: 0.55, scale: 1 }}
+        exit={{ opacity: 0, scale: 1.08 }}
+        transition={{
+          duration: prefersReducedMotion ? 0 : 1.4,
+        }}
+        className="absolute inset-0 size-full object-cover grayscale-35"
+      />
+    </AnimatePresence>
   );
 }
