@@ -71,6 +71,13 @@
       "when": 1788604402055,
       "tag": "0009_dry_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788932707994,
+      "tag": "0010_regular_mikhail_rasputin",
+      "breakpoints": true
     }
   ]
 }
