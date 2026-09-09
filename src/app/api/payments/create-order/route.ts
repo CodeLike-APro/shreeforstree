@@ -156,6 +156,7 @@ export async function POST(request: Request) {
           amount: Math.round(Number(order.totalAmount) * 100),
           currency: "INR",
           receipt: order.id,
+          payment_capture: true,
         });
 
         await tx
