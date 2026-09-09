@@ -1,5 +1,6 @@
 "use client";
 
+import { orderReference } from "@/lib/orders";
 import { loadRazorpayCheckoutScript } from "@/lib/razorpay-checkout";
 import { RazorpayOptions } from "@/types/razorpay";
 import { useParams, useRouter } from "next/navigation";
@@ -78,7 +79,7 @@ export default function Payment() {
           amount: Math.round(Number(data.amount) * 100),
           currency: data.currency,
           name: "shreeforstree",
-          description: `Order: ${singleOrderId.slice(-8).toUpperCase()}`,
+          description: `Order: ${orderReference(singleOrderId)}`,
           prefill: {
             name: data.name,
             email: data.email,
