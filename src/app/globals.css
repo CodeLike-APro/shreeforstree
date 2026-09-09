@@ -61,6 +61,11 @@
     font-family: var(--font-display);
     font-weight: 700;
   }
+
+  p {
+    font-family: var(--font-label);
+    font-weight: 400;
+  }
 }
 
 @layer utilities {
