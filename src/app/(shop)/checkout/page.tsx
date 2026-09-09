@@ -326,7 +326,7 @@ export default function Checkout() {
                           src={item.product.imageUrl}
                           alt={item.product.title}
                           fill={true}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          sizes="contain"
                           className="aspect-3/4 h-auto w-18 object-cover"
                         />
                       </div>

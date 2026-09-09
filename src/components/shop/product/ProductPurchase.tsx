@@ -99,7 +99,7 @@ export default function ProductPurchase({
                 <Image
                   width={0}
                   height={0}
-                  sizes="100vw"
+                  sizes="contain"
                   src={sizeGuide}
                   alt="Size Guide"
                   className="h-auto w-full"
