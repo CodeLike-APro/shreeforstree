@@ -8,6 +8,8 @@ import {
   Shirt,
   Users,
 } from "lucide-react";
+import { auth } from "@/lib/db/auth";
+import { redirect } from "next/navigation";
 
 const AdminSidebar = dynamic(() => import("@/components/admin/AdminSidebar"));
 const NavMobile = dynamic(() => import("@/utils/NavMobile"));
@@ -33,11 +35,11 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const headerList = await headers();
-  // const session = await auth.api.getSession({ headers: headerList });
+  const session = await auth.api.getSession({ headers: headerList });
   const deviceType = headerList.get("x-device-type");
-  // if (!session || session.user.role !== "admin") {
-  //   redirect("/");
-  // }
+  if (!session || session.user.role !== "admin") {
+    redirect("/");
+  }
 
   return (
     <section
