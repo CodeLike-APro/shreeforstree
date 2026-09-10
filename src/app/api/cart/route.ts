@@ -3,12 +3,11 @@ import {
   internalServerError,
   notFound,
   ok,
-  unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
 import {
   getOrCreateCart,
-  getSessionId,
+  getOrCreateSessionId,
   upsertCartItem,
 } from "@/lib/cart-utils";
 import {
@@ -24,12 +23,17 @@ import { eq } from "drizzle-orm/sql/expressions/conditions";
 export async function GET(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
+    const sessionId = await getOrCreateSessionId();
+
+    const cartResult = await getOrCreateCart(
+      currentUser?.id ?? null,
+      sessionId,
+    );
+    if (cartResult instanceof Response) {
+      return cartResult;
     }
 
-    const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
+    const cart = cartResult;
 
     if (!cart.cartItems || cart.cartItems.length === 0) {
       return ok("No items in cart", {
@@ -130,10 +134,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const item = await request.json();
 
@@ -146,7 +147,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { productId, quantity, color, size } = result.data;
+    const { productId, quantity, size } = result.data;
 
     const foundProduct = await db.query.products.findFirst({
       where: (products, { eq }) => eq(products.id, productId),
@@ -160,24 +161,22 @@ export async function POST(request: Request) {
       return badRequest(`Size ${size} is not available for this product`);
     }
 
-    if (!foundProduct.colors.includes(color)) {
-      return badRequest(`Color ${color} is not available for this product`);
-    }
-
     const updatedItem = await db.transaction(async (tx) => {
-      const cart = await getOrCreateCart(
+      const cartResult = await getOrCreateCart(
         currentUser?.id ?? null,
         sessionId,
         tx,
       );
 
-      // atomic upsert against the (cartId, productId, color, size) unique
-      // constraint — closes the race where two concurrent adds of the same
-      // line item both saw no existing row and both inserted
+      if (cartResult instanceof Response) {
+        return cartResult;
+      }
+
+      const cart = cartResult;
+
       return upsertCartItem(tx, {
         cartId: cart.id,
         productId,
-        color,
         size,
         quantity,
         maxQuantity: MAX_CART_ITEMS,
@@ -196,20 +195,18 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
+    const sessionId = await getOrCreateSessionId();
+
+    const cartResult = await getOrCreateCart(
+      currentUser?.id ?? null,
+      sessionId,
+    );
+
+    if (cartResult instanceof Response) {
+      return cartResult;
     }
 
-    const cart = await getOrCreateCart(currentUser?.id ?? null, sessionId);
-
-    const ownsCart =
-      (currentUser && cart.userId === currentUser.id) ||
-      cart.sessionId === sessionId;
-
-    if (!ownsCart) {
-      return unauthorized("You can only modify your own cart");
-    }
+    const cart = cartResult;
 
     const clearedCart = await db
       .delete(cartItems)

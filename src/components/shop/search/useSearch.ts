@@ -7,7 +7,6 @@ export const STORAGE_KEY = "sft_recent_searches";
 
 export function useSearch() {
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -17,9 +16,6 @@ export function useSearch() {
       return [];
     }
   });
-
-  const open = useCallback(() => setIsOpen(true), []);
-  const close = useCallback(() => setIsOpen(false), []);
 
   const clearRecent = useCallback(() => {
     setRecentSearches([]);
@@ -32,7 +28,7 @@ export function useSearch() {
       setRecentSearches(updated);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     },
-    [recentSearches]
+    [recentSearches],
   );
 
   const submit = useCallback(
@@ -48,20 +44,25 @@ export function useSearch() {
       setRecentSearches(updated);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       router.push(`/shop?search=${encodeURIComponent(searchTerm)}`);
-      close();
     },
-    [query, recentSearches, close, router]
+    [query, recentSearches, router],
   );
 
   return {
-    isOpen,
     query,
     recentSearches,
-    open,
-    close,
     setQuery,
     submit,
     clearRecent,
     removeRecent,
   };
+}
+
+export function useSearchPanel() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const open = useCallback(() => setIsOpen(true), []);
+  const close = useCallback(() => setIsOpen(false), []);
+
+  return { isOpen, open, close };
 }

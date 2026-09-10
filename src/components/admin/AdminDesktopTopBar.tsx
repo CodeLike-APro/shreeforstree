@@ -2,7 +2,7 @@
 
 import { Bell, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 const TOP_BAR_ITEMS = [
@@ -96,13 +96,16 @@ export default function AdminTopBar() {
     searchParams.get("search") || "",
   );
 
+  const searchParamsRef = useRef(searchParams);
+
   useEffect(() => {
-    setSearchValue(searchParams.get("search") || "");
+    searchParamsRef.current = searchParams;
   }, [searchParams]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
+      const currentParams = searchParamsRef.current;
+      const params = new URLSearchParams(currentParams.toString());
       const currentSearch = params.get("search") || "";
 
       if (searchValue !== currentSearch) {
@@ -116,7 +119,7 @@ export default function AdminTopBar() {
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchValue, pathname, router, searchParams]);
+  }, [searchValue, pathname, router]);
 
   const currentItem =
     TOP_BAR_ITEMS.find((item) => pathname.startsWith(item.href)) ||
@@ -129,7 +132,7 @@ export default function AdminTopBar() {
   if (isFormSubPage) return null;
 
   return (
-    <div className="px-6 py-3 sticky top-0 z-50 w-full flex items-center justify-center gap-4 bg-paper border-b border-ink-25 select-none">
+    <div className="bg-paper border-ink-25 sticky top-0 z-50 flex w-full items-center justify-center gap-4 border-b px-6 py-3 select-none">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentItem.title}
@@ -139,7 +142,7 @@ export default function AdminTopBar() {
           transition={{ duration: 0.2 }}
           className="flex flex-col items-start justify-center"
         >
-          <h1 className="font-display font-bold text-ink text-3xl leading-tight">
+          <h1 className="font-display text-ink text-3xl leading-tight font-bold">
             {currentItem.title}
           </h1>
           <p className="font-body text-ink-40 text-xs tracking-wide">
@@ -147,7 +150,7 @@ export default function AdminTopBar() {
           </p>
         </motion.div>
       </AnimatePresence>
-      <div className="flex items-center justify-around gap-2 ml-auto">
+      <div className="ml-auto flex items-center justify-around gap-2">
         <AnimatePresence mode="popLayout">
           {currentItem.search && (
             <motion.div
@@ -157,9 +160,9 @@ export default function AdminTopBar() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
               key="search"
-              className="flex w-60 items-center justify-center border border-ink-40 focus-within:border-ink rounded-lg px-1.5 gap-3 transition-all duration-300"
+              className="border-ink-40 focus-within:border-ink flex w-60 items-center justify-center gap-3 rounded-lg border px-1.5 transition-all duration-300"
             >
-              <div className="flex items-center justify-center text-ink/60 border-r border-ink-40 pr-2 h-full">
+              <div className="text-ink/60 border-ink-40 flex h-full items-center justify-center border-r pr-2">
                 <Search />
               </div>
               <input
@@ -186,12 +189,12 @@ export default function AdminTopBar() {
                     router.push(currentItem.buttonHref);
                   }
                 }}
-                className="bg-rose-gold hover:bg-rose-gold-dark transition-all duration-300 rounded-lg flex items-center justify-around group px-1"
+                className="bg-rose-gold hover:bg-rose-gold-dark group flex items-center justify-around rounded-lg px-1 transition-all duration-300"
               >
-                <div className="flex items-center justify-center text-paper p-1 py-1.5 group-hover:text-white transition-colors duration-300">
+                <div className="text-paper flex items-center justify-center p-1 py-1.5 transition-colors duration-300 group-hover:text-white">
                   <Plus size={18} />
                 </div>
-                <div className="text-xs font-body text-paper font-bold p-1 py-3 group-hover:text-white transition-colors duration-300">
+                <div className="font-body text-paper p-1 py-3 text-xs font-bold transition-colors duration-300 group-hover:text-white">
                   {currentItem.buttonLabel}
                 </div>
               </button>
@@ -212,9 +215,9 @@ export default function AdminTopBar() {
                     router.push(currentItem.cancelHref);
                   }
                 }}
-                className="bg-paper border border-ink-40 hover:border-ink hover:bg-ink transition-all duration-300 rounded-lg flex items-center justify-center px-4 py-2 group"
+                className="bg-paper border-ink-40 hover:border-ink hover:bg-ink group flex items-center justify-center rounded-lg border px-4 py-2 transition-all duration-300"
               >
-                <div className="text-sm font-body text-ink font-bold group-hover:text-paper transition-colors duration-300">
+                <div className="font-body text-ink group-hover:text-paper text-sm font-bold transition-colors duration-300">
                   Cancel
                 </div>
               </button>
@@ -232,9 +235,9 @@ export default function AdminTopBar() {
               <button
                 type="submit"
                 form={currentItem.submitFormId}
-                className="bg-rose-gold hover:bg-rose-gold-dark transition-all duration-300 rounded-lg flex items-center justify-center px-4 py-2"
+                className="bg-rose-gold hover:bg-rose-gold-dark flex items-center justify-center rounded-lg px-4 py-2 transition-all duration-300"
               >
-                <div className="text-sm font-body text-paper font-bold group-hover:text-white transition-colors duration-300">
+                <div className="font-body text-paper text-sm font-bold transition-colors duration-300 group-hover:text-white">
                   {currentItem.submitLabel}
                 </div>
               </button>
@@ -248,12 +251,12 @@ export default function AdminTopBar() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
               key="filters"
-              className="bg-paper border border-ink-40 hover:border-ink hover:bg-ink transition-all duration-300 rounded-lg flex items-center justify-around group"
+              className="bg-paper border-ink-40 hover:border-ink hover:bg-ink group flex items-center justify-around rounded-lg border transition-all duration-300"
             >
-              <div className="flex items-center justify-center text-ink pl-2 pr-1 py-1.5 group-hover:text-white transition-colors duration-300">
+              <div className="text-ink flex items-center justify-center py-1.5 pr-1 pl-2 transition-colors duration-300 group-hover:text-white">
                 <SlidersHorizontal size={18} />
               </div>
-              <div className="text-xs font-body text-ink font-bold pl-1 pr-2 py-3 group-hover:text-white transition-colors duration-300">
+              <div className="font-body text-ink py-3 pr-2 pl-1 text-xs font-bold transition-colors duration-300 group-hover:text-white">
                 Filters
               </div>
             </motion.div>
@@ -266,9 +269,9 @@ export default function AdminTopBar() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
               key="bell"
-              className="bg-paper border border-ink-40 hover:border-ink hover:bg-ink transition-all duration-300 rounded-lg flex items-center justify-around group p-3"
+              className="bg-paper border-ink-40 hover:border-ink hover:bg-ink group flex items-center justify-around rounded-lg border p-3 transition-all duration-300"
             >
-              <div className="flex items-center justify-center text-ink group-hover:text-white transition-colors duration-300">
+              <div className="text-ink flex items-center justify-center transition-colors duration-300 group-hover:text-white">
                 <Bell size={18} />
               </div>
             </motion.div>

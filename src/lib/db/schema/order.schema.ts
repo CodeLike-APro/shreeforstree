@@ -12,6 +12,7 @@ import { user } from "./auth.schema";
 import { addresses } from "./address.schema";
 import { orderItems } from "./orderItem.schema";
 import { payments, paymentStatusEnum } from "./payment.schema";
+import { carts } from "./cart.schema";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "not_placed",
@@ -26,6 +27,7 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const orders = pgTable("orders", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+  cartId: uuid("cart_id").references(() => carts.id, { onDelete: "set null" }),
   originalAmount: numeric("original_amount", {
     precision: 10,
     scale: 2,
@@ -49,8 +51,10 @@ export const orders = pgTable("orders", {
   addressId: uuid("address_id").references(() => addresses.id, {
     onDelete: "set null",
   }),
+  guestToken: text("guest_token").unique(),
   shippingFullName: text("shipping_full_name").notNull(),
   shippingPhone: text("shipping_phone").notNull(),
+  shippingEmail: text("shipping_email").notNull(),
   shippingAddressLine1: text("shipping_address_line1").notNull(),
   shippingAddressLine2: text("shipping_address_line2"),
   shippingCity: text("shipping_city").notNull(),
@@ -74,9 +78,10 @@ export const orderRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.addressId],
     references: [addresses.id],
   }),
-  payment: one(payments, {
-    fields: [orders.id],
-    references: [payments.orderId],
+  cart: one(carts, {
+    fields: [orders.cartId],
+    references: [carts.id],
   }),
+  payments: many(payments),
   orderItems: many(orderItems),
 }));

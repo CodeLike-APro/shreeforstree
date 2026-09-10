@@ -6,7 +6,7 @@ import {
   useAnimationControls,
   type Variants,
 } from "motion/react";
-import { LoaderIcon } from "lucide-react";
+import { Loader } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 type AuthMode = "sign-in" | "sign-up";
@@ -83,8 +83,8 @@ function getSafeRedirect(): string {
 }
 
 const inputBase =
-  "focus:outline-none focus:ring-1 rounded-sm border px-2 h-9 w-full placeholder:text-sm transition-colors duration-300";
-const inputOk = "border-ink-40 focus:ring-ink";
+  "rounded-sm border px-2 h-9 w-full placeholder:text-sm btn-focus";
+const inputOk = "border-ink-40 btn-focus";
 const inputErr = "border-red-500 focus:ring-red-500 bg-red-500/[0.03]";
 
 // Inline error message that smoothly expands/collapses below a field
@@ -98,7 +98,7 @@ function FieldError({ message }: { message?: string }) {
           animate={{ opacity: 1, height: "auto", y: 0 }}
           exit={{ opacity: 0, height: 0, y: -4 }}
           transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-          className="overflow-hidden text-red-600 text-xs font-label leading-snug"
+          className="font-label overflow-hidden text-xs leading-snug text-red-600"
         >
           {message}
         </motion.p>
@@ -226,14 +226,14 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
   };
 
   return (
-    <div className="relative w-screen h-screen md:w-auto md:h-auto md:max-w-[50vw] md:min-w-180 md:max-h-[60vh] md:min-h-100 bg-paper drop-shadow-md overflow-hidden">
+    <div className="bg-paper relative h-screen w-screen overflow-hidden drop-shadow-md md:h-auto md:max-h-[60vh] md:min-h-100 md:w-auto md:max-w-[50vw] md:min-w-180">
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={mode}
           initial={{ x: darkOffscreen, opacity: 0 }}
           animate={{ x: "0%", opacity: 1, transition: enterTransition }}
           exit={{ x: darkOffscreen, opacity: 0, transition: exitTransition }}
-          className="hidden md:block absolute md:inset-y-0 md:w-1/2 bg-ink"
+          className="bg-ink absolute hidden md:inset-y-0 md:block md:w-1/2"
           style={{
             left: isSignIn ? "0%" : undefined,
             right: isSignIn ? undefined : "0%",
@@ -244,27 +244,27 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="h-full w-full flex flex-col items-start justify-center px-6 md:px-10 gap-3 md:gap-4"
+            className="flex h-full w-full flex-col items-start justify-center gap-3 px-6 md:gap-4 md:px-10"
           >
             <motion.p
               custom={darkDir}
               variants={itemVariants}
-              className="text-rose-gold-dark text-xs font-label uppercase tracking-wide"
+              className="text-rose-gold-dark font-label text-xs tracking-wide uppercase"
             >
               {isSignIn ? "Good to see you again" : "New Here?"}
             </motion.p>
             <motion.div custom={darkDir} variants={itemVariants}>
-              <h2 className="text-white text-2xl md:text-4xl font-heading tracking-wide">
+              <h2 className="font-heading text-2xl tracking-wide text-white md:text-4xl">
                 {isSignIn ? "Welcome" : "Join"}
               </h2>
-              <h2 className="text-white text-2xl md:text-4xl font-heading tracking-wide">
+              <h2 className="font-heading text-2xl tracking-wide text-white md:text-4xl">
                 {isSignIn ? "Back" : "shreeforstree"}
               </h2>
             </motion.div>
             <motion.p
               custom={darkDir}
               variants={itemVariants}
-              className="text-blush text-sm font-label text-start hidden md:block"
+              className="text-blush font-label hidden text-start text-sm md:block"
             >
               {isSignIn
                 ? "Sign in to track your orders, revisit your wishlist, and pick up right where you left off."
@@ -274,7 +274,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
               custom={darkDir}
               variants={itemVariants}
               onClick={toggleMode}
-              className="bg-ink text-white border border-rose-gold uppercase text-xs px-4 py-2 tracking-wide hover:bg-rose-gold hover:text-ink transition-all duration-300"
+              className="bg-ink border-rose-gold hover:bg-rose-gold hover:text-ink border px-4 py-2 text-xs tracking-wide text-white uppercase transition-all duration-300"
             >
               {isSignIn ? "Create an account" : "Sign In Instead"}
             </motion.button>
@@ -288,7 +288,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
           initial={{ x: formOffscreen, opacity: 0 }}
           animate={{ x: "0%", opacity: 1, transition: enterTransition }}
           exit={{ x: formOffscreen, opacity: 0, transition: exitTransition }}
-          className="absolute inset-x-0 top-0 h-full md:inset-x-auto md:inset-y-0 md:h-auto md:w-1/2 bg-paper"
+          className="bg-paper absolute inset-x-0 top-0 h-full md:inset-x-auto md:inset-y-0 md:h-auto md:w-1/2"
           style={{
             left: isSignIn ? undefined : "0%",
             right: isSignIn ? "0%" : undefined,
@@ -299,19 +299,19 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             initial="hidden"
             animate="show"
             exit="exit"
-            className="h-full w-full flex flex-col items-start justify-center px-6 md:px-10 gap-3 md:gap-4"
+            className="flex h-full w-full flex-col items-start justify-center gap-3 px-6 md:gap-4 md:px-10"
           >
             <motion.p
               custom={formDir}
               variants={itemVariants}
-              className="text-rose-gold text-xs font-label uppercase tracking-wide"
+              className="text-rose-gold font-label text-xs tracking-wide uppercase"
             >
               {isSignIn ? "Sign In to your account" : "Create a new account"}
             </motion.p>
             <motion.h2
               custom={formDir}
               variants={itemVariants}
-              className="text-ink text-xl font-heading"
+              className="text-ink font-heading text-xl"
             >
               {isSignIn ? "Sign In" : "Create Account"}
             </motion.h2>
@@ -319,7 +319,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             <motion.div
               custom={formDir}
               variants={itemVariants}
-              className="flex flex-col gap-2 w-full"
+              className="flex w-full flex-col gap-2"
             >
               <motion.div animate={emailShake} className="flex flex-col gap-1">
                 <input
@@ -384,7 +384,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
               {isSignIn && (
                 <a
                   href="/forgot-password"
-                  className="text-rose-gold hover:text-rose-gold-dark hover:underline text-sm font-label tracking-wide w-full text-right"
+                  className="text-rose-gold hover:text-rose-gold-dark font-label w-full text-right text-sm tracking-wide hover:underline"
                 >
                   Forgot Password?
                 </a>
@@ -393,7 +393,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             <motion.div
               custom={formDir}
               variants={itemVariants}
-              className="h-[1.4px] w-full bg-ink-40"
+              className="bg-ink-40 h-[1.4px] w-full"
             />
             <motion.button
               layout
@@ -401,7 +401,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
               disabled={loading}
               custom={formDir}
               variants={itemVariants}
-              className="bg-ink flex items-center justify-center gap-2 text-paper uppercase text-xs px-4 py-2 tracking-wide border rounded-sm border-ink hover:bg-paper hover:text-ink disabled:opacity-70 disabled:cursor-not-allowed transition-colors duration-300 w-full"
+              className="bg-ink text-paper border-ink hover:bg-paper hover:text-ink flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs tracking-wide uppercase transition-colors duration-300 disabled:cursor-not-allowed disabled:opacity-70"
             >
               <motion.span layout="position">
                 {loading
@@ -432,7 +432,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
                       }}
                       className="inline-flex"
                     >
-                      <LoaderIcon size={16} />
+                      <Loader size={16} />
                     </motion.span>
                   </motion.span>
                 )}
@@ -442,16 +442,16 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             <motion.div
               custom={formDir}
               variants={itemVariants}
-              className="w-full flex items-center justify-between gap-2"
+              className="flex w-full items-center justify-between gap-2"
             >
-              <div className="h-[1.4px] w-full bg-ink-25"></div>
-              <p className="uppercase text-xs text-ink-40">or</p>
-              <div className="h-[1.4px] w-full bg-ink-25"></div>
+              <div className="bg-ink-25 h-[1.4px] w-full"></div>
+              <p className="text-ink-40 text-xs uppercase">or</p>
+              <div className="bg-ink-25 h-[1.4px] w-full"></div>
             </motion.div>
             <motion.button
               custom={formDir}
               variants={itemVariants}
-              className="bg-ink text-paper uppercase text-xs px-4 py-2 tracking-wide border rounded-sm border-ink hover:bg-paper hover:text-ink transition-all duration-300 w-full"
+              className="bg-ink text-paper border-ink hover:bg-paper hover:text-ink w-full rounded-sm border px-4 py-2 text-xs tracking-wide uppercase transition-all duration-300"
             >
               Continue With Google
             </motion.button>
@@ -460,12 +460,12 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             <motion.p
               custom={formDir}
               variants={itemVariants}
-              className="md:hidden w-full text-center text-sm font-label text-ink-40"
+              className="font-label text-ink-40 w-full text-center text-sm md:hidden"
             >
               {isSignIn ? "New here? " : "Already have an account? "}
               <button
                 onClick={toggleMode}
-                className="text-rose-gold hover:text-rose-gold-dark hover:underline uppercase tracking-wide text-xs"
+                className="text-rose-gold hover:text-rose-gold-dark text-xs tracking-wide uppercase hover:underline"
               >
                 {isSignIn ? "Create an account" : "Sign In"}
               </button>

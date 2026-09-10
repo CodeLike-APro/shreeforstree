@@ -10,8 +10,12 @@ export default async function ShopLayout({
   const session = headerList.get("x-session");
   if (session) redirect("/");
   return (
-    <section className="min-h-screen flex items-center justify-center bg-paper">
-      {session ? <div>You're already logged in</div> : <main>{children}</main>}
+    <section className="bg-paper flex min-h-screen items-center justify-center">
+      {session ? (
+        <div>You&apos;re already logged in</div>
+      ) : (
+        <main>{children}</main>
+      )}
     </section>
   );
 }

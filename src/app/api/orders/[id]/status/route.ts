@@ -6,12 +6,98 @@ import {
   notFound,
   ok,
 } from "@/lib/api-response";
-import { adminCheck } from "@/lib/auth-utils";
+import {
+  adminCheck,
+  assertOrderOwnership,
+  getCurrentUser,
+} from "@/lib/auth-utils";
 import { VALID_ORDER_TRANSITIONS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { orders } from "@/lib/db/schema/order.schema";
+import { resolveGuestToken } from "@/lib/order-utils";
+import { handleResponse } from "@/lib/response-handler";
 import { updateOrderSchema } from "@/lib/validators/order.validators";
 import { and, eq } from "drizzle-orm";
+import z4 from "zod/v4";
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const currentUser = await getCurrentUser(request);
+    const guestToken = request.headers.get("guest-token");
+    const { id: orderId } = await params;
+
+    if (!orderId) {
+      return badRequest("Order ID is required");
+    }
+
+    const result = await z4.uuid().safeParseAsync(orderId);
+
+    if (!result.success) {
+      return badRequest("Invalid Order ID");
+    }
+
+    const token = await resolveGuestToken(orderId, guestToken);
+
+    const order = await db.query.orders.findFirst({
+      where: (orders, { eq }) => eq(orders.id, orderId),
+      with: {
+        payments: {
+          orderBy: (payments, { desc }) => [desc(payments.createdAt)],
+        },
+      },
+    });
+
+    if (!order) {
+      return notFound("Order not found");
+    }
+
+    const isOwner = await assertOrderOwnership(
+      order,
+      currentUser?.id ?? null,
+      token,
+    );
+
+    const handleIsOwner = handleResponse(isOwner);
+
+    if (handleIsOwner.status !== 200) {
+      return handleIsOwner;
+    }
+
+    const statusAndFailureReason = (() => {
+      if (
+        order.paymentStatus === "success" &&
+        order.orderStatus !== "not_placed"
+      ) {
+        return { status: "success", failureReason: null };
+      }
+
+      if (order.paymentStatus === "failed") {
+        return {
+          status: "failed",
+          failureReason: order.payments[0]?.failureReason ?? "Payment failed",
+        };
+      }
+
+      if (order.paymentStatus === "refunded") {
+        return {
+          status: "refunded",
+          failureReason: null,
+        };
+      }
+
+      return { status: "pending", failureReason: null };
+    })();
+
+    return ok("Order fetched successfully", statusAndFailureReason, {
+      "Cache-Control": "no-store",
+    });
+  } catch (error) {
+    return internalServerError("Failed to fetch order", error);
+  }
+}
 
 export async function PATCH(
   request: Request,

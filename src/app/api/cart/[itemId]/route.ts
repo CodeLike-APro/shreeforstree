@@ -1,46 +1,11 @@
-import {
-  badRequest,
-  forbidden,
-  internalServerError,
-  notFound,
-  ok,
-} from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth-utils";
-import { getSessionId, Tx } from "@/lib/cart-utils";
+import { badRequest, internalServerError, ok } from "@/lib/api-response";
+import { assertOwnsCartItem, getCurrentUser } from "@/lib/auth-utils";
+import { getOrCreateSessionId } from "@/lib/cart-utils";
 import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema";
+import { handleResponse } from "@/lib/response-handler";
 import { updateCartItemSchema } from "@/lib/validators/cart.validators";
 import { eq } from "drizzle-orm";
-
-const assertOwnsCartItem = async (
-  itemId: string,
-  currentUser: { id: string } | null,
-  sessionId: string,
-  tx?: Tx,
-) => {
-  try {
-    const executor = tx ?? db;
-
-    const item = await executor.query.cartItems.findFirst({
-      where: (cartItems, { eq }) => eq(cartItems.id, itemId),
-      with: { cart: true },
-    });
-
-    if (!item) {
-      return notFound("Cart item not found");
-    }
-    const ownsCart =
-      item.cart.userId === currentUser?.id || item.cart.sessionId === sessionId;
-
-    if (!ownsCart) {
-      return forbidden("You can only modify your own cart");
-    }
-
-    return item;
-  } catch (error) {
-    return internalServerError("Failed to assert cart item ownership", error);
-  }
-};
 
 export async function PATCH(
   request: Request,
@@ -48,10 +13,7 @@ export async function PATCH(
 ) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const { itemId } = await params;
 
@@ -78,9 +40,13 @@ export async function PATCH(
         sessionId,
         tx,
       );
-      if (ownership instanceof Response) {
-        return ownership;
+
+      const ownershipResponse = handleResponse(ownership);
+
+      if (ownershipResponse.status !== 200) {
+        return ownershipResponse;
       }
+
       const [updatedItem] = await tx
         .update(cartItems)
         .set({
@@ -103,10 +69,7 @@ export async function DELETE(
 ) {
   try {
     const currentUser = await getCurrentUser(request);
-    const sessionId = getSessionId(request);
-    if (!sessionId) {
-      return badRequest("Session ID is required");
-    }
+    const sessionId = await getOrCreateSessionId();
     const { itemId } = await params;
 
     if (!itemId) {
@@ -115,8 +78,10 @@ export async function DELETE(
 
     const ownership = await assertOwnsCartItem(itemId, currentUser, sessionId);
 
-    if (ownership instanceof Response) {
-      return ownership;
+    const ownershipResponse = handleResponse(ownership);
+
+    if (ownershipResponse.status !== 200) {
+      return ownershipResponse;
     }
 
     const [deletedItem] = await db

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 interface DragDropGlowProps {
@@ -15,14 +14,6 @@ export default function DragDropGlow({
   isInvalid,
   invalidReason,
 }: DragDropGlowProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return createPortal(
     <AnimatePresence>
       {isDragging && (
@@ -31,12 +22,12 @@ export default function DragDropGlow({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeOut" }}
-          className="fixed inset-0 z-[9999] pointer-events-none will-change-transform"
+          className="pointer-events-none fixed inset-0 z-9999 will-change-transform"
           aria-live="polite"
           role="status"
         >
           {/* Subtle backdrop dim */}
-          <div className="absolute inset-0 bg-ink-08" />
+          <div className="bg-ink-08 absolute inset-0" />
 
           {/* 
             Glow implementation: Blob Approach
@@ -47,17 +38,19 @@ export default function DragDropGlow({
             initial={{ scale: 1.03 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="absolute inset-0 pointer-events-none"
+            className="pointer-events-none absolute inset-0"
             style={{
-              maskImage: 'radial-gradient(ellipse at center, transparent 0%, transparent 60%, black 100%)',
-              WebkitMaskImage: 'radial-gradient(ellipse at center, transparent 0%, transparent 60%, black 100%)',
+              maskImage:
+                "radial-gradient(ellipse at center, transparent 0%, transparent 60%, black 100%)",
+              WebkitMaskImage:
+                "radial-gradient(ellipse at center, transparent 0%, transparent 60%, black 100%)",
             }}
           >
-            <div className="absolute inset-[-50%] animate-glow-breathe">
+            <div className="animate-glow-breathe absolute inset-[-50%]">
               <div
-                className="absolute inset-0 animate-glow-spin opacity-80 blur-[50px]"
+                className="animate-glow-spin absolute inset-0 opacity-80 blur-[50px]"
                 style={{
-                  background: `conic-gradient(from var(--glow-angle), var(--color-rose-gold), var(--color-blush), var(--color-rose-gold))`
+                  background: `conic-gradient(from var(--glow-angle), var(--color-rose-gold), var(--color-blush), var(--color-rose-gold))`,
                 }}
               />
             </div>
@@ -76,13 +69,12 @@ export default function DragDropGlow({
                       transition: { delay: 0.08, duration: 0.2 },
                     }
               }
-              className={`
-                px-6 py-3 rounded-full backdrop-blur-md border shadow-card
-                ${isInvalid ? "bg-[var(--color-rust)]/10 border-[var(--color-rust)] text-[var(--color-rust)]" : "bg-paper/80 border-rose-gold/20 text-ink"}
-              `}
+              className={`shadow-card rounded-full border px-6 py-3 backdrop-blur-md ${isInvalid ? "bg-rust/10 border-rust text-rust" : "bg-paper/80 border-rose-gold/20 text-ink"} `}
             >
-              <span className="font-label uppercase tracking-widest font-bold text-sm">
-                {isInvalid ? (invalidReason || "Invalid files") : "Drop files here"}
+              <span className="font-label text-sm font-bold tracking-widest uppercase">
+                {isInvalid
+                  ? invalidReason || "Invalid files"
+                  : "Drop files here"}
               </span>
             </motion.div>
           </div>
@@ -92,5 +84,3 @@ export default function DragDropGlow({
     document.body,
   );
 }
-
-

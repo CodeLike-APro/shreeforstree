@@ -10,16 +10,7 @@ import React, {
   useState,
   type RefObject,
 } from "react";
-import {
-  XIcon,
-  PackageIcon,
-  HeartIcon,
-  MapPinIcon,
-  LogOutIcon,
-  SparklesIcon,
-  UserIcon,
-  ChevronRight,
-} from "lucide-react";
+import { ChevronRight, X, LogOut, Sparkles } from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -38,7 +29,7 @@ export interface UserDropdownItem {
 type UserDropdownProps = {
   isOpen: boolean;
   onClose: () => void;
-  /** The element that toggles the dropdown — ignored by the outside-click handler. */
+  /** The element that toggles the dropdown ignored by the outside-click handler. */
   triggerRef?: RefObject<HTMLElement | null>;
   items: readonly UserDropdownItem[] | UserDropdownItem[];
   direction?: "up" | "down";
@@ -88,7 +79,7 @@ const panelMobileVariants: Variants = {
   },
 };
 
-/** Parent container — orchestrates the stagger. */
+/** Parent container- orchestrates the stagger. */
 const staggerContainer: Variants = {
   hidden: {},
   visible: {
@@ -242,7 +233,7 @@ export default function UserDropdown({
             animate="visible"
             exit="hidden"
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-0 z-60 bg-ink/40 backdrop-blur-sm md:hidden"
+            className="bg-ink/40 fixed inset-0 z-60 backdrop-blur-sm md:hidden"
           />
 
           {/* Panel */}
@@ -263,18 +254,18 @@ export default function UserDropdown({
             onDragEnd={isMobile ? handleDragEnd : undefined}
             style={isMobile ? { y: dragY } : undefined}
             className={[
-              "fixed inset-x-0 bottom-0 z-70 w-full overflow-hidden rounded-t-3xl bg-paper text-ink shadow-2xl ring-1 ring-ink-08",
+              "bg-paper text-ink ring-ink-08 fixed inset-x-0 bottom-0 z-70 w-full overflow-hidden rounded-t-3xl shadow-2xl ring-1",
               "md:absolute md:inset-x-auto md:rounded-2xl",
               variant === "minimal" ? "md:w-60" : "md:w-80",
               direction === "up"
                 ? "md:bottom-full md:left-0 md:mb-0 md:origin-bottom-left"
-                : "md:bottom-auto md:right-0 md:top-full md:mt-3 md:origin-top-right",
+                : "md:top-full md:right-0 md:bottom-auto md:mt-3 md:origin-top-right",
               "transform-gpu will-change-transform",
             ].join(" ")}
           >
             {/* Mobile grab handle */}
-            <div className="flex justify-center pt-3 md:hidden cursor-grab active:cursor-grabbing">
-              <span className="h-1.5 w-11 rounded-full bg-ink-15" />
+            <div className="flex cursor-grab justify-center pt-3 active:cursor-grabbing md:hidden">
+              <span className="bg-ink-15 h-1.5 w-11 rounded-full" />
             </div>
 
             {/* Content — staggered reveal */}
@@ -288,23 +279,23 @@ export default function UserDropdown({
               <motion.div
                 variants={staggerItem}
                 className={`flex items-start justify-between gap-4 ${
-                  variant === "minimal" ? "pt-3 pb-0 hidden" : "pt-5 pb-4 px-6"
+                  variant === "minimal" ? "hidden pt-3 pb-0" : "px-6 pt-5 pb-4"
                 }`}
               >
                 <div className="min-w-0">
                   {variant !== "minimal" && (
                     <>
-                      <p className="font-label text-[11px] font-semibold uppercase tracking-[2] text-rose-gold">
+                      <p className="font-label text-rose-gold text-[11px] font-semibold tracking-[2] uppercase">
                         {isSignedIn ? "My Account" : "Welcome to"}
                       </p>
                       {isPending ? (
-                        <div className="mt-2 h-6 w-40 animate-pulse rounded bg-ink-08" />
+                        <div className="bg-ink-08 mt-2 h-6 w-40 animate-pulse rounded" />
                       ) : isSignedIn ? (
-                        <h2 className="mt-1 truncate font-display text-2xl font-bold leading-tight text-ink">
+                        <h2 className="font-display text-ink mt-1 truncate text-2xl leading-tight font-bold">
                           Hello{firstName ? `, ${firstName}` : ""}
                         </h2>
                       ) : (
-                        <h2 className="mt-1 font-display text-2xl font-bold leading-tight text-ink">
+                        <h2 className="font-display text-ink mt-1 text-2xl leading-tight font-bold">
                           shreeforstree
                         </h2>
                       )}
@@ -316,11 +307,11 @@ export default function UserDropdown({
                   type="button"
                   onClick={onClose}
                   aria-label="Close menu"
-                  className="group shrink-0 rounded-full border border-ink-15 p-2.5 transition-all duration-300 ease-in-out hover:bg-ink"
+                  className="group border-ink-15 btn-focus hover:bg-ink shrink-0 rounded-full border p-2.5 transition-all duration-300 ease-in-out"
                 >
-                  <XIcon
+                  <X
                     size={16}
-                    className="stroke-[1.7] text-ink transition-colors duration-300 ease-in-out group-hover:text-paper"
+                    className="text-ink group-hover:text-paper stroke-[1.7] transition-colors duration-300 ease-in-out"
                   />
                 </button>
               </motion.div>
@@ -330,8 +321,8 @@ export default function UserDropdown({
                   variants={staggerItem}
                   className={`flex items-center gap-3 rounded-xl ${
                     variant === "minimal"
-                      ? "px-0 py-2 mb-0 mt-1 mx-3"
-                      : "bg-ink-05 px-4 py-3 mb-1 mx-6"
+                      ? "mx-3 mt-1 mb-0 px-0 py-2"
+                      : "bg-ink-05 mx-6 mb-1 px-4 py-3"
                   }`}
                 >
                   {session?.user?.image ? (
@@ -339,20 +330,20 @@ export default function UserDropdown({
                     <img
                       src={session.user.image}
                       alt={session.user.name ?? "avatar"}
-                      className="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-ink-15"
+                      className="ring-ink-15 h-10 w-10 shrink-0 rounded-full object-cover ring-1"
                     />
                   ) : (
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-gold font-display text-lg font-bold text-paper">
+                    <span className="bg-rose-gold font-display text-paper flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold">
                       {initial}
                     </span>
                   )}
                   <div className="min-w-0">
                     {session?.user?.name && (
-                      <p className="truncate font-body text-sm font-semibold text-ink">
+                      <p className="font-body text-ink truncate text-sm font-semibold">
                         {session.user.name}
                       </p>
                     )}
-                    <p className="truncate font-body text-xs text-ink-55">
+                    <p className="font-body text-ink-55 truncate text-xs">
                       {session?.user?.email}
                     </p>
                   </div>
@@ -370,7 +361,7 @@ export default function UserDropdown({
                     {[0, 1, 2].map((i) => (
                       <div
                         key={i}
-                        className="h-10 w-full animate-pulse rounded-lg bg-ink-05"
+                        className="bg-ink-05 h-10 w-full animate-pulse rounded-lg"
                       />
                     ))}
                   </div>
@@ -381,24 +372,28 @@ export default function UserDropdown({
                         <Link
                           href={href}
                           onClick={onClose}
-                          className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 hover:bg-ink-05"
+                          className="group btn-focus hover:bg-ink-05 flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200"
                         >
                           {React.isValidElement(icon) &&
                             React.cloneElement(
-                              icon as React.ReactElement<any>,
+                              icon as React.ReactElement<{
+                                size?: number;
+                                className?: string;
+                              }>,
                               {
                                 size: 18,
                                 className: `stroke-[1.5] text-ink-55 transition-colors group-hover:text-rose-gold ${
-                                  (icon.props as any).className || ""
+                                  (icon.props as { className?: string })
+                                    .className || ""
                                 }`,
                               },
                             )}
-                          <span className="flex-1 font-body text-sm text-ink transition-colors group-hover:text-rose-gold">
+                          <span className="font-body text-ink group-hover:text-rose-gold flex-1 text-sm transition-colors">
                             {label}
                           </span>
                           <ChevronRight
                             size={16}
-                            className="text-ink-25 transition-all group-hover:translate-x-0.5 group-hover:text-rose-gold"
+                            className="text-ink-25 group-hover:text-rose-gold transition-all group-hover:translate-x-0.5"
                           />
                         </Link>
                       </motion.div>
@@ -406,7 +401,7 @@ export default function UserDropdown({
 
                     <motion.div
                       variants={staggerItem}
-                      className="my-2 h-px bg-ink-08"
+                      className="bg-ink-08 my-2 h-px"
                     />
 
                     <motion.div variants={staggerItem}>
@@ -414,13 +409,13 @@ export default function UserDropdown({
                         type="button"
                         onClick={handleSignOut}
                         disabled={signingOut}
-                        className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-rust transition-colors duration-200 hover:bg-rust/10 disabled:opacity-60"
+                        className="group text-rust btn-focus hover:bg-rust/10 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 transition-colors duration-200 disabled:opacity-60"
                       >
-                        <LogOutIcon
+                        <LogOut
                           size={18}
-                          className="stroke-[1.5] transition-colors group-hover:text-rust"
+                          className="group-hover:text-rust stroke-[1.5] transition-colors"
                         />
-                        <span className="flex-1 text-left font-body text-sm transition-colors group-hover:text-rust">
+                        <span className="font-body group-hover:text-rust flex-1 text-left text-sm transition-colors">
                           {signingOut ? "Signing out…" : "Sign Out"}
                         </span>
                       </button>
@@ -430,7 +425,7 @@ export default function UserDropdown({
                   <div className="px-3 pb-2">
                     <motion.p
                       variants={staggerItem}
-                      className="mb-4 font-serif-alt text-lg leading-snug text-ink-55"
+                      className="font-serif-alt text-ink-55 mb-4 text-lg leading-snug"
                     >
                       Sign in to track orders, save your wishlist, and check out
                       faster.
@@ -440,7 +435,7 @@ export default function UserDropdown({
                       <Link
                         href="/sign-in"
                         onClick={onClose}
-                        className="flex w-full items-center justify-center gap-2 rounded-full bg-ink py-3 font-label text-sm font-semibold uppercase tracking-[1.5] text-paper transition-colors hover:bg-rose-gold"
+                        className="bg-ink font-label btn-focus text-paper hover:bg-rose-gold flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
                       >
                         Sign In
                       </Link>
@@ -450,7 +445,7 @@ export default function UserDropdown({
                       <Link
                         href="/sign-up"
                         onClick={onClose}
-                        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border border-ink-15 py-3 font-label text-sm font-semibold uppercase tracking-[1.5] text-ink transition-colors hover:border-rose-gold hover:text-rose-gold"
+                        className="border-ink-15 btn-focus font-label text-ink hover:border-rose-gold hover:text-rose-gold mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border py-3 text-sm font-semibold tracking-[1.5] uppercase transition-colors"
                       >
                         Create Account
                       </Link>
@@ -458,9 +453,9 @@ export default function UserDropdown({
 
                     <motion.p
                       variants={staggerItem}
-                      className="mt-4 flex items-center justify-center gap-1.5 font-body text-xs text-ink-40"
+                      className="font-body text-ink-40 mt-4 flex items-center justify-center gap-1.5 text-xs"
                     >
-                      <SparklesIcon size={13} className="text-rose-gold" />
+                      <Sparkles size={13} className="text-rose-gold" />
                       Crafted for you, by shreeforstree
                     </motion.p>
                   </div>

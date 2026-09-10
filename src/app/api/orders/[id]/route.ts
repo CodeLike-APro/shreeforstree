@@ -1,13 +1,14 @@
 import {
   badRequest,
-  forbidden,
   internalServerError,
   notFound,
   ok,
-  unauthorized,
 } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth-utils";
+import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
+import { resolveGuestToken } from "@/lib/order-utils";
+import { handleResponse } from "@/lib/response-handler";
+import z4 from "zod/v4";
 
 export async function GET(
   request: Request,
@@ -16,21 +17,19 @@ export async function GET(
   try {
     const currentUser = await getCurrentUser(request);
 
-    if (!currentUser) {
-      return unauthorized("Unauthorized access");
-    }
-
     const { id: orderId } = await params;
 
-    if (!orderId) {
-      return badRequest("Order ID is required");
+    const result = z4.uuid({ message: "Invalid order ID" }).safeParse(orderId);
+
+    if (!result.success) {
+      return badRequest("Invalid order ID");
     }
 
     const order = await db.query.orders.findFirst({
       where: (orders, { eq }) => eq(orders.id, orderId),
       with: {
         orderItems: true,
-        payment: true,
+        payments: true,
       },
     });
 
@@ -38,8 +37,21 @@ export async function GET(
       return notFound("Order not found");
     }
 
-    if (order.userId !== currentUser.id && currentUser.role !== "admin") {
-      return forbidden("You do not have permission to access this order");
+    const token = await resolveGuestToken(
+      orderId,
+      request.headers.get("guest-token"),
+    );
+
+    const ownershipCheck = await assertOrderOwnership(
+      order,
+      currentUser?.id,
+      token,
+    );
+
+    const ownershipResponse = handleResponse(ownershipCheck);
+
+    if (ownershipResponse.status !== 200) {
+      return ownershipResponse;
     }
 
     return ok("Order fetched successfully", order);

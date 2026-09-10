@@ -111,11 +111,13 @@ export function internalServerError(
   message: string = "Internal Server Error",
   error?: unknown,
 ) {
+  const trace = new Error().stack;
+  const callSite = trace ? trace.split("\n")[2]?.trim() : "Unknown call site";
+  console.error(message, error, { status: 500, at: callSite });
   const body: ApiResponse = {
     success: false,
     message,
     data: null,
-    errors: error,
   };
   return NextResponse.json(body, {
     status: 500,

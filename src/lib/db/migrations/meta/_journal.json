@@ -36,6 +36,48 @@
       "when": 1787146215553,
       "tag": "0004_hard_the_hood",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787213207603,
+      "tag": "0005_lazy_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787375338280,
+      "tag": "0006_strange_marvex",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787737863707,
+      "tag": "0007_light_menace",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788603980177,
+      "tag": "0008_giant_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788604402055,
+      "tag": "0009_dry_spirit",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788932707994,
+      "tag": "0010_regular_mikhail_rasputin",
+      "breakpoints": true
     }
   ]
 }

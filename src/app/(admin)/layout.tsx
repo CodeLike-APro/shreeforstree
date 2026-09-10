@@ -1,7 +1,5 @@
-import { auth } from "@/lib/db/auth";
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import {
   Box,
   LayoutDashboard,
@@ -10,6 +8,8 @@ import {
   Shirt,
   Users,
 } from "lucide-react";
+import { auth } from "@/lib/db/auth";
+import { redirect } from "next/navigation";
 
 const AdminSidebar = dynamic(() => import("@/components/admin/AdminSidebar"));
 const NavMobile = dynamic(() => import("@/utils/NavMobile"));
@@ -35,15 +35,15 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const headerList = await headers();
-  // const session = await auth.api.getSession({ headers: headerList });
+  const session = await auth.api.getSession({ headers: headerList });
   const deviceType = headerList.get("x-device-type");
-  // if (!session || session.user.role !== "admin") {
-  //   redirect("/");
-  // }
+  if (!session || session.user.role !== "admin") {
+    redirect("/");
+  }
 
   return (
     <section
-      className={`min-h-screen flex flex-1 w-full ${
+      className={`flex min-h-screen w-full flex-1 ${
         deviceType === "mobile" ? "flex-col" : "flex-row"
       }`}
     >
@@ -52,7 +52,7 @@ export default async function AdminLayout({
           <AdminSidebar />
         </nav>
       )}
-      <main className="flex-1 min-w-0 flex flex-col min-h-screen">
+      <main className="flex min-h-screen min-w-0 flex-1 flex-col">
         {deviceType === "mobile" ? (
           <AdminMobileTopBar />
         ) : (

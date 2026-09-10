@@ -10,15 +10,14 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
-import {
-  cartItems,
-  orderItems,
-  orders,
-  orderStatusEnum,
-} from "@/lib/db/schema";
+import { orderItems, orders, orderStatusEnum } from "@/lib/db/schema";
+import type { addresses } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
 import { and, count, eq, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
+import crypto from "crypto";
+import { getOrCreateSessionId } from "@/lib/cart-utils";
+import { setGuestOrderCookie } from "@/lib/order-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -71,6 +70,7 @@ export async function GET(request: NextRequest) {
       where: conditions.length ? and(...conditions) : undefined,
       limit,
       offset,
+      orderBy: (orders, { desc }) => desc(orders.createdAt),
     });
 
     return paginated(
@@ -88,12 +88,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const currentUser = await getCurrentUser(request);
-
-    if (!currentUser) {
-      return unauthorized(
-        "Unauthorized access. Please log in to create an order.",
-      );
-    }
+    const sessionId = await getOrCreateSessionId();
 
     const body = await request.json();
     const result = await createOrderSchema.safeParseAsync(body);
@@ -105,24 +100,68 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { addressId } = result.data;
+    const {
+      addressId,
+      email,
+      shippingFullName,
+      shippingPhone,
+      shippingAddressLine1,
+      shippingAddressLine2,
+      shippingCity,
+      shippingState,
+      shippingPincode,
+      shippingCountry,
+    } = result.data;
 
-    const address = await db.query.addresses.findFirst({
-      where: (addresses, { eq }) => eq(addresses.id, addressId),
-    });
+    let address: typeof addresses.$inferSelect | undefined = undefined;
 
-    if (!address) {
-      return notFound("Address not found");
+    if (addressId && currentUser) {
+      address = await db.query.addresses.findFirst({
+        where: (addresses, { eq }) => eq(addresses.id, addressId),
+      });
+
+      if (!address) {
+        return notFound("Address not found");
+      }
+
+      if (address.userId !== currentUser.id) {
+        return forbidden("You are not authorized to use this address");
+      }
     }
 
-    if (address.userId !== currentUser.id) {
-      return forbidden(
-        "Unauthorized access. You can only use your own address.",
-      );
+    const resolvedFullName = address?.fullName ?? shippingFullName;
+    const resolvedPhone = address?.phone ?? shippingPhone;
+    const resolvedAddressLine1 = address?.addressLine1 ?? shippingAddressLine1;
+    const resolvedAddressLine2 = address?.addressLine2 ?? shippingAddressLine2;
+    const resolvedCity = address?.city ?? shippingCity;
+    const resolvedState = address?.state ?? shippingState;
+    const resolvedPincode = address?.pincode ?? shippingPincode;
+    const resolvedCountry = address?.country ?? shippingCountry;
+
+    if (
+      !resolvedFullName ||
+      !resolvedPhone ||
+      !resolvedAddressLine1 ||
+      !resolvedCity ||
+      !resolvedState ||
+      !resolvedPincode ||
+      !resolvedCountry
+    ) {
+      return badRequest("Shipping details are required");
+    }
+
+    let guestToken: string | undefined = undefined;
+
+    if (!currentUser) {
+      guestToken = crypto.randomBytes(16).toString("hex");
     }
 
     const cart = await db.query.carts.findFirst({
-      where: (carts, { eq }) => eq(carts.userId, currentUser.id),
+      where: (carts, { eq }) =>
+        eq(
+          currentUser ? carts.userId : carts.sessionId,
+          currentUser ? currentUser.id : sessionId,
+        ),
       with: {
         cartItems: {
           with: {
@@ -203,23 +242,26 @@ export async function POST(request: NextRequest) {
       const [order] = await tx
         .insert(orders)
         .values({
-          userId: currentUser.id,
+          userId: currentUser?.id ?? null,
+          cartId: cart.id,
           originalAmount: originalAmount.toString(),
           discountAmount: discountAmount.toString(),
           itemsTotal: itemsTotal.toString(),
           shippingCharges: shippingCharge.toString(),
           totalAmount: totalAmount.toString(),
-          orderStatus: "not_placed",
           paymentStatus: "pending",
-          addressId: address.id,
-          shippingFullName: address.fullName,
-          shippingPhone: address.phone,
-          shippingAddressLine1: address.addressLine1,
-          shippingAddressLine2: address.addressLine2,
-          shippingCity: address.city,
-          shippingState: address.state,
-          shippingPincode: address.pincode,
-          shippingCountry: address.country,
+          orderStatus: "not_placed",
+          addressId: address?.id,
+          guestToken: guestToken,
+          shippingFullName: resolvedFullName,
+          shippingPhone: resolvedPhone,
+          shippingEmail: email,
+          shippingAddressLine1: resolvedAddressLine1,
+          shippingAddressLine2: resolvedAddressLine2,
+          shippingCity: resolvedCity,
+          shippingState: resolvedState,
+          shippingPincode: resolvedPincode,
+          shippingCountry: resolvedCountry,
         })
         .returning();
 
@@ -229,7 +271,6 @@ export async function POST(request: NextRequest) {
         productTitle: item.product.title,
         productImageUrl: item.product.productMedia[0]?.url ?? "",
         size: item.size,
-        color: item.color,
         quantity: item.quantity,
         // same effective-price rule as calculateAmounts: a zero/absent
         // discountedPrice falls back to the full price
@@ -238,12 +279,14 @@ export async function POST(request: NextRequest) {
         ).toFixed(2),
       }));
 
-      await tx.insert(orderItems).values(orderItemsData).returning();
-
-      await tx.delete(cartItems).where(eq(cartItems.cartId, cart.id));
+      await tx.insert(orderItems).values(orderItemsData);
 
       return order;
     });
+
+    if (guestToken) {
+      await setGuestOrderCookie({ orderId: newOrder.id, guestToken });
+    }
 
     return created("Order created successfully", newOrder);
   } catch (error) {

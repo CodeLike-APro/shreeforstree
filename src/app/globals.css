@@ -11,6 +11,8 @@
   --color-ink-25: oklch(0.21 0.01 40 / 0.25);
   --color-ink-40: oklch(0.21 0.01 40 / 0.4);
   --color-ink-55: oklch(0.21 0.01 40 / 0.55);
+  --color-muted: oklch(0.93 0.008 60);
+  --color-muted-foreground: oklch(0.21 0.01 40 / 0.55);
 
   /* Slightly deeper than --color-ink — used for footer background only */
   --color-ink-deep: oklch(0.18 0.005 64);
@@ -59,6 +61,11 @@
     font-family: var(--font-display);
     font-weight: 700;
   }
+
+  p {
+    font-family: var(--font-label);
+    font-weight: 400;
+  }
 }
 
 @layer utilities {
@@ -72,13 +79,13 @@
 
   /* Rose-gold running-stitch divider — the signature motif */
   .stitch-divider {
-    height: 1px;
+    height: 2px;
     background-image: repeating-linear-gradient(
       to right,
       var(--color-rose-gold) 0,
-      var(--color-rose-gold) 6px,
-      transparent 6px,
-      transparent 12px
+      var(--color-rose-gold) 12px,
+      transparent 12px,
+      transparent 18px
     );
   }
 
@@ -125,23 +132,39 @@
 }
 
 @keyframes glow-spin {
-  0% { 
+  0% {
     --glow-angle: 0deg;
     transform: rotate(0deg);
   }
-  100% { 
+  100% {
     --glow-angle: 360deg;
     transform: rotate(360deg);
   }
 }
 
 @keyframes glow-breathe {
-  0% { opacity: 0.75; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
   }
+}
+
+.btn-focus {
+  @apply cursor-pointer transition-colors duration-150;
+
+  @apply focus:ring-0 focus:outline-none;
+
+  @apply focus-visible:ring-rose-gold-dark focus-visible:border-transparent focus-visible:ring-2;
+}
+
+.peer-focus-ring {
+  @apply peer-focus-visible:ring-rose-gold-dark peer-focus-visible:ring-2;
 }

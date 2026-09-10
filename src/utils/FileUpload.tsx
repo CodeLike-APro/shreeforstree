@@ -3,7 +3,9 @@
 import { useRef, useState, useCallback, type ChangeEvent } from "react";
 import { Upload, X } from "lucide-react";
 import { useFileDragState } from "@/hooks/useFileDragState";
-import DragDropGlow from "./DragDropGlow";
+import dynamic from "next/dynamic";
+
+const DragDropGlow = dynamic(() => import("./DragDropGlow"), { ssr: false });
 
 type AcceptType = "image" | "video" | "both";
 
@@ -112,7 +114,7 @@ export default function FileUpload({
   const showPreviews = currentPreviews.length > 0 && !isDragging;
 
   return (
-    <div className="w-full relative">
+    <div className="relative w-full">
       <DragDropGlow
         isDragging={isDragging}
         isInvalid={isInvalid}
@@ -132,30 +134,27 @@ export default function FileUpload({
           className={`grid gap-4 ${isMulti ? "grid-cols-2 md:grid-cols-3" : "grid-cols-1"}`}
         >
           {currentPreviews.map((preview, idx) => (
-            <div
-              key={preview}
-              className="relative w-full aspect-video group"
-            >
-              <div className="w-full h-full rounded-lg overflow-hidden border border-ink-25 relative bg-ink-10">
+            <div key={preview} className="group relative aspect-video w-full">
+              <div className="border-ink-25 bg-ink-10 relative h-full w-full overflow-hidden rounded-lg border">
                 {isVideoPreview(preview, accept) ? (
                   <video
                     src={preview}
                     controls
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 ) : (
                   <img
                     src={preview}
                     alt="Upload preview"
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                   />
                 )}
-                <div className="absolute inset-0 bg-ink/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                <div className="bg-ink/40 pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               </div>
               <button
                 type="button"
                 onClick={() => removeFile(idx)}
-                className="absolute -top-3 -right-3 z-10 bg-paper text-ink hover:text-rose-gold p-1.5 rounded-full border border-ink-25 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 transition-all duration-300 shadow-md"
+                className="bg-paper text-ink hover:text-rose-gold border-ink-25 absolute -top-3 -right-3 z-10 scale-75 rounded-full border p-1.5 opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
                 aria-label="Remove file"
               >
                 <X size={20} />
@@ -167,10 +166,10 @@ export default function FileUpload({
             <button
               type="button"
               onClick={openPicker}
-              className="w-full aspect-video border-2 border-dashed border-rose-gold/50 rounded-lg flex flex-col items-center justify-center text-center gap-2 cursor-pointer hover:bg-rose-gold/5 transition-all duration-300"
+              className="border-rose-gold/50 hover:bg-rose-gold/5 flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-center transition-all duration-300"
             >
               <Upload className="text-rose-gold/70" size={24} />
-              <div className="font-body font-bold text-ink-60 text-sm">
+              <div className="font-body text-ink-60 text-sm font-bold">
                 Add more
               </div>
             </button>
@@ -179,10 +178,10 @@ export default function FileUpload({
       ) : (
         <div
           onClick={openPicker}
-          className={`w-full aspect-video border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center text-center gap-2 cursor-pointer transition-all duration-300 ${
+          className={`flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 text-center transition-all duration-300 ${
             isDragging
-              ? "border-rose-gold bg-rose-gold/10 shadow-[0_0_15px_rgba(184,115,101,0.3)] scale-[1.02]"
-              : "border-rose-gold bg-transparent hover:bg-rose-gold/5"
+              ? "border-rose-gold bg-rose-gold/10 scale-[1.02] shadow-[0_0_15px_rgba(184,115,101,0.3)]"
+              : "border-rose-gold hover:bg-rose-gold/5 bg-transparent"
           }`}
         >
           <Upload
@@ -191,15 +190,15 @@ export default function FileUpload({
             }`}
             size={32}
           />
-          <div className="font-body font-bold text-ink mt-2">{title}</div>
+          <div className="font-body text-ink mt-2 font-bold">{title}</div>
           {subtitle && (
-            <div className="font-body text-xs text-ink-40">{subtitle}</div>
+            <div className="font-body text-ink-40 text-xs">{subtitle}</div>
           )}
         </div>
       )}
 
       {error && (
-        <div className="absolute -bottom-6 left-0 text-rust text-sm font-medium animate-in fade-in slide-in-from-top-1">
+        <div className="text-rust animate-in fade-in slide-in-from-top-1 absolute -bottom-6 left-0 text-sm font-medium">
           {error}
         </div>
       )}
