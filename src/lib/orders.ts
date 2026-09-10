@@ -16,3 +16,12 @@ export function formatAmount(amount: string): string {
 export function itemCount(count: number): string {
   return `${count} item${count !== 1 ? "s" : ""}`;
 }
+
+export function formatDate(date: Date): string {
+  const options = { day: "numeric", month: "short", year: "numeric" } as const;
+  return date.toLocaleDateString("en-IN", options);
+}
+
+export function handleCopyToClipboard(text: string) {
+  navigator.clipboard.writeText(text);
+}
