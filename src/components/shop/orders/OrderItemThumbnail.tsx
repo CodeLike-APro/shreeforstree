@@ -3,26 +3,33 @@ import Image from "next/image";
 export default function OrderItemThumbnail({
   items,
 }: {
-  items?: { url: string; title?: string }[] | null;
+  items?: { url: string; title?: string }[];
 }) {
   const THUMBNAIL_LIMIT = 3;
   const safeItems = items ?? [];
   const hasOverflow = safeItems.length > THUMBNAIL_LIMIT + 1;
+  const visible = safeItems.slice(
+    0,
+    hasOverflow ? THUMBNAIL_LIMIT : THUMBNAIL_LIMIT + 1,
+  );
+  const frontIndex = hasOverflow ? THUMBNAIL_LIMIT : visible.length - 1;
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <div className="h-15 w-40">
-        <div className="relative h-15 w-full overflow-hidden">
+    <div className="select-none">
+      <div className="h-15">
+        <div className="flex h-15">
           {safeItems
             .slice(0, hasOverflow ? THUMBNAIL_LIMIT : THUMBNAIL_LIMIT + 1)
             .map((item, index) => (
               <div
                 key={index}
-                className="border-paper absolute top-1 h-13 w-13 overflow-hidden rounded-lg border-2"
+                className={[
+                  "border-paper h-13 w-13 overflow-hidden rounded-lg border-2",
+                  index === 0 ? "" : "-ml-4.25",
+                ].join(" ")}
                 style={{
-                  left: `${index * 35}px`,
                   zIndex: index,
-                  opacity: 0.8 + index * 0.1,
+                  opacity: Math.max(0.6, 1 - (frontIndex - index) * 0.1),
                 }}
               >
                 <Image
@@ -36,9 +43,11 @@ export default function OrderItemThumbnail({
             ))}
           {hasOverflow && (
             <div
-              className="bg-blush border-paper absolute top-1 flex h-13 w-13 items-center justify-center rounded-xl border-2 text-white"
+              className={[
+                "bg-blush border-paper flex h-13 w-13 items-center justify-center rounded-lg border-2 text-white",
+                "-ml-4.25",
+              ].join(" ")}
               style={{
-                left: `${THUMBNAIL_LIMIT * 35}px`,
                 zIndex: THUMBNAIL_LIMIT,
               }}
             >
