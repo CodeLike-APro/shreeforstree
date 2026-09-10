@@ -125,11 +125,11 @@ export default async function OrderDetails({
               <h5 className="font-label text-ink-55 text-xs tracking-widest uppercase">
                 Summary
               </h5>
-              <div className="font-label text-md mt-3 flex items-center justify-between tracking-wide">
+              <div className="font-label mt-3 flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Items Total</h6>
                 <p>{formatAmount(orderDetails.itemsTotal)}</p>
               </div>
-              <div className="font-label text-md flex items-center justify-between tracking-wide">
+              <div className="font-label flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Shipping</h6>
                 <p>
                   {Number(orderDetails.shippingCharges) === 0
@@ -148,15 +148,15 @@ export default async function OrderDetails({
               <h5 className="font-label text-ink-55 text-xs tracking-widest uppercase">
                 Payment
               </h5>
-              <div className="font-label text-md mt-3 flex items-center justify-between tracking-wide">
+              <div className="font-label mt-3 flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Payment Method</h6>
                 <p>{orderDetails.payments[0]?.method || "N/A"}</p>
               </div>
-              <div className="font-label text-md flex items-center justify-between tracking-wide">
+              <div className="font-label flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Payment Status</h6>
                 <p>{orderDetails.payments[0]?.status || "N/A"}</p>
               </div>
-              <div className="font-label text-md flex items-center justify-between tracking-wide">
+              <div className="font-label flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Transaction ID</h6>
                 <div className="flex items-center justify-center gap-2">
                   <p className="leading-tight">

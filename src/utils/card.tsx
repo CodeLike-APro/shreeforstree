@@ -310,7 +310,7 @@ export default function Card({
               <div className="mt-1 flex items-center gap-2">
                 {hasDiscount ? (
                   <>
-                    <p className="text-md text-rose-gold tracking-wide">
+                    <p className="text-rose-gold text-base tracking-wide">
                       {formatPrice(discountedPrice)}
                     </p>
                     <p className="text-ink-40 text-xs line-through">
@@ -318,7 +318,7 @@ export default function Card({
                     </p>
                   </>
                 ) : (
-                  <p className="text-md text-rose-gold tracking-wide">
+                  <p className="text-rose-gold text-base tracking-wide">
                     {formatPrice(price)}
                   </p>
                 )}

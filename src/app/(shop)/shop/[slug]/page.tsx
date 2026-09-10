@@ -78,7 +78,7 @@ export default async function ProductPage({
               </div>
               {product.discountedPrice && (
                 <div className="flex items-end gap-2">
-                  <div className="font-display text-md text-ink-40 font-semibold line-through">
+                  <div className="font-display text-ink-40 text-base font-semibold line-through">
                     &#8377;{product.price}
                   </div>
                   <div className="font-display text-rose-gold text-lg font-semibold">

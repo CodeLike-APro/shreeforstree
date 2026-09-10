@@ -418,7 +418,7 @@ export default function Cart({
                           )}
                         </div>
                       </div>
-                      <div className="border-ink/10 font-display text-md mt-2 flex items-center justify-between border-t py-2 font-bold">
+                      <div className="border-ink/10 font-display mt-2 flex items-center justify-between border-t py-2 text-base font-bold">
                         <h6>Total</h6>
                         <p>{cart.total}</p>
                       </div>
@@ -450,7 +450,7 @@ export default function Cart({
                       <Handbag size={30} strokeWidth={1.7} />
                     </div>
                     <h4 className="font-display text-xl">Your bag is empty</h4>
-                    <p className="font-label text-ink-40 text-md text-center">
+                    <p className="font-label text-ink-40 text-center text-base">
                       Nothing chosen yet. The pieces you all will wait for you
                       here.
                     </p>

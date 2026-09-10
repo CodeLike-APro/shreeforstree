@@ -192,7 +192,7 @@ export default function Checkout() {
         <div className="flex w-full flex-col items-center gap-2 self-center">
           <div className="border-ink/10 flex w-full flex-col items-start justify-center gap-2 border-b pb-4">
             <h1 className="text-3xl font-bold tracking-wide">Checkout</h1>
-            <p className="text-ink-40 text-md font-label">
+            <p className="text-ink-40 font-label text-base">
               Confirm where this is going, then place your order.
             </p>
           </div>
@@ -261,7 +261,7 @@ export default function Checkout() {
                         handleSaveEmail();
                       }
                     }}
-                    className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
+                    className="font-label border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5 text-base"
                   >
                     {editEmail ? "Save" : "Edit Email"}
                   </button>
@@ -278,7 +278,7 @@ export default function Checkout() {
               {!isExpanded && selectedAddress && (
                 <button
                   onClick={() => !isExpanded && setIsExpanded(!isExpanded)}
-                  className="font-label text-md border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5"
+                  className="font-label border-ink bg-paper text-ink hover:bg-ink hover:text-paper btn-focus rounded-md border px-4 py-1.5 text-base"
                 >
                   Change Address
                 </button>

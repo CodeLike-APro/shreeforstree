@@ -281,7 +281,7 @@ export default function AllAddresses({
                   editingId: null,
                 })
               }
-              className="font-label text-md border-ink text-ink hover:bg-ink hover:text-paper btn-focus absolute top-0 right-0 rounded-md border px-4 py-1.5"
+              className="font-label border-ink text-ink hover:bg-ink hover:text-paper btn-focus absolute top-0 right-0 rounded-md border px-4 py-1.5 text-base"
             >
               Add Address
             </button>
@@ -398,7 +398,7 @@ export default function AllAddresses({
                         <div className="flex w-[40%] items-center justify-start">
                           <Pencil size={14} />
                         </div>
-                        <div className="text-md mt-0.5 w-full self-start font-medium">
+                        <div className="mt-0.5 w-full self-start text-base font-medium">
                           <p className="text-start">Edit</p>
                         </div>
                       </button>
@@ -419,7 +419,7 @@ export default function AllAddresses({
                         <div className="flex w-[40%] items-center justify-start">
                           <Trash2 size={14} />
                         </div>
-                        <div className="text-md mt-0.5 w-full self-start font-medium">
+                        <div className="mt-0.5 w-full self-start text-base font-medium">
                           <p className="text-start">Delete</p>
                         </div>
                         {deleteLoadingIds.has(address.id) && (

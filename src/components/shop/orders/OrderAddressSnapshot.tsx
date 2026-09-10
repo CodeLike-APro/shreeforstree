@@ -27,7 +27,7 @@ export default function OrderAddressSnapshot({
         </h5>
         <p className="text-ink-55 text-sm">{address.phone}</p>
       </div>
-      <div className="text-ink text-md flex flex-col items-start">
+      <div className="text-ink flex flex-col items-start text-base">
         <p>{address.addressLine1}</p>
         {address.addressLine2 && <p>{address.addressLine2}</p>}
         <p>

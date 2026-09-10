@@ -162,7 +162,7 @@ export default function Payment() {
           <h1 className="font-display text-ink text-2xl leading-tight font-bold">
             Processing payment...
           </h1>
-          <p className="text-ink-55 text-md font-label mt-2">
+          <p className="text-ink-55 font-label mt-2 text-base">
             Please do not close this tab.
           </p>
         </div>

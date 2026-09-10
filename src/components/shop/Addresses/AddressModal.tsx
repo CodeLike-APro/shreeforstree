@@ -314,7 +314,7 @@ export default function AddressModal({
                   <h1 id="address-form-title" className="text-xl">
                     {AddressTitle}
                   </h1>
-                  <p className="text-ink-55 font-label text-md">
+                  <p className="text-ink-55 font-label text-base">
                     We deliver within India only.
                   </p>
                 </div>
