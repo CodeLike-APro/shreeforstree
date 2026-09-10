@@ -454,7 +454,13 @@ export default function Cart({
                       Nothing chosen yet. The pieces you all will wait for you
                       here.
                     </p>
-                    <button className="bg-paper text-rose-gold font-label border-rose-gold hover:bg-rose-gold-dark hover:text-paper hover:border-rose-gold-dark rounded-md border px-4 py-2 text-[0.7rem] font-semibold tracking-[0.2rem] uppercase transition-colors duration-150">
+                    <button
+                      onClick={() => {
+                        router.push("/shop");
+                        onClose();
+                      }}
+                      className="bg-paper text-rose-gold font-label border-rose-gold hover:bg-rose-gold-dark hover:text-paper hover:border-rose-gold-dark rounded-md border px-4 py-2 text-[0.7rem] font-semibold tracking-[0.2rem] uppercase transition-colors duration-150"
+                    >
                       Browse the shop
                     </button>
                   </div>
