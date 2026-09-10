@@ -1,6 +1,5 @@
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
-import BackButton from "@/components/ui/BackButton";
-import { CopyButton } from "@/components/ui/CopyButton";
+import { BackButton, CopyButton } from "@/components/ui/Buttons";
 import { getOwnedOrder } from "@/lib/order-utils";
 import { formatAmount, formatDate, orderReference } from "@/lib/orders";
 import { X } from "lucide-react";

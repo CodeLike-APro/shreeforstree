@@ -59,7 +59,7 @@ export default function Payment() {
         const data = result.data;
 
         if (!data.razorpayOrderId) {
-          router.replace(confirmPage);
+          router.replace(`/orders/${singleOrderId}/confirmation`);
           return;
         }
 

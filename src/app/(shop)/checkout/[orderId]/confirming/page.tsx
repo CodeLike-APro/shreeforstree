@@ -3,12 +3,13 @@
 import { Check, RefreshCw, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function ConfirmingOrder() {
   const params = useParams();
+  const router = useRouter();
   const { orderId } = params;
   const [orderStatus, setOrderStatus] = useState<
     "pending" | "success" | "failed" | "refunded" | null
@@ -19,6 +20,7 @@ export default function ConfirmingOrder() {
   const startTimeRef = useRef<number | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cancelledRef = useRef(false);
+  const navigatedRef = useRef(false);
   const prefersReducedMotion = useReducedMotion() === true;
 
   useEffect(() => {
@@ -95,6 +97,12 @@ export default function ConfirmingOrder() {
       const delay = Date.now() - startTimeRef.current! < 20000 ? 2000 : 6000;
       const status = await confirmOrder();
       if (cancelledRef.current) return;
+      if (navigatedRef.current) return;
+      if (status === "success") {
+        navigatedRef.current = true;
+        router.replace(`/orders/${orderId}/confirmation`);
+        return;
+      }
       if (status && status !== "pending") return;
       if (Date.now() - startTimeRef.current! >= 60_000) {
         setTimeOut(true);
@@ -103,12 +111,14 @@ export default function ConfirmingOrder() {
       timeoutRef.current = setTimeout(pollOrderStatus, delay);
     };
     cancelledRef.current = false;
+    navigatedRef.current = false;
     void fetchStatus();
     return () => {
       cancelledRef.current = true;
+      navigatedRef.current = true;
       clearTimeout(timeoutRef.current!);
     };
-  }, [confirmOrder]);
+  }, [confirmOrder, orderId, router]);
 
   const outcome =
     timeOut && (!orderStatus || orderStatus === "pending")
