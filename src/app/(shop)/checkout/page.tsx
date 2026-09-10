@@ -218,7 +218,7 @@ export default function Checkout() {
                         name="email"
                         type="email"
                         ref={emailInputRef}
-                        arai-invalid={emailError ? "true" : "false"}
+                        aria-invalid={emailError ? "true" : "false"}
                         aria-describedby={
                           emailError ? "email-error" : undefined
                         }
