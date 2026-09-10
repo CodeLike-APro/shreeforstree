@@ -7,7 +7,7 @@ export default function BackButton({ title }: { title: string }) {
   return (
     <button
       onClick={() => router.back()}
-      className="btn-focus text-ink-55 flex items-center justify-around gap-2 rounded-lg px-1 py-0.5 text-sm tracking-widest uppercase"
+      className="btn-focus text-ink-55 flex items-center justify-around gap-2 rounded-lg py-0.5 text-sm tracking-widest uppercase"
     >
       <div className="flex h-full w-full items-center justify-center">
         <ChevronLeft size={17} />
