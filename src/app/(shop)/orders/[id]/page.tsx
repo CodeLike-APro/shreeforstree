@@ -1,15 +1,11 @@
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
 import BackButton from "@/components/ui/BackButton";
 import { CopyButton } from "@/components/ui/CopyButton";
-import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
-import { db } from "@/lib/db";
-import { resolveGuestToken } from "@/lib/order-utils";
+import { getOwnedOrder } from "@/lib/order-utils";
 import { formatAmount, formatDate, orderReference } from "@/lib/orders";
 import { X } from "lucide-react";
-import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import z4 from "zod/v4";
 
 export const metadata = {
   robots: {
@@ -24,42 +20,15 @@ export default async function OrderDetails({
 }) {
   const { id: orderId } = await params;
 
-  const result = z4.uuid().safeParse(orderId);
+  const orderResponse = await getOwnedOrder({ orderId });
 
-  if (!result.success) {
+  if (orderResponse.kind !== "ok") {
     return notFound();
   }
 
-  const orderDetails = await db.query.orders.findFirst({
-    where: (orders, { eq }) => eq(orders.id, orderId),
-    with: {
-      orderItems: {
-        orderBy: (orderItems, { desc }) => [
-          desc(orderItems.createdAt),
-          desc(orderItems.id),
-        ],
-      },
-      payments: {
-        orderBy: (payments, { desc }) => [desc(payments.createdAt)],
-      },
-    },
-  });
+  const { data: orderDetails } = orderResponse;
 
   if (!orderDetails) {
-    return notFound();
-  }
-
-  const currentUser = await getCurrentUser(await headers());
-
-  const token = await resolveGuestToken(orderId);
-
-  const isOrderOwner = await assertOrderOwnership(
-    orderDetails,
-    currentUser?.id,
-    token,
-  );
-
-  if (isOrderOwner.kind !== "ok") {
     return notFound();
   }
 
