@@ -8,6 +8,7 @@ import {
 } from "motion/react";
 import { Loader } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { GoogleIcon } from "../ui/icon";
 
 type AuthMode = "sign-in" | "sign-up";
 type FieldKey = "email" | "password" | "confirmPassword";
@@ -44,7 +45,6 @@ const itemVariants: Variants = {
   }),
 };
 
-// Damped horizontal shake played on a field when it errors
 const shakeKeyframes = {
   x: [0, -8, 8, -6, 6, -3, 3, 0],
   transition: { duration: 0.45, ease: "easeInOut" as const },
@@ -52,27 +52,19 @@ const shakeKeyframes = {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Resolve where to send the user after auth, from the `?redirect=` param.
-// Only same-origin, root-relative paths are allowed — everything else falls
-// back to "/" so a crafted link can't bounce users to a phishing site.
 function getSafeRedirect(): string {
   const fallback = "/";
   const target = new URLSearchParams(window.location.search)
     .get("redirect")
     ?.trim();
 
-  // Must be root-relative. Reject absolute URLs and protocol-relative
-  // ("//evil.com") or backslash ("/\evil.com") variants that resolve off-site.
   if (!target || !target.startsWith("/") || /^[/\\]{2}|^\/\\/.test(target)) {
     return fallback;
   }
 
   try {
-    // Resolve against our own origin and confirm it never left it. The URL
-    // parser normalizes backslashes for http(s), so this catches the rest.
     const url = new URL(target, window.location.origin);
     if (url.origin !== window.location.origin) return fallback;
-    // Never send users back to the auth pages themselves.
     if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
       return fallback;
     }
@@ -87,7 +79,6 @@ const inputBase =
 const inputOk = "border-ink-40 btn-focus";
 const inputErr = "border-red-500 focus:ring-red-500 bg-red-500/[0.03]";
 
-// Inline error message that smoothly expands/collapses below a field
 function FieldError({ message }: { message?: string }) {
   return (
     <AnimatePresence initial={false}>
@@ -119,6 +110,7 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   const emailShake = useAnimationControls();
@@ -131,7 +123,6 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
     if ("confirmPassword" in fields) confirmShake.start(shakeKeyframes);
   };
 
-  // Clear a field's error as the user corrects it
   const clearError = (field: FieldKey) =>
     setErrors((prev) => {
       if (!(field in prev)) return prev;
@@ -157,7 +148,6 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
     return next;
   };
 
-  // Map a Better Auth error to the field(s) it belongs to
   const mapServerError = (code?: string, message?: string): FieldErrors => {
     const msg = message || "Something went wrong. Please try again.";
     switch (code) {
@@ -172,7 +162,6 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
       case "INVALID_PASSWORD":
         return { password: msg };
       case "INVALID_EMAIL_OR_PASSWORD":
-        // Ambiguous by design — flag both fields, message under password
         return { email: "", password: "Invalid email or password." };
       default:
         return { form: msg };
@@ -215,6 +204,30 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
       setErrors({ form: "Network error. Please try again." });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    try {
+      setGoogleLoading(true);
+      setErrors({});
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: getSafeRedirect(),
+        errorCallbackURL: `/${mode}?error=google`,
+      });
+      if (error) {
+        setErrors({
+          form:
+            error.message ?? "Google authentication failed. Please try again.",
+        });
+        setGoogleLoading(false);
+      }
+    } catch (error) {
+      console.error("Google auth failed:", error);
+      setErrors({ form: "Google authentication failed. Please try again." });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -450,13 +463,43 @@ export default function AuthCard({ initialMode }: { initialMode: AuthMode }) {
             </motion.div>
             <motion.button
               custom={formDir}
+              type="button"
+              onClick={handleGoogleAuth}
+              disabled={loading}
               variants={itemVariants}
-              className="bg-ink text-paper border-ink hover:bg-paper hover:text-ink w-full rounded-sm border px-4 py-2 text-xs tracking-wide uppercase transition-all duration-300"
+              className="bg-paper text-ink border-ink hover:bg-paper hover:text-ink flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 text-xs tracking-wide uppercase transition-all duration-300 disabled:opacity-70"
             >
-              Continue With Google
+              <motion.span layout="position">
+                <GoogleIcon width="15" height="auto" />
+              </motion.span>
+              <motion.span layout="position">Google</motion.span>
+              <AnimatePresence initial={false} mode="popLayout">
+                {googleLoading && (
+                  <motion.span
+                    key="spinner"
+                    layout
+                    initial={{ opacity: 0, width: 0, scale: 0.6 }}
+                    animate={{ opacity: 1, width: 16, scale: 1 }}
+                    exit={{ opacity: 0, width: 0, scale: 0.6 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="inline-flex items-center justify-center overflow-hidden"
+                  >
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 0.8,
+                        ease: "linear",
+                      }}
+                      className="inline-flex"
+                    >
+                      <Loader size={16} />
+                    </motion.span>
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </motion.button>
 
-            {/* Mobile-only mode switch — replaces the dark panel's CTA */}
             <motion.p
               custom={formDir}
               variants={itemVariants}
