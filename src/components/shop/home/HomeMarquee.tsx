@@ -52,12 +52,12 @@ export default function HomeMarquee() {
 
     baseX.set(newX);
   });
+
+  const xPercent = useTransform(baseX, (v) => `${v}%`);
+
   return (
     <div className="border-blush/12 bg-ink-deep overflow-hidden border-y py-3.5">
-      <motion.div
-        style={{ x: useTransform(baseX, (v) => `${v}%`) }}
-        className="flex w-max"
-      >
+      <motion.div style={{ x: xPercent }} className="flex w-max">
         {[0, 1].map((pass) =>
           NOTES.map((note) => (
             <span
