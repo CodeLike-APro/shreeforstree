@@ -18,7 +18,7 @@ async function getAtelierEdit(categoryIds: string[]) {
            ) as candidate_rank
           from product_categories pc
           join products p on p.id = pc.product_id
-          where pc.category_id in (${categoryIds}) and p.is_active = true
+          where pc.category_id in ${categoryIds} and p.is_active = true
         ) c 
           where candidate_rank <= ${MAX_ATELIER_EDIT_PRODUCTS}
           order by candidate_rank
