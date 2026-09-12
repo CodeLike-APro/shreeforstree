@@ -74,11 +74,10 @@ export default function HomeMarquee() {
               >
                 <ArrowLeft
                   height="auto"
-                  width="30"
+                  width="20"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="1.7"
-                  className="flex items-center justify-center"
+                  strokeWidth="2.7"
                 />
               </motion.span>
             </span>
