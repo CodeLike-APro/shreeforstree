@@ -156,3 +156,5 @@ export async function getHomeData() {
     atelierEdit,
   };
 }
+
+export type HomeData = Awaited<ReturnType<typeof getHomeData>>;
