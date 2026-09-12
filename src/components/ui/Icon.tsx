@@ -37,3 +37,18 @@ export function GoogleIcon(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export default function ArrowLeft(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="m12 19-7-7 7-7" />
+      <path d="M40 12H5" />
+    </svg>
+  );
+}
