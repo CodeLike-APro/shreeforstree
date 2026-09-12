@@ -1,6 +1,11 @@
 import { sql } from "drizzle-orm";
 import { db } from "../db";
-import { MAX_ATELIER_EDIT_PRODUCTS, MAX_HERO_PRODUCTS } from "../constants";
+import {
+  MAX_ATELIER_EDIT_PRODUCTS,
+  MAX_CATEGORIES,
+  MAX_HERO_PRODUCTS,
+  MAX_NEW_ARRIVALS,
+} from "../constants";
 
 async function getAtelierEdit(categoryIds: string[]) {
   if (categoryIds.length === 0) return [];
@@ -125,7 +130,7 @@ export async function getHomeData() {
         desc(products.createdAt),
         desc(products.id),
       ],
-      limit: 12,
+      limit: MAX_NEW_ARRIVALS,
     }),
 
     db.query.categories.findMany({
@@ -138,6 +143,7 @@ export async function getHomeData() {
         categoryImageUrl: true,
       },
       orderBy: (categories, { asc }) => [asc(categories.title)],
+      limit: MAX_CATEGORIES,
     }),
   ]);
 
