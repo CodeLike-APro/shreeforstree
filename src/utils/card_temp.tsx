@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVertical, X } from "lucide-react";
+import { EllipsisVertical, Handbag, X } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
@@ -35,6 +35,10 @@ export interface CardData {
 export interface CardProps {
   variant: CardVariant;
   data: CardData;
+  href?: string;
+  className?: string;
+  priority?: boolean;
+  sizes?: string;
   onClick?: (id: string) => void;
   onEdit?: (id: string) => void;
   onViewOnStore?: (id: string) => void;
@@ -215,7 +219,7 @@ export default function Card({
   };
 
   return (
-    <div className="shrink-0 select-none">
+    <div className="shrink-0 rounded-lg shadow-sm select-none">
       <div
         className="group w-full cursor-pointer rounded-sm sm:w-64"
         onClick={handleCardClick}
@@ -299,7 +303,7 @@ export default function Card({
           )}
         </div>
 
-        <div className="relative flex w-full items-start justify-between py-2">
+        <div className="relative flex w-full items-start justify-between px-2 py-2">
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex min-h-8 items-center justify-start">
               <h1 className="text-ink line-clamp-2 text-lg leading-tight">
@@ -325,6 +329,14 @@ export default function Card({
               </div>
             )}
           </div>
+
+          {variant === "customer-product" && (
+            <div className="relative mt-1 ml-2 flex shrink-0 items-center justify-center">
+              <button className="bg-paper border-ink text-ink hover:bg-ink hover:text-paper flex items-center justify-center rounded-md border-[1.5px] p-1 transition-all duration-300">
+                <Handbag className="shrink-0 stroke-[1.7]" />
+              </button>
+            </div>
+          )}
 
           {isAdmin && (
             <div
