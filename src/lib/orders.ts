@@ -3,7 +3,7 @@ export function orderReference(orderId: string): string {
   return `#${reference}`;
 }
 
-export function formatAmount(amount: string): string {
+export function formatAmount(amount: string | number): string {
   const amountNumber = Number(amount);
   const formattedAmount = Intl.NumberFormat("en-IN", {
     style: "currency",
