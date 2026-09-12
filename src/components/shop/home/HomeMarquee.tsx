@@ -63,7 +63,7 @@ export default function HomeMarquee() {
             <span
               key={`${pass}-${note}`}
               aria-hidden={pass === 1 || undefined}
-              className="label-caps text-blush flex items-center gap-14 px-7 text-[0.7rem] whitespace-nowrap"
+              className="label-caps text-blush flex items-center gap-14 px-7 text-[0.7rem] leading-tight whitespace-nowrap"
             >
               {note}
 
@@ -74,10 +74,11 @@ export default function HomeMarquee() {
               >
                 <ArrowLeft
                   height="auto"
-                  width="24"
+                  width="30"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2"
+                  strokeWidth="1.7"
+                  className="flex items-center justify-center"
                 />
               </motion.span>
             </span>
