@@ -8,7 +8,7 @@ import {
 } from "motion/react";
 import { Loader } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
-import { GoogleIcon } from "../ui/icon";
+import { GoogleIcon } from "../ui/Icon";
 
 type AuthMode = "sign-in" | "sign-up";
 type FieldKey = "email" | "password" | "confirmPassword";
