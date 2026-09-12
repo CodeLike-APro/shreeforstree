@@ -1,7 +1,7 @@
 "use client";
 
 import { CardShimmerGrid } from "@/components/ui/Shimmer";
-import Card from "@/utils/card";
+import Card from "@/utils/Card";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";

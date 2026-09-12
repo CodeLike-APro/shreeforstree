@@ -1,6 +1,6 @@
 "use client";
 
-import Card from "@/utils/card";
+import Card from "@/utils/Card";
 import { CardShimmerGrid } from "@/components/ui/Shimmer";
 import { AlertCircle, RotateCw } from "lucide-react";
 import { useRouter } from "next/navigation";
