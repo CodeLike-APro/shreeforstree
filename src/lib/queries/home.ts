@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { db } from "../db";
+import { MAX_ATELIER_EDIT_PRODUCTS, MAX_HERO_PRODUCTS } from "../constants";
 
 async function getAtelierEdit(categoryIds: string[]) {
   if (categoryIds.length === 0) return [];
@@ -19,7 +20,7 @@ async function getAtelierEdit(categoryIds: string[]) {
           join products p on p.id = pc.product_id
           where pc.category_id in (${categoryIds}) and p.is_active = true
         ) c 
-          where candidate_rank <= 4
+          where candidate_rank <= ${MAX_ATELIER_EDIT_PRODUCTS}
           order by candidate_rank
          `);
 
@@ -33,7 +34,7 @@ async function getAtelierEdit(categoryIds: string[]) {
 
   const chosen: string[] = [];
   for (const categoryId of categoryIds) {
-    if (chosen.length === 4) break;
+    if (chosen.length === MAX_ATELIER_EDIT_PRODUCTS) break;
     const pick = (candidates.get(categoryId) ?? []).find(
       (id) => !chosen.includes(id),
     );
@@ -93,7 +94,7 @@ export async function getHomeData() {
           desc(products.updatedAt),
           desc(products.id),
         ],
-        limit: 5,
+        limit: MAX_HERO_PRODUCTS,
       })
       .then((hits) =>
         hits.filter((product) => product.productMedia.length > 0),

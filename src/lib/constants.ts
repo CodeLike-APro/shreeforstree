@@ -13,3 +13,7 @@ export const VALID_ORDER_TRANSITIONS: Record<string, string[]> = {
   cancelled: [],
   returned: [],
 };
+
+export const MAX_HERO_PRODUCTS = 4;
+
+export const MAX_ATELIER_EDIT_PRODUCTS = 4;
