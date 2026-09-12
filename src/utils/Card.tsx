@@ -5,6 +5,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import Image from "next/image";
+import Link from "next/link";
+import { formatAmount } from "@/lib/orders";
 
 export type CardVariant =
   "customer-product" | "admin-product" | "admin-category";
@@ -80,8 +82,12 @@ export default function Card({
   variant,
   data,
   onClick,
+  className,
+  priority,
+  href,
   onEdit,
   onViewOnStore,
+  sizes,
   onToggleStatus,
   onDelete,
 }: CardProps) {
@@ -193,14 +199,6 @@ export default function Card({
     }
   };
 
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
   // Mobile: horizontal swipe cycles through the gallery images.
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -219,10 +217,15 @@ export default function Card({
   };
 
   return (
-    <div className="shrink-0 rounded-lg shadow-sm select-none">
+    <article
+      className={`\ shrink-0 select-none ${className ?? "w-full sm:w-64"}`}
+    >
       <div
-        className="group w-full cursor-pointer rounded-sm sm:w-64"
-        onClick={handleCardClick}
+        className={[
+          "group w-full rounded-sm",
+          href ? "" : "cursor-pointer",
+        ].join(" ")}
+        onClick={href ? undefined : handleCardClick}
         onMouseLeave={() => hasGallery && setActiveIndex(0)}
       >
         <div
@@ -230,19 +233,27 @@ export default function Card({
           onTouchStart={hasGallery ? handleTouchStart : undefined}
           onTouchEnd={hasGallery ? handleTouchEnd : undefined}
         >
-          <div className="relative aspect-3/4 w-full sm:w-64">
+          <div className="relative aspect-3/4 w-full">
             {displayImages.map((src, index) => (
               <Image
                 key={index}
                 fill={true}
                 src={src}
                 alt={data.title}
-                loading={index === 0 ? "eager" : "lazy"}
+                priority={priority && index === 0}
+                sizes={sizes}
                 className={`absolute inset-0 h-full w-full rounded-sm object-cover transition-opacity duration-300 ${
                   index === safeIndex ? "opacity-100" : "opacity-0"
                 } ${isInactive && isAdmin ? "opacity-70" : ""}`}
               />
             ))}
+            {href && (
+              <Link
+                href={href}
+                aria-label={data.title}
+                className="absolute inset-0 z-5"
+              ></Link>
+            )}
 
             {/* Desktop: three vertical hover zones map to each image. */}
             {hasGallery && (
@@ -259,20 +270,30 @@ export default function Card({
 
             {/* Dots indicate the active image (both hover and swipe). */}
             {hasGallery && (
-              <div className="absolute right-0 bottom-2 left-0 z-10 flex justify-center gap-1.5">
+              <div className="absolute right-0 bottom-2 left-0 z-6 flex justify-center gap-1.5">
                 {displayImages.map((_, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    aria-label={`View image ${index + 1}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveIndex(index);
-                    }}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      index === safeIndex ? "bg-paper w-4" : "bg-paper/50 w-1.5"
-                    }`}
-                  />
+                  <div key={index} className="flex items-center justify-center">
+                    {href ? (
+                      <Link
+                        href={href}
+                        aria-label={`View image ${index + 1}`}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        aria-label={`View image ${index + 1}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveIndex(index);
+                        }}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          index === safeIndex
+                            ? "bg-paper w-4"
+                            : "bg-paper/50 w-1.5"
+                        }`}
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -306,24 +327,24 @@ export default function Card({
         <div className="relative flex w-full items-start justify-between px-2 py-2">
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex min-h-8 items-center justify-start">
-              <h1 className="text-ink line-clamp-2 text-lg leading-tight">
+              <h3 className="text-ink line-clamp-2 text-lg leading-tight">
                 {data.title}
-              </h1>
+              </h3>
             </div>
             {showPrices && (
               <div className="mt-1 flex items-center gap-2">
                 {hasDiscount ? (
                   <>
                     <p className="text-rose-gold text-base tracking-wide">
-                      {formatPrice(discountedPrice)}
+                      {formatAmount(discountedPrice)}
                     </p>
                     <p className="text-ink-40 text-xs line-through">
-                      {formatPrice(price)}
+                      {formatAmount(price)}
                     </p>
                   </>
                 ) : (
                   <p className="text-rose-gold text-base tracking-wide">
-                    {formatPrice(price)}
+                    {formatAmount(price)}
                   </p>
                 )}
               </div>
@@ -525,6 +546,6 @@ export default function Card({
           </div>,
           document.body,
         )}
-    </div>
+    </article>
   );
 }
