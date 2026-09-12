@@ -12,7 +12,7 @@ import {
 import Image from "next/image";
 import QuantitySelector from "./product/QuantitySelector";
 import { CartItemShimmerGrid } from "../ui/Shimmer";
-import { RazorpayIcon } from "../ui/icon";
+import { RazorpayIcon } from "../ui/Icon";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { toast } from "sonner";
 import { createPortal } from "react-dom";
