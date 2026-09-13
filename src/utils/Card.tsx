@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisVertical, Handbag, X } from "lucide-react";
+import { EllipsisVertical, X } from "lucide-react";
 import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
@@ -283,7 +283,11 @@ export default function Card({
 
             {/* Dots indicate the active image (both hover and swipe). */}
             {hasGallery && (
-              <div className="absolute right-0 bottom-0 left-0 z-7 flex h-5 items-center justify-center gap-1.5">
+              <div
+                aria-hidden="true"
+                tabIndex={-1}
+                className="absolute right-0 bottom-0 left-0 z-7 flex h-5 items-center justify-center gap-1.5"
+              >
                 {displayImages.map((_, index) => (
                   <button
                     key={index}
