@@ -3,14 +3,29 @@ export function orderReference(orderId: string): string {
   return `#${reference}`;
 }
 
-export function formatAmount(amount: string | number): string {
-  const amountNumber = Number(amount);
-  const formattedAmount = Intl.NumberFormat("en-IN", {
+type FractionDigits = 0 | 2;
+
+const amountFormatters: Record<FractionDigits, Intl.NumberFormat> = {
+  0: new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-  }).format(amountNumber);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }),
 
-  return formattedAmount;
+  2: new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }),
+};
+
+export function formatAmount(
+  amount: string | number,
+  { fractionalDigits = 2 }: { fractionalDigits?: FractionDigits } = {},
+): string {
+  return amountFormatters[fractionalDigits].format(Number(amount));
 }
 
 export function itemCount(count: number): string {

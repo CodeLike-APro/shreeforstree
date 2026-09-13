@@ -48,6 +48,8 @@ export interface CardProps {
   onDelete?: (id: string) => void;
 }
 
+const FRACTION_DIGITS = 0;
+
 const staggerContainer: Variants = {
   hidden: {},
   visible: {
@@ -87,7 +89,7 @@ export default function Card({
   href,
   onEdit,
   onViewOnStore,
-  sizes,
+  sizes = "(min-width: 640px) 16rem, 50vw",
   onToggleStatus,
   onDelete,
 }: CardProps) {
@@ -218,7 +220,7 @@ export default function Card({
 
   return (
     <article
-      className={`\ shrink-0 select-none ${className ?? "w-full sm:w-64"}`}
+      className={`shrink-0 select-none ${className ?? "w-full sm:w-64"}`}
     >
       <div
         className={[
@@ -257,43 +259,46 @@ export default function Card({
 
             {/* Desktop: three vertical hover zones map to each image. */}
             {hasGallery && (
-              <div className="absolute inset-0 hidden sm:flex">
-                {displayImages.map((_, index) => (
-                  <div
-                    key={index}
-                    className="h-full flex-1"
-                    onMouseEnter={() => setActiveIndex(index)}
-                  />
-                ))}
+              <div className="absolute inset-0 z-6 hidden sm:flex">
+                {displayImages.map((_, index) =>
+                  href ? (
+                    <Link
+                      key={index}
+                      href={href}
+                      aria-hidden="true"
+                      tabIndex={-1}
+                      className="flex-1"
+                      onMouseEnter={() => setActiveIndex(index)}
+                    />
+                  ) : (
+                    <div
+                      key={index}
+                      className="h-full flex-1"
+                      onMouseEnter={() => setActiveIndex(index)}
+                    />
+                  ),
+                )}
               </div>
             )}
 
             {/* Dots indicate the active image (both hover and swipe). */}
             {hasGallery && (
-              <div className="absolute right-0 bottom-2 left-0 z-6 flex justify-center gap-1.5">
+              <div className="absolute right-0 bottom-0 left-0 z-7 flex h-5 items-center justify-center gap-1.5">
                 {displayImages.map((_, index) => (
-                  <div key={index} className="flex items-center justify-center">
-                    {href ? (
-                      <Link
-                        href={href}
-                        aria-label={`View image ${index + 1}`}
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        aria-label={`View image ${index + 1}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveIndex(index);
-                        }}
-                        className={`h-1.5 rounded-full transition-all duration-300 ${
-                          index === safeIndex
-                            ? "bg-paper w-4"
-                            : "bg-paper/50 w-1.5"
-                        }`}
-                      />
-                    )}
-                  </div>
+                  <button
+                    key={index}
+                    type="button"
+                    aria-label={`View image ${index + 1}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveIndex(index);
+                    }}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      index === safeIndex
+                        ? "bg-ink-deep w-4"
+                        : "bg-rose-gold-dark w-1.5"
+                    }`}
+                  />
                 ))}
               </div>
             )}
@@ -328,7 +333,11 @@ export default function Card({
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex min-h-8 items-center justify-start">
               <h3 className="text-ink line-clamp-2 text-lg leading-tight">
-                {data.title}
+                {href ? (
+                  <Link href={href}>{data.title}</Link>
+                ) : (
+                  <>{data.title}</>
+                )}
               </h3>
             </div>
             {showPrices && (
@@ -336,28 +345,24 @@ export default function Card({
                 {hasDiscount ? (
                   <>
                     <p className="text-rose-gold text-base tracking-wide">
-                      {formatAmount(discountedPrice)}
+                      {formatAmount(discountedPrice, {
+                        fractionalDigits: FRACTION_DIGITS,
+                      })}
                     </p>
                     <p className="text-ink-40 text-xs line-through">
-                      {formatAmount(price)}
+                      {formatAmount(price, {
+                        fractionalDigits: FRACTION_DIGITS,
+                      })}
                     </p>
                   </>
                 ) : (
                   <p className="text-rose-gold text-base tracking-wide">
-                    {formatAmount(price)}
+                    {formatAmount(price, { fractionalDigits: FRACTION_DIGITS })}
                   </p>
                 )}
               </div>
             )}
           </div>
-
-          {variant === "customer-product" && (
-            <div className="relative mt-1 ml-2 flex shrink-0 items-center justify-center">
-              <button className="bg-paper border-ink text-ink hover:bg-ink hover:text-paper flex items-center justify-center rounded-md border-[1.5px] p-1 transition-all duration-300">
-                <Handbag className="shrink-0 stroke-[1.7]" />
-              </button>
-            </div>
-          )}
 
           {isAdmin && (
             <div
