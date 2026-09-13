@@ -1,4 +1,3 @@
-"use client";
 import { ProductsWithMediaAndCategories } from "@/lib/queries/products";
 import Card from "@/utils/Card";
 
