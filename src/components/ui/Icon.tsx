@@ -1,3 +1,4 @@
+import { HERO_SLIDE_INTERVAL_MS } from "@/lib/constants";
 import { SVGProps } from "react";
 
 export function RazorpayIcon(props: SVGProps<SVGSVGElement>) {
@@ -49,6 +50,43 @@ export default function ArrowLeft(props: SVGProps<SVGSVGElement>) {
     >
       <path d="m9.5 22-7-7 7-7" />
       <path d="M27.5 15h-25" />
+    </svg>
+  );
+}
+
+export function Ring({
+  active,
+  paused,
+  ...props
+}: { active: boolean; paused: boolean } & SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 22 22" aria-hidden {...props}>
+      <circle
+        cx="11"
+        cy="11"
+        r="9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        className="text-blush/30"
+      />
+      {active && (
+        <circle
+          cx="11"
+          cy="11"
+          r="9"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray="56.55"
+          className="animate-slide-ring text-rose-gold drop-shadow-[0_0_5px_currentColor]"
+          style={{
+            animationDuration: `${HERO_SLIDE_INTERVAL_MS}ms`,
+            animationPlayState: paused ? "paused" : "running",
+          }}
+        />
+      )}
     </svg>
   );
 }
