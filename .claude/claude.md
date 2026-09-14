@@ -3,7 +3,8 @@
 ## Project Overview
 
 Full-stack e-commerce site for a family member's custom women's clothing business.
-Repo root: `shreeforstree/` (this file lives one level above it).
+This file is `.claude/claude.md`, tracked in git. `.claude/Claude-Context.md` alongside it is an
+**untracked session log** — background only, not instructions.
 Package manager: `pnpm` exclusively — `preinstall` runs `npx only-allow pnpm`, so npm/npx installs are hard-blocked.
 
 **Aesthetic:** warm paper/ink, not dark mode. Off-white `--color-paper` ground, near-black
@@ -78,7 +79,7 @@ src/
 │   ├── (auth)/{layout,sign-in/page,sign-up/page}.tsx
 │   ├── (shop)/
 │   │   ├── layout.tsx                          header + mobile nav, admin link if role=admin
-│   │   ├── page.tsx                            home (placeholder)
+│   │   ├── page.tsx                            home — getHomeData() → seven sections
 │   │   ├── shop/{page,[slug]/page}.tsx         listing + PDP
 │   │   ├── collections/, search/, contact/, our-story/
 │   │   ├── cart/, wishlist/
@@ -131,17 +132,19 @@ src/
 │   ├── admin/    AdminSidebar, AdminDesktopTopBar, AdminMobileTopBar, Notifications,
 │   │             ProductForm, ProductMediaManager, StatCard, SparkLine
 │   ├── auth/     AuthCard
-│   ├── shop/     HeaderDesktop, HeaderMobile, Cart, ProductGrid,
+│   ├── shop/     HeaderDesktop, HeaderMobile, Cart, ProductGrid, CategoryTile,
+│   │             home/{HomeHero,HomeMarquee,NewArrivalsRail,HomeCollections,
+│   │                   AtelierEdit,HomeSignature,HomePromise},
 │   │             Addresses/{AddressModal,AllAddresses},
 │   │             product/{ProductGallery,ProductDetails,ProductDescription,
 │   │                      ProductPurchase,AddToBag,QuantitySelector},
 │   │             search/{searchPanel,useSearch},
 │   │             orders/{OrderAddressSnapshot,OrderItemThumbnail,SuccessMark}
-│   └── ui/       BrandToaster, Shimmer, Buttons, icon
+│   └── ui/       BrandToaster, Shimmer, Buttons, ArrowLink, Icon
 ├── hooks/        useFileDragState, useZoneFileDrop
 ├── stores/       sidebar-store (zustand + persist)
 ├── types/        razorpay (incl. `declare global { Window.Razorpay }`)
-├── utils/        DragDropGlow, Dropdown, FileUpload, NavMobile, card
+├── utils/        Card, DragDropGlow, Dropdown, FileUpload, NavMobile
 ├── proxy.ts      Next 16 "Proxy" (was middleware) — sets x-device-type header
 └── lib/
     ├── db/
@@ -153,7 +156,9 @@ src/
     ├── media/
     │   ├── media-handle.ts                     SFTP connect/upload/delete/detect
     │   └── path-guard.ts                       isOwnedMediaPath — anti path-traversal
-    ├── queries/products.ts                     getProducts: filters, full-text search, paging
+    ├── queries/
+    │   ├── products.ts                         getProducts: filters, full-text search, paging
+    │   └── home.ts                             getHomeData: hero / new arrivals / categories / atelier edit
     ├── validators/*.validators.ts              Zod v4 schemas
     ├── api-response.ts                         typed NextResponse helpers
     ├── response-handler.ts                     ServiceResponse union → NextResponse
@@ -324,6 +329,13 @@ schema. Global: 10 requests / 60s. `/sign-in/email`: 5 / 60s.
 export const SHIPPING_CHARGE = 60;
 export const FREE_SHIPPING_THRESHOLD = 999.99;
 export const MAX_CART_ITEMS = 10; // note: ITEMS, not QUANTITY
+
+// home page section caps
+export const MAX_HERO_PRODUCTS = 4;
+export const MAX_ATELIER_EDIT_PRODUCTS = 4;
+export const MAX_NEW_ARRIVALS = 12;
+export const MAX_CATEGORIES = 7;
+export const HERO_SLIDE_INTERVAL_MS = 5500;
 
 export const VALID_ORDER_TRANSITIONS: Record<string, string[]> = {
   not_placed: ["placed"],
@@ -556,6 +568,33 @@ Drizzle's relational `findMany` can't express the ranking directly.
 
 ---
 
+## Home Page Data (`src/lib/queries/home.ts`)
+
+`getHomeData()` runs three queries in `Promise.all`, then a fourth that depends on the
+category result. Returns `{ heroProducts, newArrivals, categories, atelierEdit }`; the
+`HomeData` type is exported and the home components take slices of it
+(`HomeData["heroProducts"]`, `HomeData["categories"][number]`).
+
+| Slice          | Source                                                   | Cap                         | Note                                                                                                                                                                      |
+| -------------- | -------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `heroProducts` | `isActive && isHeroProduct`, ordered by `updatedAt desc` | `MAX_HERO_PRODUCTS`         | Joins **only** `isHero=true` media, then **filters out products with none** in JS — an `isHeroProduct` flag without a hero image is silently skipped, not rendered broken |
+| `newArrivals`  | `isActive && isNewArrival`, `createdAt desc`             | `MAX_NEW_ARRIVALS`          | standard 3-image gallery shape                                                                                                                                            |
+| `categories`   | `isActive`, `title asc`                                  | `MAX_CATEGORIES`            | `id, title, slug, description, categoryImageUrl` only                                                                                                                     |
+| `atelierEdit`  | one product per category, round-robin                    | `MAX_ATELIER_EDIT_PRODUCTS` | see below                                                                                                                                                                 |
+
+**Atelier edit** is raw SQL via ``db.execute<Row>(sql`…`)`` — the only place in the codebase
+that bypasses the query builder. A window function ranks each category's newest active products
+(`row_number() over (partition by category_id order by created_at desc, id desc)`), then JS
+walks the categories in order picking the first product not already chosen, so a product in
+two categories can't appear twice. The final `findMany` is re-sorted to the chosen order, same
+pattern as the search ranking.
+
+The page renders sections conditionally — an empty slice drops its section and the
+`stitch-divider` above it, so a fresh DB shows just the hero fallback and the static
+marquee/promise blocks. `HomeHero` with zero slides renders a static brand panel instead.
+
+---
+
 ## API Response Helpers (`src/lib/api-response.ts`)
 
 `ok`, `created`, `paginated`, `badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`,
@@ -700,6 +739,9 @@ RAZORPAY_KEY_SECRET
 RAZORPAY_WEBHOOK_SECRET
 ```
 
+`.env.example` is committed (`.gitignore` has `.env*` then `!.env.example`) and lists every key
+above with empty values — keep it in sync when adding a variable.
+
 The Razorpay `key_id` is **not** exposed as a `NEXT_PUBLIC_` variable — the payment page reads it
 from the `keyId` field that `POST /api/payments/create-order` returns. `BETTER_AUTH_SECRET`,
 `MEDIA_UPLOAD_DIR` and `MEDIA_MAX_UPLOAD_MB` are declared but not referenced anywhere in `src`
@@ -742,7 +784,14 @@ there or every `<Image>` breaks.
 - Client state: Zustand. `sidebar-store` persists only `isCollapsed` via `partialize`.
 - Drag-and-drop uploads: `useFileDragState` + `useZoneFileDrop` + `utils/FileUpload` + `DragDropGlow`.
 - Buttons come from `components/ui/Buttons.tsx`. `PrimaryButton` (rose-gold fill) and `SecondaryButton` (outline) take **either** `href` **or** `onClick`, never both — the props are a discriminated union with `never` on the unused half, so the wrong combination is a type error. `href` renders a `<Link>`, `onClick` renders a `<button>`. `PrimaryButton` also handles `loading` (spinner + `aria-busy` + disabled). `BackButton` calls `router.back()`; `CopyButton` writes to the clipboard.
-- Order display formatting lives in `src/lib/orders.ts` — `orderReference` (last 8 chars of the UUID, uppercase, `#`-prefixed — never show the raw UUID), `formatAmount` (`Intl.NumberFormat` en-IN / INR), `formatDate` (en-IN, `d MMM yyyy`), `itemCount` (pluralized), `handleCopyToClipboard`. Use these rather than inlining new formatting.
+- Order display formatting lives in `src/lib/orders.ts` — `orderReference` (last 8 chars of the UUID, uppercase, `#`-prefixed — never show the raw UUID), `formatAmount(amount, { fractionalDigits: 0 | 2 })` (en-IN / INR, two cached `Intl.NumberFormat` instances; default 2, product cards pass 0), `formatDate` (en-IN, `d MMM yyyy`), `itemCount` (pluralized), `handleCopyToClipboard`. Use these rather than inlining new formatting.
+- **`Card` (`@/utils/Card`)** is the one product/category tile, with `variant: "customer-product" | "admin-product" | "admin-category"`. Pass `href` for navigation — it renders an absolutely-positioned overlay `<Link>` and the title becomes a link; pass `onClick` only when there's no destination. Customer cards with >1 image get a three-zone hover gallery on desktop and swipe on touch, with dots. Admin variants get the ⋯ dropdown (edit / view / toggle / delete) that flips side and direction to stay on screen, and a delete dialog that requires typing the exact title. It normalizes `images[]`, `productMedia[]`, `image`, or `categoryImageUrl` into one list, excluding hero media; empty falls back to `/images/white.webp`. `ProductGrid` is a server component that just maps products to `Card`s.
+- `ArrowLink` (`components/ui/ArrowLink.tsx`) is the "see more →" link used across the home sections — `label-caps`, rose-gold underline, `textColor` prop for dark backgrounds.
+- `components/ui/Icon.tsx` (capital I) exports `RazorpayIcon`, `GoogleIcon`, `Ring` (the hero slide indicator — animated `stroke-dashoffset`), and `ArrowLeft` as the **default** export. Import paths are case-sensitive on Vercel even though macOS forgives them.
+- `CategoryTile` links to `/shop?categories={slug}` — the query param name is plural.
+- CSS animation utilities: `.animate-ken-burns` (14s scale drift, hero backgrounds) and `.animate-slide-ring` (stroke-dashoffset, the `Ring` indicator). Both — like `.shimmer` — are switched off under `prefers-reduced-motion`.
+- `HomeHero` auto-advances every `HERO_SLIDE_INTERVAL_MS`; hover/focus pauses and the remaining time is preserved in a ref, so resuming doesn't restart the countdown. Rotation is disabled entirely under reduced motion.
+- Auth redirects: `AuthCard`'s `getSafeRedirect()` reads `?redirect=` and only honours root-relative, same-origin paths (rejects absolute, protocol-relative `//`, and backslash variants), and never sends the user back to `/sign-in` or `/sign-up`. Google sign-in goes through `authClient.signIn.social({ provider: "google", callbackURL, errorCallbackURL })`.
 - Animation: `motion/react` (not `framer-motion`). Every animated component reads `useReducedMotion()` and collapses its transitions to `{ duration: 0 }` when set — match that.
 - Pages reachable by guest token export `metadata = { robots: { index: false } }`.
 
@@ -792,4 +841,3 @@ Derived from TODOs and unfinished wiring in the code — not a roadmap.
 4. **`product_search_vector` is not in migrations** — product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
 5. **Video optimization** — `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
 6. **Admin sidebar role is hardcoded** — `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
-7. **Home page is a placeholder** — `src/app/(shop)/page.tsx` is a title and an admin link.
