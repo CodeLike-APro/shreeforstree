@@ -2,7 +2,7 @@
 
 import type { HomeData } from "@/lib/queries/home";
 import Card from "@/utils/Card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoveRight } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -53,9 +53,12 @@ export default function NewArrivalsRail({
         </div>
         <Link
           href="/shop?isNewArrival=true"
-          className="label-caps border-rose-gold text-ink shrink-0 border-b-[1.5px] pb-1 text-xs transition-opacity hover:opacity-70"
+          className="label-caps border-rose-gold text-ink flex shrink-0 gap-2 border-b-[1.5px] pb-1 text-xs transition-opacity hover:opacity-70"
         >
-          Shop all new →
+          Shop all new
+          <span>
+            <MoveRight size={14} />
+          </span>
         </Link>
       </div>
 

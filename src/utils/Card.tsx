@@ -290,6 +290,8 @@ export default function Card({
               >
                 {displayImages.map((_, index) => (
                   <button
+                    aria-hidden="true"
+                    tabIndex={-1}
                     key={index}
                     type="button"
                     aria-label={`View image ${index + 1}`}

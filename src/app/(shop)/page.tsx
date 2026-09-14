@@ -29,7 +29,6 @@ export default async function Home() {
           <AtelierEdit products={atelierEdit} />
         </>
       )}
-      <div className="stitch-divider mx-4 md:mx-8" />
       {heroProducts[0] && <HomeSignature product={heroProducts[0]} />}
       <HomePromise />
     </>
