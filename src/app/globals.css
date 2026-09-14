@@ -97,6 +97,16 @@
     animation: glow-breathe 3.5s ease-in-out alternate infinite;
   }
 
+  .animate-ken-burns {
+    animation: ken-burns 14s ease-in-out infinite alternate;
+  }
+
+  .animate-slide-ring {
+    animation-name: slide-ring;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+
   /* Skeleton block with a light sweep — see <Shimmer /> */
   .shimmer {
     position: relative;
@@ -119,7 +129,9 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .shimmer::after {
+    .shimmer::after,
+    .animate-ken-burns,
+    .animate-slide-ring {
       animation: none;
     }
   }
@@ -154,6 +166,24 @@
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
+  }
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes slide-ring {
+  from {
+    stroke-dashoffset: 56.55;
+  }
+  to {
+    stroke-dashoffset: 0;
   }
 }
 
