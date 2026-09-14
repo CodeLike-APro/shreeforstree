@@ -53,12 +53,13 @@ export default function NewArrivalsRail({
         </div>
         <Link
           href="/shop?isNewArrival=true"
-          className="label-caps border-rose-gold text-ink flex shrink-0 gap-2 border-b-[1.5px] pb-1 text-xs transition-opacity hover:opacity-70"
+          className="label-caps btn-focus group text-ink relative flex shrink-0 gap-2 rounded-sm px-1 pb-1 text-xs transition-opacity hover:opacity-70"
         >
           Shop all new
           <span>
             <MoveRight size={14} />
           </span>
+          <div className="bg-rose-gold r-0 absolute bottom-0 left-0 h-0.5 w-full group-focus:hidden" />
         </Link>
       </div>
 
