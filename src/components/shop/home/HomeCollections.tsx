@@ -1,7 +1,6 @@
 import type { HomeData } from "@/lib/queries/home";
 import CategoryTile from "../CategoryTile";
-import Link from "next/link";
-import { MoveRight } from "lucide-react";
+import { ArrowLink } from "@/components/ui/ArrowLink";
 
 export default function HomeCollections({
   categories,
@@ -33,16 +32,7 @@ export default function HomeCollections({
             Tailored for every occasion
           </h2>
         </div>
-        <Link
-          href="/collections"
-          className="label-caps btn-focus group text-ink relative flex shrink-0 gap-2 rounded-sm px-1 py-1 text-xs transition-opacity hover:opacity-70"
-        >
-          View the edit
-          <span>
-            <MoveRight size={14} />
-          </span>
-          <div className="bg-rose-gold r-0 absolute bottom-0 left-0 h-0.5 w-full group-focus:hidden" />
-        </Link>
+        <ArrowLink title=" View the edit" href="/collections" />
       </div>
 
       <div
