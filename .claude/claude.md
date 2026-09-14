@@ -380,7 +380,7 @@ There is no `x-session-id` header anywhere in this codebase — don't reintroduc
 - `upsertCartItem(tx, {...})` — `onConflictDoUpdate` on `(cartId, productId, size)` with `LEAST(quantity + n, maxQuantity)`, so quantity is clamped in SQL.
 - `Tx` type is exported here for typing transaction params.
 - `GET /api/cart` filters out inactive products before computing totals and returns `amountToFreeShipping`.
-- `POST /api/cart/merge` — call immediately after login. Moves guest cart items onto the user cart, then deletes the guest cart.
+- `POST /api/cart/merge` — moves guest cart items onto the user cart, then deletes the guest cart. Designed to be called right after login; **currently has no caller in `src`**.
 
 ---
 
@@ -811,7 +811,7 @@ there or every `<Image>` breaks.
 - **Product deletion** — blocked entirely if any `orderItems` reference it; deactivate instead.
 - **Shipping country** — `createOrderSchema` defaults `shippingCountry` to `"India"`, matching the `addresses.country` column default.
 - **Sizes** — from the `PRODUCT_SIZES` const; **colors** — free-form text array.
-- **Cart merge** — `POST /api/cart/merge` immediately after login.
+- **Cart merge** — `POST /api/cart/merge` is meant to run immediately after login. **Nothing calls it yet** (see Known Gaps).
 
 ---
 
@@ -835,9 +835,10 @@ there or every `<Image>` breaks.
 
 Derived from TODOs and unfinished wiring in the code — not a roadmap.
 
-1. **Order confirmation email** — `src/app/api/payments/webhook/route.ts:244`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
-2. **`(auth)` layout redirect never fires** — `src/app/(auth)/layout.tsx:10` reads an `x-session` header that nothing in the app sets (`proxy.ts` only sets `x-device-type`). A signed-in user can still open `/sign-in` and `/sign-up`. Contrast `(admin)/layout.tsx`, which now checks the real session.
-3. **`account.issuer` migration will fail on a populated database** — `0010` adds the column `NOT NULL` with no default. Backfill before migrating any environment that already has accounts.
-4. **`product_search_vector` is not in migrations** — product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
-5. **Video optimization** — `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
-6. **Admin sidebar role is hardcoded** — `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
+1. **Cart merge is never invoked** — `POST /api/cart/merge` exists but no client code calls it, so a guest's cart is abandoned on sign-in. Needs a client component mounted in `(shop)/layout.tsx` that fires once per session id after `useSession()` resolves (Google login is a full-page redirect, so it can't live in `AuthCard`). Details in `.claude/Claude-Context.md`.
+2. **Order confirmation email** — `src/app/api/payments/webhook/route.ts:244`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
+3. **`(auth)` layout redirect never fires** — `src/app/(auth)/layout.tsx:10` reads an `x-session` header that nothing in the app sets (`proxy.ts` only sets `x-device-type`). A signed-in user can still open `/sign-in` and `/sign-up`. Contrast `(admin)/layout.tsx`, which now checks the real session.
+4. **`account.issuer` migration will fail on a populated database** — `0010` adds the column `NOT NULL` with no default. Backfill before migrating any environment that already has accounts.
+5. **`product_search_vector` is not in migrations** — product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
+6. **Video optimization** — `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
+7. **Admin sidebar role is hardcoded** — `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
