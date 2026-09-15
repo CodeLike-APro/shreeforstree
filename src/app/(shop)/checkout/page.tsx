@@ -76,45 +76,51 @@ export default function Checkout() {
     setEditEmail(false);
   };
 
-  useEffect(() => {
-    const fetchOrderItems = async () => {
-      try {
-        const res = await fetch("/api/cart", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+  const fetchOrderItems = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cart", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-        if (!res.ok) {
-          toast.error("Failed to fetch items");
-          console.error("Failed to fetch items", res);
-          setIsLoading(false);
-          return;
-        }
-
-        const result = await res.json();
-
-        if (!result.success) {
-          toast.error("Failed to fetch items");
-          console.error("Failed to fetch items", result);
-          setIsLoading(false);
-          return;
-        }
-
-        const data = result.data as Cart;
-        setCartItems(data);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching items", error);
+      if (!res.ok) {
         toast.error("Failed to fetch items");
+        console.error("Failed to fetch items", res);
         setIsLoading(false);
         return;
       }
+
+      const result = await res.json();
+
+      if (!result.success) {
+        toast.error("Failed to fetch items");
+        console.error("Failed to fetch items", result);
+        setIsLoading(false);
+        return;
+      }
+
+      const data = result.data as Cart;
+      setCartItems(data);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching items", error);
+      toast.error("Failed to fetch items");
+      setIsLoading(false);
+      return;
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("cart:merged", fetchOrderItems);
+    const load = async () => {
+      await fetchOrderItems();
     };
 
-    fetchOrderItems();
-  }, []);
+    void load();
+    return () => window.removeEventListener("cart:merged", fetchOrderItems);
+  }, [fetchOrderItems]);
 
   const collapse = useCallback(() => setIsExpanded(false), []);
 
