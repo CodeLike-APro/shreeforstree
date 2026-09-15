@@ -1,9 +1,21 @@
+"use client";
+import Cart from "@/components/shop/Cart";
+import { useRouter } from "next/navigation";
+
 export default function Home() {
+  const router = useRouter();
   return (
-    <div className=" h-screen w-full text-center flex flex-col items-center  justify-center">
-      <h1 className="text-4xl md:text-8xl font-display md:text-ink font-bold">
-        Cart
-      </h1>
+    <div className="flex h-screen w-full flex-col items-center justify-center text-center">
+      <Cart
+        isOpen={true}
+        onClose={() => {
+          if (window.history.length <= 1) {
+            router.push("/");
+            return;
+          }
+          router.back();
+        }}
+      />
     </div>
   );
 }
