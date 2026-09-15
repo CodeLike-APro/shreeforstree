@@ -301,19 +301,19 @@ export default function Cart({
             transition={{ duration: 0.2 }}
             ref={panelRef}
             className={
-              "bg-paper fixed inset-y-0 right-0 z-70 min-h-screen w-[40%] max-w-105 min-w-[320px]"
+              "bg-paper fixed inset-y-0 right-0 z-70 flex min-h-screen w-full flex-col md:w-[40%] md:max-w-105 md:min-w-[320px]"
             }
           >
             <div className="border-ink/10 flex items-center justify-between border-b px-6 py-4">
               <h3 className="text-ink text-xl">Your bag</h3>
               <button
                 onClick={onClose}
-                className="bg-paper text-ink hover:bg-ink hover:text-paper border-ink-25 btn-focus z-40 flex cursor-pointer rounded-full border p-2 backdrop-blur-sm transition-colors duration-150"
+                className="bg-paper text-ink hover:bg-ink hover:text-paper border-ink-25 btn-focus z-40 hidden cursor-pointer rounded-full border p-2 backdrop-blur-sm transition-colors duration-150 md:flex"
               >
                 <X size={17} />
               </button>
             </div>
-            <div className="h-full px-5">
+            <div className="min-h-0 flex-1 overflow-y-auto px-5">
               {loading ? (
                 <CartItemShimmerGrid count={3} />
               ) : cart ? (
@@ -389,7 +389,7 @@ export default function Cart({
                       </ul>
                     ))}
 
-                    <div className="border-ink/10 absolute bottom-0 left-0 flex w-full flex-col border-t px-6 py-4">
+                    <div className="border-ink/10 bg-paper sticky bottom-0 flex flex-col border-t px-6 py-4 pb-25 md:pb-4">
                       <div className="flex items-center justify-between">
                         <h6 className="text-ink-55 text-sm">Subtotal</h6>
                         <p className="text-ink font-label text-sm font-semibold">
