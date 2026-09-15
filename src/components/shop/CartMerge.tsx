@@ -1,0 +1,60 @@
+"use client";
+
+import { useSession } from "@/lib/auth-client";
+import { useEffect, useRef } from "react";
+
+export default function CartMerge() {
+  const { data: session, isPending } = useSession();
+
+  const inFlight = useRef(false);
+
+  useEffect(() => {
+    if (isPending || !session?.user || inFlight.current) return;
+
+    const key = `cart-merged:${session?.session.id}`;
+
+    try {
+      if (sessionStorage.getItem(key)) return;
+    } catch (error) {
+      console.error("Not merged", error);
+    }
+
+    inFlight.current = true;
+
+    const mergeCart = async () => {
+      try {
+        const res = await fetch("/api/cart/merge", {
+          method: "POST",
+        });
+
+        if (!res.ok) {
+          console.error("Failed to merge carts", await res.json());
+          return;
+        }
+
+        const result = await res.json();
+
+        if (!result.success) {
+          console.error("Failed to merge carts", result);
+          return;
+        }
+
+        window.dispatchEvent(new Event("cart:merged"));
+
+        try {
+          sessionStorage.setItem(key, "true");
+        } catch (error) {
+          return console.error("Failed to set session storage", error);
+        }
+      } catch (error) {
+        console.error("Failed to merge carts", error);
+      } finally {
+        inFlight.current = false;
+      }
+    };
+
+    mergeCart();
+  }, [isPending, session?.session.id, session?.user]);
+
+  return null;
+}
