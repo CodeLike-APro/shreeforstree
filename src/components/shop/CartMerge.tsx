@@ -9,14 +9,14 @@ export default function CartMerge() {
   const inFlight = useRef(false);
 
   useEffect(() => {
-    if (isPending || !session?.user || inFlight.current) return;
+    if (isPending || !session?.session.id || inFlight.current) return;
 
     const key = `cart-merged:${session?.session.id}`;
 
     try {
       if (sessionStorage.getItem(key)) return;
     } catch (error) {
-      console.error("Not merged", error);
+      console.error("SessionStorage unavailable, merging anyway", error);
     }
 
     inFlight.current = true;
@@ -39,7 +39,9 @@ export default function CartMerge() {
           return;
         }
 
-        window.dispatchEvent(new Event("cart:merged"));
+        if (result.data.merged) {
+          window.dispatchEvent(new Event("cart:merged"));
+        }
 
         try {
           sessionStorage.setItem(key, "true");
@@ -54,7 +56,7 @@ export default function CartMerge() {
     };
 
     mergeCart();
-  }, [isPending, session?.session.id, session?.user]);
+  }, [isPending, session?.session.id]);
 
   return null;
 }
