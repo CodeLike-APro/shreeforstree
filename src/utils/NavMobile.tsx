@@ -191,13 +191,13 @@ export default function NavMobile({ tabs }: NavMobileProps) {
   if (isFormSubPage) return null;
 
   return (
-    <nav className="fixed bg-linear-to-t from-black/20 to-transparent bottom-0 pb-5 left-0 right-0 z-50 flex items-center justify-center pointer-events-none">
+    <nav className="pointer-events-none fixed right-0 bottom-0 left-0 z-80 flex items-center justify-center bg-linear-to-t from-black/20 to-transparent pb-5">
       <motion.div
         ref={navRef}
         onPanStart={handlePanStart}
         onPan={handlePan}
         onPanEnd={handlePanEnd}
-        className="relative flex items-center justify-around pointer-events-auto touch-none select-none"
+        className="pointer-events-auto relative flex touch-none items-center justify-around select-none"
         style={{
           height: NAV_H,
           width: NAV_W,
@@ -230,7 +230,7 @@ export default function NavMobile({ tabs }: NavMobileProps) {
             aria-hidden
           >
             <div
-              className="w-full h-full rounded-full"
+              className="h-full w-full rounded-full"
               style={{
                 background:
                   "radial-gradient(circle, var(--color-rose-gold) 0%, transparent 70%)",
@@ -240,7 +240,7 @@ export default function NavMobile({ tabs }: NavMobileProps) {
           </motion.div>
           {/* Solid pill */}
           <div
-            className="w-full h-full rounded-full"
+            className="h-full w-full rounded-full"
             style={{
               background:
                 "linear-gradient(145deg, var(--color-rose-gold) 0%, var(--color-rose-gold-dark) 100%)",
@@ -260,7 +260,7 @@ export default function NavMobile({ tabs }: NavMobileProps) {
                 tabRefs.current[i] = el;
               }}
               onClick={() => handleTap(i)}
-              className="relative z-10 flex items-center justify-center rounded-full cursor-pointer"
+              className="relative z-10 flex cursor-pointer items-center justify-center rounded-full"
               style={{
                 width: PILL_SIZE,
                 height: PILL_SIZE,
@@ -282,15 +282,14 @@ export default function NavMobile({ tabs }: NavMobileProps) {
                   React.cloneElement(
                     tab.icon as React.ReactElement<NavIconProps>,
                     {
-                    size: ICON_SIZE,
-                    strokeWidth: isActive ? 2.4 : 1.8,
-                    className: "transition-colors duration-200",
-                    style: {
-                      color: isActive ? "white" : "var(--color-ink-55)",
-                      ...((tab.icon as React.ReactElement<NavIconProps>).props
-                        .style ||
-                        {}),
-                    },
+                      size: ICON_SIZE,
+                      strokeWidth: isActive ? 2.4 : 1.8,
+                      className: "transition-colors duration-200",
+                      style: {
+                        color: isActive ? "white" : "var(--color-ink-55)",
+                        ...((tab.icon as React.ReactElement<NavIconProps>).props
+                          .style || {}),
+                      },
                     },
                   )}
               </motion.div>
