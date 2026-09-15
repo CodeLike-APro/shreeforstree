@@ -10,6 +10,7 @@ import {
   Search,
 } from "lucide-react";
 import { adminCheck } from "@/lib/auth-utils";
+import CartMerge from "@/components/shop/CartMerge";
 
 const HeaderDesktop = dynamic(() => import("@/components/shop/HeaderDesktop"));
 const HeaderMobile = dynamic(() => import("@/components/shop/HeaderMobile"));
@@ -42,6 +43,7 @@ export default async function ShopLayout({
 
   return (
     <section className="flex min-h-screen flex-1 flex-col">
+      <CartMerge />
       <header className="bg-paper/80 sticky top-0 z-50 backdrop-blur-md">
         {deviceType === "mobile" ? (
           <HeaderMobile adminPath={adminPath} />
