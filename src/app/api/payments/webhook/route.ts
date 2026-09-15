@@ -237,8 +237,12 @@ async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
     };
   });
 
+  const infoData = JSON.stringify(createdPaymentAndOrder.data);
+  console.log("Payment and Order Update Info:");
+  console.log(infoData);
+
   console.info(
-    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${JSON.stringify(createdPaymentAndOrder.data)}`,
+    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${infoData}`,
   );
 
   //TODO: Add logic to send confirmation email to the user after successful payment and order placement.
