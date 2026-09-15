@@ -96,7 +96,8 @@ export const assertOwnsCartItem = async (
       return { kind: "notFound", message: "Cart item not found" };
     }
     const ownsCart =
-      item.cart.userId === currentUser?.id || item.cart.sessionId === sessionId;
+      item.cart.userId === currentUser?.id ||
+      (item.cart.sessionId === sessionId && item.cart.userId === null);
 
     if (!ownsCart) {
       return {

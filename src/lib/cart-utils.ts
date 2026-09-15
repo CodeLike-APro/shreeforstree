@@ -34,8 +34,10 @@ export async function getOrCreateCart(
       .onConflictDoNothing(conflictTarget);
 
     const fullCart = await executor.query.carts.findFirst({
-      where: (carts, { eq }) =>
-        userId ? eq(carts.userId, userId) : eq(carts.sessionId, sessionId),
+      where: (carts, { and, eq, isNull }) =>
+        userId
+          ? eq(carts.userId, userId)
+          : and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
       with: { cartItems: true },
     });
 

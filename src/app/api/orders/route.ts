@@ -157,11 +157,10 @@ export async function POST(request: NextRequest) {
     }
 
     const cart = await db.query.carts.findFirst({
-      where: (carts, { eq }) =>
-        eq(
-          currentUser ? carts.userId : carts.sessionId,
-          currentUser ? currentUser.id : sessionId,
-        ),
+      where: (carts, { and, eq, isNull }) =>
+        currentUser
+          ? eq(carts.userId, currentUser.id)
+          : and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
       with: {
         cartItems: {
           with: {
