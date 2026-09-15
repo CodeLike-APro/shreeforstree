@@ -198,3 +198,26 @@
 .peer-focus-ring {
   @apply peer-focus-visible:ring-rose-gold-dark peer-focus-visible:ring-2;
 }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-paper);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink);
+}
+
+/* For Firefox (Standard CSS support) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink) var(--color-paper);
+}
