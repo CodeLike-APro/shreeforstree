@@ -1,16 +1,15 @@
-import { internalServerError, ok, unauthorized } from "@/lib/api-response";
+import { internalServerError, unauthorized } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
-import { getOrCreateSessionId, upsertCartItem } from "@/lib/cart-utils";
+import {
+  getOrCreateCart,
+  getOrCreateSessionId,
+  upsertCartItem,
+} from "@/lib/cart-utils";
 import { MAX_CART_ITEMS } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { carts } from "@/lib/db/schema/cart.schema";
-import { handleResponse } from "@/lib/response-handler";
+import { handleResponse, ServiceResponse } from "@/lib/response-handler";
 import { and, eq, isNull } from "drizzle-orm/sql/expressions/conditions";
-
-type MergedCartItemsResponse =
-  | { kind: "ok"; message: string; data: unknown }
-  | { kind: "badRequest"; message: string }
-  | { kind: "internalServerError"; message: string; error?: unknown };
 
 export async function POST(request: Request) {
   try {
@@ -22,8 +21,10 @@ export async function POST(request: Request) {
 
     const sessionId = await getOrCreateSessionId();
 
-    const mergedCartItems: MergedCartItemsResponse = await db.transaction(
-      async (tx) => {
+    const mergedCartItems = await db.transaction(
+      async (
+        tx,
+      ): Promise<ServiceResponse<{ merged: boolean; userCartId?: string }>> => {
         const guestCart = await tx.query.carts.findFirst({
           where: (carts, { and, eq, isNull }) =>
             and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
@@ -31,25 +32,14 @@ export async function POST(request: Request) {
 
         if (!guestCart) {
           return {
-            kind: "badRequest",
+            kind: "ok",
             message: "No guest cart found to merge",
+            data: { merged: false },
           };
         }
-        await tx
-          .insert(carts)
-          .values({ sessionId, userId: currentUser.id })
-          .onConflictDoNothing({ target: carts.userId });
+        const userCart = await getOrCreateCart(currentUser.id, sessionId, tx);
 
-        const userCart = await tx.query.carts.findFirst({
-          where: (carts, { eq }) => eq(carts.userId, currentUser.id),
-        });
-
-        if (!userCart) {
-          return {
-            kind: "internalServerError",
-            message: "Failed to create or retrieve user cart",
-          };
-        }
+        if (userCart instanceof Response) throw userCart;
 
         const guestCartItems = await tx.query.cartItems.findMany({
           where: (cartItems, { eq }) => eq(cartItems.cartId, guestCart.id),
@@ -72,24 +62,19 @@ export async function POST(request: Request) {
               eq(carts.sessionId, sessionId),
               isNull(carts.userId),
             ),
-          )
-          .returning();
+          );
 
         return {
           kind: "ok",
           message: "Carts merged successfully",
-          data: { userCartId: userCart.id },
+          data: { merged: true, userCartId: userCart.id },
         };
       },
     );
 
     const mergedCartItemsResponse = handleResponse(mergedCartItems);
 
-    if (mergedCartItemsResponse.status !== 200) {
-      return mergedCartItemsResponse;
-    }
-
-    return ok("Carts merged successfully", mergedCartItems);
+    return mergedCartItemsResponse;
   } catch (error) {
     if (error instanceof Response) {
       return error;
