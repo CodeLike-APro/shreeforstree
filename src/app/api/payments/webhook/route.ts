@@ -237,9 +237,10 @@ async function handleCaptured(entity: RazorpayPaymentEntity): Promise<void> {
     };
   });
 
-  const infoData = JSON.stringify(createdPaymentAndOrder.data);
-  console.log("Payment and Order Update Info:");
-  console.log(infoData);
+  const infoData =
+    JSON.stringify(createdPaymentAndOrder.data?.payment) +
+    " | " +
+    JSON.stringify(createdPaymentAndOrder.data?.order?.id);
 
   console.info(
     `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${infoData}`,
@@ -328,7 +329,9 @@ async function handleFailed(entity: RazorpayPaymentEntity): Promise<void> {
     };
   });
 
+  const infoData = JSON.stringify(createdPaymentAndOrder.data?.payment);
+
   console.info(
-    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${JSON.stringify(createdPaymentAndOrder.data)}`,
+    `Kind: ${createdPaymentAndOrder.kind}, Message: ${createdPaymentAndOrder.message}, Data: ${infoData}`,
   );
 }
