@@ -78,11 +78,12 @@ src/
 │   │       └── settings/page.tsx
 │   ├── (auth)/{layout,sign-in/page,sign-up/page}.tsx
 │   ├── (shop)/
-│   │   ├── layout.tsx                          header + mobile nav, admin link if role=admin
+│   │   ├── layout.tsx                          header + mobile nav, <CartMerge />, admin link if role=admin
 │   │   ├── page.tsx                            home — getHomeData() → seven sections
 │   │   ├── shop/{page,[slug]/page}.tsx         listing + PDP
 │   │   ├── collections/, search/, contact/, our-story/
-│   │   ├── cart/, wishlist/
+│   │   ├── cart/page.tsx                       mobile: renders the Cart drawer full-screen
+│   │   ├── wishlist/
 │   │   ├── checkout/
 │   │   │   ├── page.tsx                        address + email, POSTs the order
 │   │   │   └── [orderId]/
@@ -110,7 +111,7 @@ src/
 │   │   ├── cart/
 │   │   │   ├── route.ts                        GET, POST, DELETE (clear)
 │   │   │   ├── [itemId]/route.ts               PATCH, DELETE
-│   │   │   └── merge/route.ts                  POST (call right after login)
+│   │   │   └── merge/route.ts                  POST (guest cart → user cart; fired by <CartMerge />)
 │   │   ├── orders/
 │   │   │   ├── route.ts                        GET, POST
 │   │   │   ├── [id]/route.ts                   GET (owner or guest token)
@@ -132,7 +133,7 @@ src/
 │   ├── admin/    AdminSidebar, AdminDesktopTopBar, AdminMobileTopBar, Notifications,
 │   │             ProductForm, ProductMediaManager, StatCard, SparkLine
 │   ├── auth/     AuthCard
-│   ├── shop/     HeaderDesktop, HeaderMobile, Cart, ProductGrid, CategoryTile,
+│   ├── shop/     HeaderDesktop, HeaderMobile, Cart, CartMerge, ProductGrid, CategoryTile,
 │   │             home/{HomeHero,HomeMarquee,NewArrivalsRail,HomeCollections,
 │   │                   AtelierEdit,HomeSignature,HomePromise},
 │   │             Addresses/{AddressModal,AllAddresses},
@@ -376,11 +377,34 @@ There is no `x-session-id` header anywhere in this codebase — don't reintroduc
 
 - Cart routes allow guests — never `401` for missing auth.
 - Guest carts: `userId = null`, identified by `sessionId`. Partial unique indexes enforce one cart per logged-in user and one per guest session.
+- **A `sessionId` can be on both an account cart and a guest cart at once** (the account cart keeps the cookie's id it was created with). Every guest-branch lookup must therefore be `and(eq(carts.sessionId, sessionId), isNull(carts.userId))` — `sessionId` alone would hand a signed-out browser the account's cart. The pattern is:
+  ```typescript
+  where: (carts, { and, eq, isNull }) =>
+    userId
+      ? eq(carts.userId, userId)
+      : and(eq(carts.sessionId, sessionId), isNull(carts.userId)),
+  ```
+  Used in `getOrCreateCart`, the cart lookup in `POST /api/orders`, and `assertOwnsCartItem` (`item.cart.userId === currentUser?.id || (item.cart.sessionId === sessionId && item.cart.userId === null)`). Use a ternary, not `and(x, !user && isNull(...))` — the `&&` can yield `false`, which `and()` rejects; and use `isNull()`, never `eq(col, null)`.
 - `getOrCreateCart(userId, sessionId, tx?)` — accepts an optional `tx`. Returns either the cart **or** a `Response` (from `internalServerError`); callers must do `if (result instanceof Response) return result`.
 - `upsertCartItem(tx, {...})` — `onConflictDoUpdate` on `(cartId, productId, size)` with `LEAST(quantity + n, maxQuantity)`, so quantity is clamped in SQL.
 - `Tx` type is exported here for typing transaction params.
 - `GET /api/cart` filters out inactive products before computing totals and returns `amountToFreeShipping`.
-- `POST /api/cart/merge` — moves guest cart items onto the user cart, then deletes the guest cart. Designed to be called right after login; **currently has no caller in `src`**.
+- `POST /api/cart/merge` — moves guest cart items onto the user cart (via `upsertCartItem`, so quantities clamp to `MAX_CART_ITEMS`), then deletes the guest cart. Requires a session (401 otherwise). Returns `200 { merged: false }` when there is no guest cart — that is the normal case on a clean login, not an error. The user cart comes from `getOrCreateCart(userId, sessionId, tx)`; don't replace that with a bare `insert … onConflictDoNothing({ target: carts.userId })` — the unique index on `userId` is partial, so Postgres rejects it with 42P10 unless a matching `where` is supplied.
+
+### Cart merge on login (`components/shop/CartMerge.tsx`)
+
+Both login paths are full-page navigations (email sign-in sets `window.location.href`; Google
+is an OAuth redirect), so the merge runs on the **landing** side: `<CartMerge />` is mounted once
+in `(shop)/layout.tsx`, renders nothing, and fires `POST /api/cart/merge` when `useSession()`
+resolves with a `session.session.id`. It runs once per session id (sessionStorage key
+`cart-merged:{id}`, so a re-login merges again) and an `inFlight` ref absorbs Strict Mode's
+double-invoke. The effect depends on `[isPending, session?.session.id]` only — `session.user` is a
+new object on every refetch.
+
+When the response is `merged: true` it dispatches a `window` event `cart:merged`. Anything that
+fetches the cart on mount and could race the merge must listen for it — `/checkout` does
+(`fetchOrderItems` is a `useCallback` re-run by the listener). The `Cart` drawer doesn't need to;
+it refetches on every open.
 
 ---
 
@@ -778,6 +802,8 @@ there or every `<Image>` breaks.
 - Styling is Tailwind v4 utilities against the `@theme` tokens: `bg-paper`, `text-ink`, `text-ink-55`, `border-ink-25`, `text-rose-gold`, `font-display`, `font-body`, `font-label`, `font-serif-alt`. Ink opacity steps (`ink-05/08/15/25/40/55`) are predefined tokens — prefer them over `ink/10`-style arbitrary values.
 - `.label-caps` is the tracked-out uppercase label style used across nav, buttons and eyebrows. `.stitch-divider` is the rose-gold running-stitch motif. `.btn-focus` / `.peer-focus-ring` carry the focus-visible rings — `.btn-focus` also applies `cursor-pointer`, so don't add it again.
 - Base typography is set in `@layer base`: `h1`–`h4` get `--font-display` bold, and **`p` gets `--font-label` weight 400**. A paragraph is already League Spartan; adding `font-label` to a `<p>` is redundant.
+- **Cart drawer** (`components/shop/Cart.tsx`) is the only cart UI. Desktop: `HeaderDesktop` opens it as a `40%`-wide right panel portaled to `document.body` (the sticky header's `backdrop-blur` would otherwise clamp a `fixed` child). Mobile: the bottom nav's Cart tab goes to `/cart`, a client page that mounts the same component with `isOpen` always true and `onClose → router.back()`; the panel is `w-full`, the X button is `md:flex` only. The panel is `flex-col` with the list `min-h-0 flex-1 overflow-y-auto` and the footer `sticky bottom-0 pb-25 md:pb-4` — that mobile padding is what keeps Checkout above `NavMobile` (`z-80`, above the panel's `z-70`). Don't hide the nav while the cart is open; it's the only way off the page on mobile.
+- Scrollbars are styled in `globals.css` for both engines (`::-webkit-scrollbar-*` and `scrollbar-color`), thumb `--color-ink` on `--color-paper`. Use full-opacity tokens here — an `ink-55` thumb composites to grey over paper, and Chrome ignores the legacy `:hover` rule once `scrollbar-color` is set.
 - Loading states use `<Shimmer />` and the shaped skeletons in `components/ui/Shimmer.tsx` (`CardShimmer`, `CartItemShimmer`, `OrderItemsShimmer`, `PaymentSummaryShimmer`, …) — match the real layout rather than inventing a new placeholder.
 - Toasts: `sonner` via `<BrandToaster />`, mounted once in the root layout. Call `toast()` from anywhere.
 - Icons: `lucide-react`. Brand/payment marks live in `components/ui/icon.tsx`.
@@ -811,7 +837,7 @@ there or every `<Image>` breaks.
 - **Product deletion** — blocked entirely if any `orderItems` reference it; deactivate instead.
 - **Shipping country** — `createOrderSchema` defaults `shippingCountry` to `"India"`, matching the `addresses.country` column default.
 - **Sizes** — from the `PRODUCT_SIZES` const; **colors** — free-form text array.
-- **Cart merge** — `POST /api/cart/merge` is meant to run immediately after login. **Nothing calls it yet** (see Known Gaps).
+- **Cart merge** — runs automatically on the first `(shop)` page after login via `<CartMerge />`; not from `AuthCard`, and not from the auth routes.
 
 ---
 
@@ -835,10 +861,9 @@ there or every `<Image>` breaks.
 
 Derived from TODOs and unfinished wiring in the code — not a roadmap.
 
-1. **Cart merge is never invoked** — `POST /api/cart/merge` exists but no client code calls it, so a guest's cart is abandoned on sign-in. Needs a client component mounted in `(shop)/layout.tsx` that fires once per session id after `useSession()` resolves (Google login is a full-page redirect, so it can't live in `AuthCard`). Details in `.claude/Claude-Context.md`.
-2. **Order confirmation email** — `src/app/api/payments/webhook/route.ts:244`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
-3. **`(auth)` layout redirect never fires** — `src/app/(auth)/layout.tsx:10` reads an `x-session` header that nothing in the app sets (`proxy.ts` only sets `x-device-type`). A signed-in user can still open `/sign-in` and `/sign-up`. Contrast `(admin)/layout.tsx`, which now checks the real session.
-4. **`account.issuer` migration will fail on a populated database** — `0010` adds the column `NOT NULL` with no default. Backfill before migrating any environment that already has accounts.
-5. **`product_search_vector` is not in migrations** — product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
-6. **Video optimization** — `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
-7. **Admin sidebar role is hardcoded** — `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
+1. **Order confirmation email** — `src/app/api/payments/webhook/route.ts:249`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
+2. **`(auth)` layout redirect never fires** — `src/app/(auth)/layout.tsx:10` reads an `x-session` header that nothing in the app sets (`proxy.ts` only sets `x-device-type`). A signed-in user can still open `/sign-in` and `/sign-up`. Contrast `(admin)/layout.tsx`, which now checks the real session.
+3. **`account.issuer` migration will fail on a populated database** — `0010` adds the column `NOT NULL` with no default. Backfill before migrating any environment that already has accounts.
+4. **`product_search_vector` is not in migrations** — product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
+5. **Video optimization** — `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
+6. **Admin sidebar role is hardcoded** — `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
