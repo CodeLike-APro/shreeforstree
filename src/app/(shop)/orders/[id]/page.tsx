@@ -1,5 +1,6 @@
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
 import { BackButton, CopyButton } from "@/components/ui/Buttons";
+import OrderStatusBadge from "@/components/ui/OrderStatusBadge";
 import { getOwnedOrder } from "@/lib/order-utils";
 import { formatAmount, formatDate, orderReference } from "@/lib/orders";
 import { X } from "lucide-react";
@@ -10,6 +11,11 @@ export const metadata = {
   robots: {
     index: false,
   },
+};
+
+const paymentStatusColors: Record<string, string> = {
+  success: "text-sage",
+  refunded: "text-rose-gold-dark",
 };
 
 export default async function OrderDetails({
@@ -50,9 +56,7 @@ export default async function OrderDetails({
           <h1 className="font-label text-3xl">
             Order ID: {orderReference(orderDetails.id)}
           </h1>
-          <p className="font-label rounded-md bg-blue-300 px-2 py-1 text-xs tracking-widest uppercase">
-            {orderDetails.orderStatus}
-          </p>
+          <OrderStatusBadge kind="order" status={orderDetails.orderStatus} />
         </div>
         <div>
           <p className="text-ink-55 tracking-wide">
@@ -153,7 +157,15 @@ export default async function OrderDetails({
               </div>
               <div className="font-label flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Payment Status</h6>
-                <p>{orderDetails.payments[0]?.status || "N/A"}</p>
+                <p
+                  className={
+                    paymentStatusColors[
+                      orderDetails.payments[0]?.status || "N/A"
+                    ] || "text-ink-55"
+                  }
+                >
+                  {orderDetails.payments[0]?.status || "N/A"}
+                </p>
               </div>
               <div className="font-label flex items-center justify-between text-base tracking-wide">
                 <h6 className="text-ink-55">Transaction ID</h6>
