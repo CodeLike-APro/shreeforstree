@@ -13,7 +13,7 @@ import { db } from "@/lib/db";
 import { orderItems, orders, orderStatusEnum } from "@/lib/db/schema";
 import type { addresses } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
-import { and, count, eq, SQL } from "drizzle-orm";
+import { and, count, eq, ilike, or, sql, SQL } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import crypto from "crypto";
 import { getOrCreateSessionId } from "@/lib/cart-utils";
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     const orderStatuses = Object.values(orderStatusEnum.enumValues) as string[];
     const orderStatus = searchParams.get("orderStatus");
     const userId = searchParams.get("userId");
+    const search = searchParams.get("search");
 
     if (orderStatus) {
       if (!orderStatuses.includes(orderStatus)) {
@@ -61,6 +62,17 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(orders.userId, currentUser.id));
     }
 
+    if (search && isAdmin) {
+      const term = `%${search.trim()}%`;
+      conditions.push(
+        or(
+          ilike(orders.shippingFullName, term),
+          ilike(orders.shippingEmail, term),
+          ilike(sql`upper(right(${orders.id}::text, 8))`, term.toUpperCase()),
+        )!,
+      );
+    }
+
     const countResult = await db
       .select({ count: count() })
       .from(orders)
@@ -68,6 +80,13 @@ export async function GET(request: NextRequest) {
 
     const ordersData = await db.query.orders.findMany({
       where: conditions.length ? and(...conditions) : undefined,
+      with: {
+        orderItems: {
+          columns: {
+            id: true,
+          },
+        },
+      },
       limit,
       offset,
       orderBy: (orders, { desc }) => desc(orders.createdAt),
