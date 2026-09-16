@@ -23,9 +23,15 @@
   --color-blush: oklch(0.89 0.043 48);
   --color-paper: oklch(0.96 0.009 60);
 
-  /* Functional colors — admin dashboards only, never customer-facing UI */
+  /* Functional colors for the UI — not derived from the logo mark */
   --color-sage: oklch(0.59 0.063 137);
   --color-rust: oklch(0.56 0.137 33);
+  --color-dusk: oklch(0.45 0.12 250);
+  --color-plum: oklch(0.45 0.15 300);
+  --color-terracotta: oklch(0.55 0.16 50);
+  --color-moss: oklch(0.45 0.12 140);
+  --color-crimson: oklch(0.45 0.15 20);
+  --color-crimson-dark: oklch(0.35 0.1 20);
 
   /* ===== Typography ===== */
   --font-display: "Playfair Display", serif;
