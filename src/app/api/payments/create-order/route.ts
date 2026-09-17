@@ -8,31 +8,16 @@ import { and, eq, ExtractTablesWithRelations } from "drizzle-orm";
 import type { Orders } from "razorpay/dist/types/orders";
 import type { PgTransaction } from "drizzle-orm/pg-core";
 import { NeonQueryResultHKT } from "drizzle-orm/neon-serverless";
-import { handleResponse } from "@/lib/response-handler";
+import { handleResponse, ServiceResponse } from "@/lib/response-handler";
 import * as schema from "@/lib/db/schema/index";
 import { resolveGuestToken } from "@/lib/order-utils";
+import { PaymentOrderData } from "@/types/api/payments";
 
 type Transaction = PgTransaction<
   NeonQueryResultHKT,
   typeof schema,
   ExtractTablesWithRelations<typeof schema>
 >;
-
-type OrderCreationData = {
-  razorpayOrder?: Orders.RazorpayOrder;
-  razorpayOrderId?: string;
-  amount: string;
-  currency: string;
-  keyId?: string;
-};
-
-type orderCreationResult =
-  | { kind: "created"; message: string; data: OrderCreationData }
-  | { kind: "ok"; message: string; data: OrderCreationData }
-  | { kind: "badRequest"; message: string }
-  | { kind: "notFound"; message: string }
-  | { kind: "forbidden"; message: string }
-  | { kind: "internalServerError"; message: string; error?: unknown };
 
 const expirePaymentOrders = async (orderId: string, tx: Transaction) => {
   await tx
@@ -56,8 +41,8 @@ export async function POST(request: Request) {
 
     const token = await resolveGuestToken(orderId, guestToken);
 
-    const createdOrder: orderCreationResult = await db.transaction(
-      async (tx) => {
+    const createdOrder: ServiceResponse<PaymentOrderData> =
+      await db.transaction(async (tx) => {
         const [order] = await tx
           .select()
           .from(orders)
@@ -124,7 +109,6 @@ export async function POST(request: Request) {
               kind: "ok",
               message: "Payment order already exists",
               data: {
-                razorpayOrder: razorpayOrder || undefined,
                 razorpayOrderId: existingPayment.razorpayOrderId,
                 amount: order.totalAmount,
                 currency: "INR",
@@ -171,23 +155,20 @@ export async function POST(request: Request) {
           })
           .returning();
 
-        const returnData = {
-          razorpayOrderId: razorpayOrder.id,
-          amount: order.totalAmount,
-          currency: razorpayOrder.currency,
-          keyId: process.env.RAZORPAY_KEY_ID!,
-          name: order.shippingFullName,
-          email: order.shippingEmail,
-          contact: order.shippingPhone,
-        };
-
         return {
           kind: "created",
           message: "Payment order created successfully",
-          data: returnData,
+          data: {
+            razorpayOrderId: razorpayOrder.id,
+            amount: order.totalAmount,
+            currency: razorpayOrder.currency,
+            keyId: process.env.RAZORPAY_KEY_ID!,
+            name: order.shippingFullName,
+            email: order.shippingEmail,
+            contact: order.shippingPhone,
+          },
         };
-      },
-    );
+      });
 
     return handleResponse(createdOrder);
   } catch (error) {
