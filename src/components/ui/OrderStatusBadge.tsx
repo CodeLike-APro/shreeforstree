@@ -8,10 +8,19 @@ type OrderStatusColor = {
   bgColor: string;
   textColor: string;
 };
+type PaymentStatusColor = {
+  status: paymentStatuses[number];
+  bgColor: string;
+  textColor: string;
+};
 
-const baseClasses = "rounded-md px-2 py-1 text-xs tracking-widest  uppercase";
+const baseClasses = "rounded-md px-2 py-1 text-xs tracking-widest uppercase";
 const orderStatusColors: OrderStatusColor[] = [
-  { status: "not_placed", bgColor: "bg-ink-15", textColor: "text-ink" },
+  {
+    status: "not_placed",
+    bgColor: "bg-ink-15",
+    textColor: "text-ink",
+  },
   { status: "placed", bgColor: "bg-dusk/20", textColor: "text-dusk" },
   {
     status: "confirmed",
@@ -27,6 +36,22 @@ const orderStatusColors: OrderStatusColor[] = [
   { status: "cancelled", bgColor: "bg-crimson/20", textColor: "text-crimson" },
   {
     status: "returned",
+    bgColor: "bg-crimson-dark/20",
+    textColor: "text-crimson-dark",
+  },
+];
+
+const paymentStatusColors: PaymentStatusColor[] = [
+  { status: "pending", bgColor: "bg-ink-15", textColor: "text-ink" },
+  { status: "success", bgColor: "bg-sage/20", textColor: "text-sage" },
+  {
+    status: "refunded",
+    bgColor: "bg-plum/20",
+    textColor: "text-plum",
+  },
+  { status: "failed", bgColor: "bg-crimson/20", textColor: "text-crimson" },
+  {
+    status: "expired",
     bgColor: "bg-crimson-dark/20",
     textColor: "text-crimson-dark",
   },
@@ -55,6 +80,16 @@ export default function OrderStatusBadge({
           className={`${baseClasses} ${
             orderStatusColors.find((s) => s.status === status)?.bgColor
           } ${orderStatusColors.find((s) => s.status === status)?.textColor}`}
+        >
+          {correctStatus}
+        </p>
+      )}
+
+      {kind === "payment" && (
+        <p
+          className={`${baseClasses} ${
+            paymentStatusColors.find((s) => s.status === status)?.bgColor
+          } ${paymentStatusColors.find((s) => s.status === status)?.textColor}`}
         >
           {correctStatus}
         </p>
