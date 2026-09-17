@@ -1,6 +1,7 @@
-import type { HomeData } from "@/lib/queries/home";
-import CategoryTile from "../CategoryTile";
 import { ArrowLink } from "@/components/ui/ArrowLink";
+import CategoryTile from "../CategoryTile";
+
+import type { HomeData } from "@/lib/queries/home";
 
 export default function HomeCollections({
   categories,

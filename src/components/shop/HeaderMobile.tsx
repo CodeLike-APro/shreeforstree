@@ -1,8 +1,8 @@
 // /components/shop/HeaderMobile.tsx
 "use client";
-import { useRef, useState } from "react";
+import { Heart, MapPin, Package, User } from "lucide-react";
 import Link from "next/link";
-import { User, Package, Heart, MapPin } from "lucide-react";
+import { useRef, useState } from "react";
 import UserDropdown from "../../utils/Dropdown";
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },

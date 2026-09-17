@@ -1,11 +1,12 @@
 "use client";
 
-import { ArrowLink } from "@/components/ui/ArrowLink";
-import type { HomeData } from "@/lib/queries/home";
-import Card from "@/utils/Card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLink } from "@/components/ui/ArrowLink";
+import Card from "@/utils/Card";
+
+import type { HomeData } from "@/lib/queries/home";
 
 export default function NewArrivalsRail({
   newArrivals,

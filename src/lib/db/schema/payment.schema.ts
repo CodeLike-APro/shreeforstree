@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   numeric,
   pgEnum,
@@ -7,7 +8,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { orders } from "./order.schema";
-import { relations } from "drizzle-orm";
 
 export const paymentStatusEnum = pgEnum("payment_status", [
   "pending",

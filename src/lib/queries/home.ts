@@ -1,11 +1,11 @@
 import { sql } from "drizzle-orm";
-import { db } from "../db";
 import {
   MAX_ATELIER_EDIT_PRODUCTS,
   MAX_CATEGORIES,
   MAX_HERO_PRODUCTS,
   MAX_NEW_ARRIVALS,
 } from "../constants";
+import { db } from "../db";
 
 async function getAtelierEdit(categoryIds: string[]) {
   if (categoryIds.length === 0) return [];

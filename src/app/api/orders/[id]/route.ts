@@ -1,3 +1,4 @@
+import z4 from "zod/v4";
 import {
   badRequest,
   internalServerError,
@@ -8,7 +9,6 @@ import { assertOrderOwnership, getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { resolveGuestToken } from "@/lib/order-utils";
 import { handleResponse } from "@/lib/response-handler";
-import z4 from "zod/v4";
 
 export async function GET(
   request: Request,

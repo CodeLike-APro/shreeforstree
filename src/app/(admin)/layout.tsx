@@ -1,5 +1,3 @@
-import dynamic from "next/dynamic";
-import { headers } from "next/headers";
 import {
   Box,
   LayoutDashboard,
@@ -8,8 +6,10 @@ import {
   Shirt,
   Users,
 } from "lucide-react";
-import { auth } from "@/lib/db/auth";
+import dynamic from "next/dynamic";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { auth } from "@/lib/db/auth";
 
 const AdminSidebar = dynamic(() => import("@/components/admin/AdminSidebar"));
 const NavMobile = dynamic(() => import("@/utils/NavMobile"));

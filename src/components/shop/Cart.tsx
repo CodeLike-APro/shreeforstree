@@ -2,6 +2,8 @@
 
 import { Handbag, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -9,14 +11,12 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import Image from "next/image";
-import QuantitySelector from "./product/QuantitySelector";
-import { CartItemShimmerGrid } from "../ui/Shimmer";
-import { RazorpayIcon } from "../ui/Icon";
-import { MAX_CART_ITEMS } from "@/lib/constants";
-import { toast } from "sonner";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { MAX_CART_ITEMS } from "@/lib/constants";
+import { RazorpayIcon } from "../ui/Icon";
+import { CartItemShimmerGrid } from "../ui/Shimmer";
+import QuantitySelector from "./product/QuantitySelector";
 
 type Cart = {
   cartId: string;

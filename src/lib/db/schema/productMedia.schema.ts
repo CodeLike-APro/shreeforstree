@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   integer,
@@ -7,7 +8,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { products } from "./products.schema";
-import { relations } from "drizzle-orm";
 
 export const productMedia = pgTable("product_media", {
   id: uuid("id").primaryKey().defaultRandom(),

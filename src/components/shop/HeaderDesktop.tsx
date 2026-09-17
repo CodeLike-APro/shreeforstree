@@ -1,11 +1,11 @@
 "use client";
+import { Handbag, Heart, MapPin, Package, Search, User } from "lucide-react";
 import Link from "next/link";
-import { User, Package, Heart, MapPin, Search, Handbag } from "lucide-react";
-import { useSearchPanel } from "./search/useSearch";
-import UserDropdown from "../../utils/Dropdown";
 import { useRef, useState } from "react";
-import { SearchPanel } from "./search/searchPanel";
+import UserDropdown from "../../utils/Dropdown";
 import Cart from "./Cart";
+import { SearchPanel } from "./search/searchPanel";
+import { useSearchPanel } from "./search/useSearch";
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },

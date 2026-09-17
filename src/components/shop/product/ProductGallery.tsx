@@ -1,7 +1,8 @@
 "use client";
-import type { productMedia } from "@/lib/db/schema";
 import Image from "next/image";
 import { useState } from "react";
+
+import type { productMedia } from "@/lib/db/schema";
 
 type ProductGalleryProps = {
   productMedia: (typeof productMedia.$inferSelect)[];

@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import {
   badRequest,
   forbidden,
@@ -10,7 +11,6 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { updateAddressSchema } from "@/lib/validators/address.validators";
-import { and, eq } from "drizzle-orm";
 
 const getAddressById = async (
   params: Promise<{ id: string }>,

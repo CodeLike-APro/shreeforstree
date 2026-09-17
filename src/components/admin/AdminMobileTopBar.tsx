@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { Bell, Plus, Search, SlidersHorizontal, User } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import UserDropdown from "../../utils/Dropdown";
-import { motion, AnimatePresence } from "motion/react";
 
 const USER_MENU_ITEMS = [
   { label: "My Profile", href: "/account", icon: <User /> },

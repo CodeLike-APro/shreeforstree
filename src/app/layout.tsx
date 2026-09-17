@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
-import {
-  Playfair_Display,
-  Inter,
-  Cormorant_Garamond,
-  League_Spartan,
-} from "next/font/google";
 import "./globals.css";
+import {
+  Cormorant_Garamond,
+  Inter,
+  League_Spartan,
+  Playfair_Display,
+} from "next/font/google";
 import BrandToaster from "@/components/ui/BrandToaster";
+
+import type { Metadata } from "next";
 
 const playfair = Playfair_Display({
   variable: "--font-display",
@@ -63,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body
-        className={`${playfair.variable} ${inter.variable} ${Cormorant.variable} ${league.variable} min-h-full flex flex-col font-body`}
+        className={`${playfair.variable} ${inter.variable} ${Cormorant.variable} ${league.variable} font-body flex min-h-full flex-col`}
       >
         {children}
         <BrandToaster />

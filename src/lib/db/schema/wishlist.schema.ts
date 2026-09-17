@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   pgTable,
   primaryKey,
@@ -6,7 +7,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth.schema";
-import { relations } from "drizzle-orm";
 import { products } from "./products.schema";
 
 export const wishlist = pgTable(

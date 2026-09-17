@@ -1,7 +1,8 @@
-import { formatAmount } from "@/lib/orders";
-import type { HomeData } from "@/lib/queries/home";
 import Image from "next/image";
 import Link from "next/link";
+import { formatAmount } from "@/lib/orders";
+
+import type { HomeData } from "@/lib/queries/home";
 
 export default function HomeSignature({
   product,

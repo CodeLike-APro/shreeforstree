@@ -1,9 +1,9 @@
+import { notFound } from "next/navigation";
 import ProductDescription from "@/components/shop/product/ProductDescription";
 import ProductDetails from "@/components/shop/product/ProductDetails";
 import ProductGallery from "@/components/shop/product/ProductGallery";
 import ProductPurchase from "@/components/shop/product/ProductPurchase";
 import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
 
 export default async function ProductPage({
   params,

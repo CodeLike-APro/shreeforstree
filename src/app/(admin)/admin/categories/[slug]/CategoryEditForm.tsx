@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import slugify from "slugify";
-import FileUpload from "@/utils/FileUpload";
+import { toast } from "sonner";
 import { updateCategorySchema } from "@/lib/validators/category.validators";
+import FileUpload from "@/utils/FileUpload";
 
 export interface EditableCategory {
   id: string;
@@ -301,12 +301,12 @@ export default function CategoryEditForm({
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-paper">
-      <header className="sticky top-0 z-40 flex flex-col gap-1 border-b border-ink-25 bg-paper px-6 py-3">
-        <h1 className="font-display text-3xl font-bold leading-tight text-ink">
+    <div className="bg-paper flex min-h-screen flex-col">
+      <header className="border-ink-25 bg-paper sticky top-0 z-40 flex flex-col gap-1 border-b px-6 py-3">
+        <h1 className="font-display text-ink text-3xl leading-tight font-bold">
           {category.title}
         </h1>
-        <p className="font-body text-xs tracking-wide text-ink-40">
+        <p className="font-body text-ink-40 text-xs tracking-wide">
           Edit category
         </p>
       </header>
@@ -322,7 +322,7 @@ export default function CategoryEditForm({
           <button
             type="button"
             onClick={handleCancel}
-            className="mb-4 flex w-fit items-center gap-1 text-rose-gold"
+            className="text-rose-gold mb-4 flex w-fit items-center gap-1"
           >
             <ChevronLeft size={18} className="stroke-[1.7]" />
             <span className="text-sm font-bold">Back to categories</span>
@@ -332,15 +332,15 @@ export default function CategoryEditForm({
             disabled={isSaving}
             className="grid grid-cols-1 gap-6 md:grid-cols-3"
           >
-            <section className="flex flex-col gap-6 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-2">
-              <h2 className="font-display text-2xl font-bold text-ink">
+            <section className="border-ink-40 bg-paper flex flex-col gap-6 rounded-xl border p-6 shadow-sm md:col-span-2">
+              <h2 className="font-display text-ink text-2xl font-bold">
                 Category details
               </h2>
 
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="title"
-                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                  className="font-body text-ink-55 text-xs font-bold tracking-wider uppercase"
                 >
                   Title
                 </label>
@@ -354,26 +354,26 @@ export default function CategoryEditForm({
                   }}
                   placeholder="e.g. Bridal Lehengas"
                   aria-invalid={!!errors.title}
-                  className={`w-full rounded-lg border bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:outline-none ${
+                  className={`bg-paper font-body text-ink placeholder:text-ink-40 w-full rounded-lg border px-4 py-2.5 transition-colors focus:outline-none ${
                     errors.title
                       ? "border-rust focus:border-rust"
                       : "border-ink-40 focus:border-ink"
                   }`}
                 />
                 {errors.title && (
-                  <p className="font-body text-xs text-rust">{errors.title}</p>
+                  <p className="font-body text-rust text-xs">{errors.title}</p>
                 )}
               </div>
 
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="slug"
-                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                  className="font-body text-ink-55 text-xs font-bold tracking-wider uppercase"
                 >
                   Slug
                 </label>
-                <div className="flex w-full items-center overflow-hidden rounded-lg border border-ink-40 bg-paper">
-                  <span className="border-r border-ink-40 bg-ink-08 px-4 py-2.5 font-body text-ink-55">
+                <div className="border-ink-40 bg-paper flex w-full items-center overflow-hidden rounded-lg border">
+                  <span className="border-ink-40 bg-ink-08 font-body text-ink-55 border-r px-4 py-2.5">
                     /category/
                   </span>
                   <input
@@ -381,10 +381,10 @@ export default function CategoryEditForm({
                     type="text"
                     value={derivedSlug}
                     readOnly
-                    className="w-full cursor-not-allowed bg-transparent px-4 py-2.5 font-body text-ink focus:outline-none"
+                    className="font-body text-ink w-full cursor-not-allowed bg-transparent px-4 py-2.5 focus:outline-none"
                   />
                 </div>
-                <p className="font-body text-xs text-ink-40">
+                <p className="font-body text-ink-40 text-xs">
                   Auto-generated from the title.
                 </p>
               </div>
@@ -392,7 +392,7 @@ export default function CategoryEditForm({
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="description"
-                  className="font-body text-xs font-bold uppercase tracking-wider text-ink-55"
+                  className="font-body text-ink-55 text-xs font-bold tracking-wider uppercase"
                 >
                   Description
                 </label>
@@ -406,25 +406,25 @@ export default function CategoryEditForm({
                   rows={6}
                   placeholder="Describe this collection…"
                   aria-invalid={!!errors.description}
-                  className={`w-full resize-none rounded-lg border bg-paper px-4 py-2.5 font-body text-ink transition-colors placeholder:text-ink-40 focus:outline-none ${
+                  className={`bg-paper font-body text-ink placeholder:text-ink-40 w-full resize-none rounded-lg border px-4 py-2.5 transition-colors focus:outline-none ${
                     errors.description
                       ? "border-rust focus:border-rust"
                       : "border-ink-40 focus:border-ink"
                   }`}
                 />
                 {errors.description && (
-                  <p className="font-body text-xs text-rust">
+                  <p className="font-body text-rust text-xs">
                     {errors.description}
                   </p>
                 )}
               </div>
 
-              <div className="flex items-center justify-between gap-4 rounded-lg border border-ink-25 px-4 py-3">
+              <div className="border-ink-25 flex items-center justify-between gap-4 rounded-lg border px-4 py-3">
                 <div className="flex flex-col">
-                  <span className="font-body text-sm font-bold text-ink">
+                  <span className="font-body text-ink text-sm font-bold">
                     Active
                   </span>
-                  <span className="font-body text-xs text-ink-40">
+                  <span className="font-body text-ink-40 text-xs">
                     Visible to customers on the store.
                   </span>
                 </div>
@@ -433,12 +433,12 @@ export default function CategoryEditForm({
                   role="switch"
                   aria-checked={isActive}
                   onClick={() => setIsActive((v) => !v)}
-                  className={`relative h-6 w-11 shrink-0 rounded-pill transition-colors ${
+                  className={`rounded-pill relative h-6 w-11 shrink-0 transition-colors ${
                     isActive ? "bg-rose-gold" : "bg-ink-25"
                   }`}
                 >
                   <span
-                    className={`absolute top-0.5 h-5 w-5 rounded-pill bg-paper transition-all ${
+                    className={`rounded-pill bg-paper absolute top-0.5 h-5 w-5 transition-all ${
                       isActive ? "left-5.5" : "left-0.5"
                     }`}
                   />
@@ -446,9 +446,9 @@ export default function CategoryEditForm({
               </div>
             </section>
 
-            <section className="flex h-fit flex-col gap-8 rounded-xl border border-ink-40 bg-paper p-6 shadow-sm md:col-span-1">
+            <section className="border-ink-40 bg-paper flex h-fit flex-col gap-8 rounded-xl border p-6 shadow-sm md:col-span-1">
               <div className="flex flex-col gap-4">
-                <h2 className="font-display text-2xl font-bold text-ink">
+                <h2 className="font-display text-ink text-2xl font-bold">
                   Category image
                 </h2>
                 <FileUpload
@@ -463,7 +463,7 @@ export default function CategoryEditForm({
               </div>
 
               <div className="flex flex-col gap-4">
-                <h2 className="font-display text-2xl font-bold text-ink">
+                <h2 className="font-display text-ink text-2xl font-bold">
                   Size chart
                 </h2>
                 <FileUpload
@@ -481,12 +481,12 @@ export default function CategoryEditForm({
         </div>
       </form>
 
-      <div className="sticky bottom-0 z-40 flex items-center justify-end gap-3 border-t border-ink-25 bg-paper px-6 py-3">
+      <div className="border-ink-25 bg-paper sticky bottom-0 z-40 flex items-center justify-end gap-3 border-t px-6 py-3">
         <button
           type="button"
           onClick={handleCancel}
           disabled={isSaving}
-          className="flex-1 sm:flex-initial flex items-center justify-center rounded-lg border border-ink-40 bg-paper px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-ink transition-colors hover:border-ink hover:bg-ink hover:text-paper disabled:opacity-50"
+          className="border-ink-40 bg-paper font-body text-ink hover:border-ink hover:bg-ink hover:text-paper flex flex-1 items-center justify-center rounded-lg border px-5 py-3.5 text-sm font-bold transition-colors disabled:opacity-50 sm:flex-initial sm:py-2.5"
         >
           Cancel
         </button>
@@ -494,7 +494,7 @@ export default function CategoryEditForm({
           type="submit"
           form="category-edit-form"
           disabled={!isDirty || isSaving}
-          className="flex-1 sm:flex-initial flex items-center justify-center gap-2 rounded-lg bg-rose-gold px-5 py-3.5 sm:py-2.5 font-body text-sm font-bold text-paper transition-colors hover:bg-rose-gold-dark disabled:cursor-not-allowed disabled:opacity-50"
+          className="bg-rose-gold font-body text-paper hover:bg-rose-gold-dark flex flex-1 items-center justify-center gap-2 rounded-lg px-5 py-3.5 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:flex-initial sm:py-2.5"
         >
           {isSaving && <Loader2 size={16} className="animate-spin" />}
           {isSaving ? "Saving…" : "Save changes"}

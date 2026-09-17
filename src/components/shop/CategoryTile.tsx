@@ -1,6 +1,7 @@
 import { MoveRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
 import type { HomeData } from "@/lib/queries/home";
 
 type CategoryTileProps = {

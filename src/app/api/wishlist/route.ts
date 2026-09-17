@@ -1,3 +1,4 @@
+import { and, desc, eq } from "drizzle-orm";
 import {
   badRequest,
   conflict,
@@ -11,7 +12,6 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { products, wishlist } from "@/lib/db/schema";
 import { addWishlistSchema } from "@/lib/validators/wishlist.validators";
-import { and, desc, eq } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {

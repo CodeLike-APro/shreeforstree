@@ -1,3 +1,4 @@
+import { and, count, eq } from "drizzle-orm";
 import {
   badRequest,
   created,
@@ -9,7 +10,7 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { createAddressSchema } from "@/lib/validators/address.validators";
-import { and, count, eq } from "drizzle-orm";
+
 import type { SQL } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 

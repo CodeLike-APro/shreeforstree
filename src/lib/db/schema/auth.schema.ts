@@ -1,12 +1,12 @@
 import { relations } from "drizzle-orm";
 import {
-  pgTable,
-  text,
-  timestamp,
+  bigint,
   boolean,
   index,
   integer,
-  bigint,
+  pgTable,
+  text,
+  timestamp,
 } from "drizzle-orm/pg-core";
 import { addresses } from "./address.schema";
 import { wishlist } from "./wishlist.schema";

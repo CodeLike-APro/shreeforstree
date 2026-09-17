@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   numeric,
@@ -7,12 +8,11 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { user } from "./auth.schema";
 import { addresses } from "./address.schema";
+import { user } from "./auth.schema";
+import { carts } from "./cart.schema";
 import { orderItems } from "./orderItem.schema";
 import { payments, paymentStatusEnum } from "./payment.schema";
-import { carts } from "./cart.schema";
 
 export const orderStatusEnum = pgEnum("order_status", [
   "not_placed",

@@ -1,3 +1,4 @@
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   text,
@@ -6,7 +7,6 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth.schema";
-import { relations, sql } from "drizzle-orm";
 import { cartItems } from "./cartItem.schema";
 
 export const carts = pgTable(

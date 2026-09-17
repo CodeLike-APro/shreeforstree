@@ -1,7 +1,7 @@
 export const dynamic = "force-dynamic";
 
-import { db } from "@/lib/db";
-import { categories } from "@/lib/db/schema/category.schema";
+import { eq } from "drizzle-orm";
+import slugify from "slugify";
 import {
   badRequest,
   conflict,
@@ -10,11 +10,11 @@ import {
   internalServerError,
   ok,
 } from "@/lib/api-response";
-import { eq } from "drizzle-orm";
 import { adminCheck } from "@/lib/auth-utils";
-import slugify from "slugify";
-import { createCategorySchema } from "@/lib/validators/category.validators";
+import { db } from "@/lib/db";
+import { categories } from "@/lib/db/schema/category.schema";
 import { deleteFile, uploadSingleFile } from "@/lib/media/media-handle";
+import { createCategorySchema } from "@/lib/validators/category.validators";
 
 export async function GET(request: Request) {
   try {

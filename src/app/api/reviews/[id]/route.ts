@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm/sql/expressions/conditions";
 import {
   badRequest,
   forbidden,
@@ -10,7 +11,6 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { reviews } from "@/lib/db/schema/review.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
 
 export async function DELETE(
   request: Request,

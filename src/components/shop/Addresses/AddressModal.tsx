@@ -1,9 +1,9 @@
 "use client";
 
-import { createAddressSchema } from "@/lib/validators/address.validators";
 import { Loader } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { createAddressSchema } from "@/lib/validators/address.validators";
 
 const inputBaseClasses: string =
   "peer border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm btn-focus";

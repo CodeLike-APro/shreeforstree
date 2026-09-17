@@ -2,11 +2,12 @@
 
 import { Clock, Search, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useSearch } from "./useSearch";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import type { categories } from "@/lib/db/schema";
 import Image from "next/image";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useSearch } from "./useSearch";
+
+import type { categories } from "@/lib/db/schema";
 
 type Category = typeof categories.$inferSelect;
 

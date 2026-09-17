@@ -1,11 +1,11 @@
 "use client";
 
 import { EllipsisVertical, X } from "lucide-react";
-import { useState, useRef, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
 import { AnimatePresence, motion, type Variants } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { formatAmount } from "@/lib/orders";
 
 export type CardVariant =

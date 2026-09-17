@@ -1,6 +1,3 @@
-import dynamic from "next/dynamic";
-import { headers } from "next/headers";
-import type { ReactNode } from "react";
 import {
   Handbag,
   Heart,
@@ -9,8 +6,12 @@ import {
   LayoutGrid,
   Search,
 } from "lucide-react";
-import { adminCheck } from "@/lib/auth-utils";
+import dynamic from "next/dynamic";
+import { headers } from "next/headers";
 import CartMerge from "@/components/shop/CartMerge";
+import { adminCheck } from "@/lib/auth-utils";
+
+import type { ReactNode } from "react";
 
 const HeaderDesktop = dynamic(() => import("@/components/shop/HeaderDesktop"));
 const HeaderMobile = dynamic(() => import("@/components/shop/HeaderMobile"));

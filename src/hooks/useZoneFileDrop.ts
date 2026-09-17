@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type DragEvent } from "react";
+import { type DragEvent, useCallback, useRef, useState } from "react";
 
 const hasFiles = (e: DragEvent) => e.dataTransfer.types.includes("Files");
 

@@ -1,12 +1,12 @@
 "use client";
-import { useState } from "react";
+import { Loader } from "lucide-react";
 import {
   AnimatePresence,
   motion,
   useAnimationControls,
   type Variants,
 } from "motion/react";
-import { Loader } from "lucide-react";
+import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { GoogleIcon } from "../ui/Icon";
 

@@ -1,5 +1,6 @@
-import type { HomeData } from "@/lib/queries/home";
 import Card from "@/utils/Card";
+
+import type { HomeData } from "@/lib/queries/home";
 
 export default function AtelierEdit({
   products,

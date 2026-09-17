@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   pgTable,
@@ -8,7 +9,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { carts } from "./cart.schema";
 import { products } from "./products.schema";
-import { relations } from "drizzle-orm";
 
 export const cartItems = pgTable(
   "cart_items",

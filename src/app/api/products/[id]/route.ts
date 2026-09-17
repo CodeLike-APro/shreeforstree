@@ -1,3 +1,5 @@
+import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
+import slugify from "slugify";
 import {
   badRequest,
   conflict,
@@ -12,8 +14,7 @@ import { orderItems, productCategories, productMedia } from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
-import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
-import slugify from "slugify";
+
 import type { NextRequest } from "next/server";
 
 export async function GET(

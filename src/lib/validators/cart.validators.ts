@@ -1,6 +1,6 @@
 import z4 from "zod/v4";
-import { PRODUCT_SIZES } from "../db/schema";
 import { MAX_CART_ITEMS } from "../constants";
+import { PRODUCT_SIZES } from "../db/schema";
 
 export const addCartItemSchema = z4.object({
   productId: z4.uuid(),

@@ -1,12 +1,12 @@
 "use client";
 
 import { EllipsisVertical, Loader, Pencil, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import AddressModal from "./AddressModal";
-import { AnimatePresence, motion } from "motion/react";
 import { AddressShimmer } from "@/components/ui/Shimmer";
 import { useSession } from "@/lib/auth-client";
+import AddressModal from "./AddressModal";
 
 type Address = {
   id: string;

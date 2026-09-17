@@ -1,7 +1,7 @@
+import { relations } from "drizzle-orm";
+import { pgTable, primaryKey, uuid } from "drizzle-orm/pg-core";
 import { categories } from "./category.schema";
 import { products } from "./products.schema";
-import { uuid, primaryKey, pgTable } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 
 export const productCategories = pgTable(
   "product_categories",

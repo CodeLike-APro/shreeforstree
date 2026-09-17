@@ -6,6 +6,7 @@ import HomePromise from "@/components/shop/home/HomePromise";
 import HomeSignature from "@/components/shop/home/HomeSignature";
 import NewArrivalsRail from "@/components/shop/home/NewArrivalsRail";
 import { getHomeData } from "@/lib/queries/home";
+
 import type { Metadata } from "next";
 
 export default async function Home() {

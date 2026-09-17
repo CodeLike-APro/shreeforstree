@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
-import { internalServerError } from "./api-response";
-import { db } from "./db";
-import { carts, cartItems } from "./db/schema";
 import { cookies } from "next/headers";
 import { setCartCookie } from "@/app/actions";
+import { internalServerError } from "./api-response";
+import { db } from "./db";
+import { cartItems, carts } from "./db/schema";
 
 export async function getOrCreateSessionId() {
   const cookieStore = await cookies();

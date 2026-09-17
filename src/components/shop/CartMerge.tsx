@@ -1,7 +1,7 @@
 "use client";
 
-import { useSession } from "@/lib/auth-client";
 import { useEffect, useRef } from "react";
+import { useSession } from "@/lib/auth-client";
 
 export default function CartMerge() {
   const { data: session, isPending } = useSession();

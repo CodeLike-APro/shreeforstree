@@ -1,3 +1,4 @@
+import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   check,
@@ -10,7 +11,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth.schema";
 import { products } from "./products.schema";
-import { relations, sql } from "drizzle-orm";
 
 export const reviews = pgTable(
   "reviews",

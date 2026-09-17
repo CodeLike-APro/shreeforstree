@@ -1,11 +1,11 @@
 "use client";
 
-import Card from "@/utils/Card";
-import { CardShimmerGrid } from "@/components/ui/Shimmer";
 import { AlertCircle, RotateCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { CardShimmerGrid } from "@/components/ui/Shimmer";
+import Card from "@/utils/Card";
 
 interface CategoryRow {
   id: string;

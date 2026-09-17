@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   boolean,
   numeric,
@@ -7,7 +8,6 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
 import { productCategories } from "./productCategory.schema";
 import { productMedia } from "./productMedia.schema";
 

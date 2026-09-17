@@ -1,6 +1,7 @@
-import type SftpClient from "ssh2-sftp-client";
 import { internalServerError } from "../api-response";
 import { optimizeImage, optimizeVideo } from "../optimize";
+
+import type SftpClient from "ssh2-sftp-client";
 
 type UploadedFile = {
   publicUrl: string;

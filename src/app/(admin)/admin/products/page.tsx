@@ -1,10 +1,10 @@
 "use client";
 
-import { CardShimmerGrid } from "@/components/ui/Shimmer";
-import Card from "@/utils/Card";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { CardShimmerGrid } from "@/components/ui/Shimmer";
+import Card from "@/utils/Card";
 
 interface ProductRow {
   id: string;
@@ -97,9 +97,9 @@ export default function Products() {
       ) : productsError ? (
         <p>Failed to load products.</p>
       ) : (
-        products.map((product, index) => (
+        products.map((product) => (
           <Card
-            key={index}
+            key={product.id}
             variant="admin-product"
             data={{ ...product }}
             onEdit={(id) => router.push(`/admin/products/${id}`)}

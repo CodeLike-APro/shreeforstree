@@ -1,6 +1,6 @@
 "use client";
-import Cart from "@/components/shop/Cart";
 import { useRouter } from "next/navigation";
+import Cart from "@/components/shop/Cart";
 
 export default function Home() {
   const router = useRouter();

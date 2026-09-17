@@ -1,13 +1,14 @@
 "use client";
 
-import { ArrowLink } from "@/components/ui/ArrowLink";
-import { Ring } from "@/components/ui/Icon";
-import { HERO_SLIDE_INTERVAL_MS } from "@/lib/constants";
-import type { HomeData } from "@/lib/queries/home";
 import { useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { ArrowLink } from "@/components/ui/ArrowLink";
+import { Ring } from "@/components/ui/Icon";
+import { HERO_SLIDE_INTERVAL_MS } from "@/lib/constants";
+
+import type { HomeData } from "@/lib/queries/home";
 
 const excerpt = (text: string) =>
   text.length > 130 ? `${text.slice(0, 130).trimEnd()}…` : text.trimEnd();

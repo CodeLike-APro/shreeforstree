@@ -1,3 +1,5 @@
+import { and, eq } from "drizzle-orm/sql/expressions/conditions";
+import z4 from "zod/v4";
 import {
   badRequest,
   internalServerError,
@@ -8,8 +10,6 @@ import {
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { wishlist } from "@/lib/db/schema/wishlist.schema";
-import { and, eq } from "drizzle-orm/sql/expressions/conditions";
-import z4 from "zod/v4";
 
 export async function DELETE(
   request: Request,

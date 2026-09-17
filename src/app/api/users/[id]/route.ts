@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import {
   badRequest,
   forbidden,
@@ -12,7 +13,6 @@ import { account, session, user } from "@/lib/db/schema/auth.schema";
 import { deleteFile } from "@/lib/media/media-handle";
 import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { updateUserSchema } from "@/lib/validators/user.validators";
-import { eq } from "drizzle-orm";
 
 export async function GET(
   request: Request,

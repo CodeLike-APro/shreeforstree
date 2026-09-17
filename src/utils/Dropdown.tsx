@@ -1,24 +1,24 @@
 "use client";
 
-import { authClient } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { ChevronRight, LogOut, Sparkles, X } from "lucide-react";
+import {
+  animate,
+  AnimatePresence,
+  motion,
+  type PanInfo,
+  useMotionValue,
+  type Variants,
+} from "motion/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, {
+  type RefObject,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
-  type RefObject,
 } from "react";
-import { ChevronRight, X, LogOut, Sparkles } from "lucide-react";
-import {
-  AnimatePresence,
-  motion,
-  useMotionValue,
-  animate,
-  type Variants,
-  type PanInfo,
-} from "motion/react";
+import { authClient } from "@/lib/auth-client";
 
 export interface UserDropdownItem {
   label: string;

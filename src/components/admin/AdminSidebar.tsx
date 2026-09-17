@@ -1,5 +1,4 @@
 "use client";
-import { authClient } from "@/lib/auth-client";
 import {
   Box,
   LayoutDashboard,
@@ -10,10 +9,11 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useState, useRef } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion, type Variants } from "motion/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef, useState } from "react";
+import { authClient } from "@/lib/auth-client";
 import { useSidebarStore } from "@/stores/sidebar-store";
 import UserDropdown from "@/utils/Dropdown";
 

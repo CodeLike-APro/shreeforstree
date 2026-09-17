@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 export const STORAGE_KEY = "sft_recent_searches";
 

@@ -1,3 +1,4 @@
+import { relations } from "drizzle-orm";
 import {
   integer,
   numeric,
@@ -6,9 +7,8 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { products } from "./products.schema";
 import { orders } from "./order.schema";
+import { products } from "./products.schema";
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").primaryKey().defaultRandom(),

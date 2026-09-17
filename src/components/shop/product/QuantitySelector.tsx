@@ -1,6 +1,6 @@
 "use client";
-import { MAX_CART_ITEMS } from "@/lib/constants";
 import { Minus, Plus } from "lucide-react";
+import { MAX_CART_ITEMS } from "@/lib/constants";
 
 type QuantitySelectorProps = {
   quantity: number | "";

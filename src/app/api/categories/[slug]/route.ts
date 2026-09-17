@@ -1,3 +1,5 @@
+import { eq } from "drizzle-orm/sql/expressions/conditions";
+import slugify from "slugify";
 import {
   badRequest,
   conflict,
@@ -12,8 +14,6 @@ import { productCategories } from "@/lib/db/schema";
 import { categories } from "@/lib/db/schema/category.schema";
 import { deleteFile } from "@/lib/media/media-handle";
 import { updateCategorySchema } from "@/lib/validators/category.validators";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
-import slugify from "slugify";
 
 export async function PATCH(
   request: Request,

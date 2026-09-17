@@ -1,4 +1,5 @@
 import SparkLine from "./SparkLine";
+
 import type { ReactNode } from "react";
 
 export interface StatCardProps {

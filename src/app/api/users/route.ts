@@ -1,8 +1,8 @@
+import { count, isNull } from "drizzle-orm";
 import { forbidden, internalServerError, paginated } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
-import { count, isNull } from "drizzle-orm";
 
 export async function GET(request: Request) {
   try {

@@ -1,15 +1,15 @@
 "use client";
 
-import ArrowLeft from "@/components/ui/Icon";
 import {
+  motion,
   useAnimationFrame,
   useMotionValue,
   useScroll,
-  useVelocity,
-  motion,
   useTransform,
+  useVelocity,
 } from "motion/react";
 import { useEffect, useRef, useState } from "react";
+import ArrowLeft from "@/components/ui/Icon";
 
 const NOTES = [
   "Made to order",

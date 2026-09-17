@@ -1,11 +1,11 @@
+import { X } from "lucide-react";
+import Image from "next/image";
+import { notFound } from "next/navigation";
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
 import { BackButton, CopyButton } from "@/components/ui/Buttons";
 import OrderStatusBadge from "@/components/ui/OrderStatusBadge";
 import { getOwnedOrder } from "@/lib/order-utils";
 import { formatAmount, formatDate, orderReference } from "@/lib/orders";
-import { X } from "lucide-react";
-import Image from "next/image";
-import { notFound } from "next/navigation";
 
 export const metadata = {
   robots: {

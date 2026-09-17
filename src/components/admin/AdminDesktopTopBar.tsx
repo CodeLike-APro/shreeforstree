@@ -1,9 +1,9 @@
 "use client";
 
 import { Bell, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 
 const TOP_BAR_ITEMS = [
   {

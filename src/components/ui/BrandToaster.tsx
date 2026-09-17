@@ -1,13 +1,13 @@
 "use client";
 
-import { Toaster as SonnerToaster } from "sonner";
 import {
-  CheckCircle2,
-  XCircle,
-  Info,
   AlertTriangle,
+  CheckCircle2,
+  Info,
   Loader2,
+  XCircle,
 } from "lucide-react";
+import { Toaster as SonnerToaster } from "sonner";
 
 /**
  * Sonner toaster themed to the shreeforstree brand:
@@ -25,9 +25,7 @@ export default function BrandToaster() {
         error: <XCircle size={18} className="text-rust" />,
         info: <Info size={18} className="text-rose-gold" />,
         warning: <AlertTriangle size={18} className="text-rose-gold-dark" />,
-        loading: (
-          <Loader2 size={18} className="text-rose-gold animate-spin" />
-        ),
+        loading: <Loader2 size={18} className="text-rose-gold animate-spin" />,
       }}
       toastOptions={{
         classNames: {

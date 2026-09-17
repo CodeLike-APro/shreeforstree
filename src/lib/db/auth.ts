@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { betterAuth } from "better-auth";
 import { db } from "./index";
 import * as schema from "./schema";
 

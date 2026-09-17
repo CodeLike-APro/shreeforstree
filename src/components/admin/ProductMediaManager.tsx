@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { ArrowLeft, ArrowRight, RotateCcw, Upload, X } from "lucide-react";
+import { type ChangeEvent, type DragEvent, useRef, useState } from "react";
 import { useZoneFileDrop } from "@/hooks/useZoneFileDrop";
 
 export interface GalleryItem {
@@ -58,8 +58,8 @@ export function ProductGalleryManager({
   return (
     <div className="relative flex flex-col gap-3" {...dropHandlers}>
       {isOver && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-dashed border-rose-gold bg-rose-gold/10">
-          <span className="rounded-pill bg-paper/90 px-4 py-2 font-label text-xs font-bold uppercase tracking-widest text-rose-gold">
+        <div className="border-rose-gold bg-rose-gold/10 pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-xl border-2 border-dashed">
+          <span className="rounded-pill bg-paper/90 font-label text-rose-gold px-4 py-2 text-xs font-bold tracking-widest uppercase">
             Drop to add to gallery
           </span>
         </div>
@@ -82,8 +82,10 @@ export function ProductGalleryManager({
             onDragEnd={() => setDragIndex(null)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, index)}
-            className={`group relative aspect-square overflow-hidden rounded-lg border bg-ink-08 transition-opacity ${
-              dragIndex === index ? "border-rose-gold opacity-60" : "border-ink-25"
+            className={`group bg-ink-08 relative aspect-square overflow-hidden rounded-lg border transition-opacity ${
+              dragIndex === index
+                ? "border-rose-gold opacity-60"
+                : "border-ink-25"
             } ${disabled ? "" : "cursor-grab active:cursor-grabbing"}`}
           >
             {item.type === "video" ? (
@@ -100,17 +102,17 @@ export function ProductGalleryManager({
               />
             )}
 
-            <span className="absolute left-1.5 top-1.5 rounded-pill bg-ink px-2 py-0.5 font-body text-[0.65rem] font-bold text-paper">
+            <span className="rounded-pill bg-ink font-body text-paper absolute top-1.5 left-1.5 px-2 py-0.5 text-[0.65rem] font-bold">
               {index === 0 ? "Thumbnail" : index + 1}
             </span>
 
-            <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-ink/50 px-1.5 py-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="bg-ink/50 absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 px-1.5 py-1 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 type="button"
                 disabled={disabled || index === 0}
                 onClick={() => onReorder(index, index - 1)}
                 aria-label="Move earlier"
-                className="rounded p-1 text-paper disabled:opacity-30"
+                className="text-paper rounded p-1 disabled:opacity-30"
               >
                 <ArrowLeft size={15} />
               </button>
@@ -119,7 +121,7 @@ export function ProductGalleryManager({
                 disabled={disabled || index === items.length - 1}
                 onClick={() => onReorder(index, index + 1)}
                 aria-label="Move later"
-                className="rounded p-1 text-paper disabled:opacity-30"
+                className="text-paper rounded p-1 disabled:opacity-30"
               >
                 <ArrowRight size={15} />
               </button>
@@ -130,7 +132,7 @@ export function ProductGalleryManager({
               disabled={disabled}
               onClick={() => onRemove(item.key)}
               aria-label="Remove media"
-              className="absolute right-1.5 top-1.5 rounded-full border border-ink-25 bg-paper p-1 text-ink opacity-0 shadow-sm transition-opacity hover:text-rose-gold group-hover:opacity-100"
+              className="border-ink-25 bg-paper text-ink hover:text-rose-gold absolute top-1.5 right-1.5 rounded-full border p-1 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
             >
               <X size={15} />
             </button>
@@ -142,33 +144,33 @@ export function ProductGalleryManager({
             type="button"
             disabled={disabled}
             onClick={() => inputRef.current?.click()}
-            className="flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-rose-gold/60 text-center transition-colors hover:bg-rose-gold/5 disabled:opacity-50"
+            className="border-rose-gold/60 hover:bg-rose-gold/5 flex aspect-square flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-center transition-colors disabled:opacity-50"
           >
             <Upload className="text-rose-gold" size={22} />
-            <span className="font-body text-xs font-bold text-ink-55">
+            <span className="font-body text-ink-55 text-xs font-bold">
               Add media
             </span>
           </button>
         )}
       </div>
 
-      {error && <p className="font-body text-xs text-rust">{error}</p>}
+      {error && <p className="font-body text-rust text-xs">{error}</p>}
 
-      <p className="font-body text-xs text-ink-40">
-        Drag to reorder. The first item is the thumbnail. Up to {maxFiles} files,
-        at least one image.
+      <p className="font-body text-ink-40 text-xs">
+        Drag to reorder. The first item is the thumbnail. Up to {maxFiles}{" "}
+        files, at least one image.
       </p>
 
       {removed.length > 0 && (
-        <div className="flex flex-col gap-2 rounded-lg border border-ink-15 bg-ink-05 p-3">
-          <span className="font-body text-xs font-bold text-ink-55">
+        <div className="border-ink-15 bg-ink-05 flex flex-col gap-2 rounded-lg border p-3">
+          <span className="font-body text-ink-55 text-xs font-bold">
             Marked for removal (saved changes will delete these)
           </span>
           <div className="flex flex-wrap gap-3">
             {removed.map((item) => (
               <div
                 key={item.key}
-                className="relative h-16 w-16 overflow-hidden rounded-md border border-ink-25"
+                className="border-ink-25 relative h-16 w-16 overflow-hidden rounded-md border"
               >
                 {item.type === "video" ? (
                   <video
@@ -188,7 +190,7 @@ export function ProductGalleryManager({
                   disabled={disabled}
                   onClick={() => onRestore(item.key)}
                   aria-label="Restore media"
-                  className="absolute inset-0 flex items-center justify-center bg-ink/30 text-paper"
+                  className="bg-ink/30 text-paper absolute inset-0 flex items-center justify-center"
                 >
                   <RotateCcw size={16} />
                 </button>
@@ -231,8 +233,8 @@ export function HeroImageSlot({
   return (
     <div className="relative flex flex-col gap-3" {...dropHandlers}>
       {isOver && (
-        <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed border-rose-gold bg-rose-gold/10">
-          <span className="rounded-pill bg-paper/90 px-4 py-2 font-label text-xs font-bold uppercase tracking-widest text-rose-gold">
+        <div className="border-rose-gold bg-rose-gold/10 pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-lg border-2 border-dashed">
+          <span className="rounded-pill bg-paper/90 font-label text-rose-gold px-4 py-2 text-xs font-bold tracking-widest uppercase">
             Drop to set hero
           </span>
         </div>
@@ -245,18 +247,18 @@ export function HeroImageSlot({
         className="hidden"
       />
       {previewUrl ? (
-        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-ink-25 bg-ink-08">
+        <div className="border-ink-25 bg-ink-08 relative aspect-video w-full overflow-hidden rounded-lg border">
           <img
             src={previewUrl}
             alt="Hero"
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-x-0 bottom-0 flex justify-end gap-2 bg-ink/40 p-2">
+          <div className="bg-ink/40 absolute inset-x-0 bottom-0 flex justify-end gap-2 p-2">
             <button
               type="button"
               disabled={disabled}
               onClick={() => inputRef.current?.click()}
-              className="rounded-md bg-paper px-3 py-1 font-body text-xs font-bold text-ink hover:bg-blush"
+              className="bg-paper font-body text-ink hover:bg-blush rounded-md px-3 py-1 text-xs font-bold"
             >
               Replace
             </button>
@@ -265,7 +267,7 @@ export function HeroImageSlot({
                 type="button"
                 disabled={disabled}
                 onClick={onClear}
-                className="rounded-md border border-paper/60 px-3 py-1 font-body text-xs font-bold text-paper"
+                className="border-paper/60 font-body text-paper rounded-md border px-3 py-1 text-xs font-bold"
               >
                 Undo
               </button>
@@ -277,13 +279,13 @@ export function HeroImageSlot({
           type="button"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-rose-gold/60 text-center transition-colors hover:bg-rose-gold/5 disabled:opacity-50"
+          className="border-rose-gold/60 hover:bg-rose-gold/5 flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-center transition-colors disabled:opacity-50"
         >
           <Upload className="text-rose-gold" size={26} />
-          <span className="font-body text-sm font-bold text-ink">
+          <span className="font-body text-ink text-sm font-bold">
             Upload hero image
           </span>
-          <span className="font-body text-xs text-ink-40">
+          <span className="font-body text-ink-40 text-xs">
             Shown on the storefront banner
           </span>
         </button>

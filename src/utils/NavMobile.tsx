@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useRef, useCallback, useEffect, useState } from "react";
 import {
+  animate,
   motion,
+  type PanInfo,
   useMotionValue,
   useTransform,
-  animate,
-  type PanInfo,
 } from "motion/react";
 import { usePathname, useRouter } from "next/navigation";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 export interface NavTab {
   icon: React.ReactNode;

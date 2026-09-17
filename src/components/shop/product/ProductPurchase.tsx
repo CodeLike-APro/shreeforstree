@@ -1,9 +1,10 @@
 "use client";
+import { X } from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import AddToBag from "./AddToBag";
 import QuantitySelector from "./QuantitySelector";
-import Image from "next/image";
-import { X } from "lucide-react";
+
 import type { PRODUCT_SIZES } from "@/lib/db/schema";
 
 type ProductPurchaseProps = {

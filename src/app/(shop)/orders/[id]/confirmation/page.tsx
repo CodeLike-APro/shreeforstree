@@ -1,10 +1,10 @@
-import SuccessMark from "@/components/shop/orders/SuccessMark";
+import { notFound, redirect } from "next/navigation";
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
 import OrderItemThumbnail from "@/components/shop/orders/OrderItemThumbnail";
+import SuccessMark from "@/components/shop/orders/SuccessMark";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/Buttons";
 import { getOwnedOrder } from "@/lib/order-utils";
 import { formatAmount, itemCount, orderReference } from "@/lib/orders";
-import { notFound, redirect } from "next/navigation";
 
 export const metadata = {
   robots: {

@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm/sql/expressions/conditions";
 import {
   badRequest,
   internalServerError,
@@ -18,7 +19,6 @@ import {
 import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema/cartItem.schema";
 import { addCartItemSchema } from "@/lib/validators/cart.validators";
-import { eq } from "drizzle-orm/sql/expressions/conditions";
 
 export async function GET(request: Request) {
   try {

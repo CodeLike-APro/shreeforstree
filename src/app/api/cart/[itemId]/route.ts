@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { badRequest, internalServerError, ok } from "@/lib/api-response";
 import { assertOwnsCartItem, getCurrentUser } from "@/lib/auth-utils";
 import { getOrCreateSessionId } from "@/lib/cart-utils";
@@ -5,7 +6,6 @@ import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema";
 import { handleResponse } from "@/lib/response-handler";
 import { updateCartItemSchema } from "@/lib/validators/cart.validators";
-import { eq } from "drizzle-orm";
 
 export async function PATCH(
   request: Request,
