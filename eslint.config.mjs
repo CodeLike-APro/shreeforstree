@@ -20,6 +20,18 @@ const eslintConfig = defineConfig([
       },
     },
   },
+  {
+    rules: {
+      "@typescript-eslint/consistent-type-imports": [
+        "warn",
+        {
+          prefer: "type-imports",
+          // Separates normal imports and type imports into distinct lines
+          fixStyle: "separate-type-imports",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
