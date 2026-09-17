@@ -1,11 +1,5 @@
+import { ApiError, ApiPaginated, ApiSuccess } from "@/types/api";
 import { NextResponse } from "next/server";
-
-type ApiResponse<T = null> = {
-  success: boolean;
-  message: string;
-  data: T | null;
-  errors?: unknown;
-};
 
 // 200 OK
 export function ok<T>(
@@ -13,7 +7,7 @@ export function ok<T>(
   data: T | null = null,
   headers?: HeadersInit,
 ) {
-  const body: ApiResponse<T> = {
+  const body: ApiSuccess<T | null> = {
     success: true,
     message,
     data,
@@ -23,7 +17,7 @@ export function ok<T>(
 
 // 201 Created
 export function created<T>(message: string, data: T | null = null) {
-  const body: ApiResponse<T> = {
+  const body: ApiSuccess<T | null> = {
     success: true,
     message,
     data,
@@ -33,7 +27,7 @@ export function created<T>(message: string, data: T | null = null) {
 
 // 400 Bad Request
 export function badRequest(message: string, errors?: unknown) {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -46,7 +40,7 @@ export function badRequest(message: string, errors?: unknown) {
 
 // 401 Unauthorized
 export function unauthorized(message: string = "Unauthorized") {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -58,7 +52,7 @@ export function unauthorized(message: string = "Unauthorized") {
 
 // 403 Forbidden
 export function forbidden(message: string = "Forbidden") {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -70,7 +64,7 @@ export function forbidden(message: string = "Forbidden") {
 
 // 404 Not Found
 export function notFound(message: string = "Not Found", errors?: unknown) {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -83,7 +77,7 @@ export function notFound(message: string = "Not Found", errors?: unknown) {
 
 // 409 Conflict
 export function conflict(message: string) {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -95,7 +89,7 @@ export function conflict(message: string) {
 
 // 422 Unprocessable Entity
 export function validationError(message: string, errors?: unknown) {
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     data: null,
     message,
@@ -114,7 +108,7 @@ export function internalServerError(
   const trace = new Error().stack;
   const callSite = trace ? trace.split("\n")[2]?.trim() : "Unknown call site";
   console.error(message, error, { status: 500, at: callSite });
-  const body: ApiResponse = {
+  const body: ApiError = {
     success: false,
     message,
     data: null,
@@ -125,18 +119,6 @@ export function internalServerError(
 }
 
 // Paginated Response
-type PaginatedResponse<T> = {
-  success: true;
-  message: string;
-  data: T[];
-  pagination: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-};
-
 export function paginated<T>(
   message: string,
   data: T[],
@@ -144,7 +126,7 @@ export function paginated<T>(
   page: number,
   limit: number,
 ) {
-  const body: PaginatedResponse<T> = {
+  const body: ApiPaginated<T> = {
     success: true,
     message,
     data,
