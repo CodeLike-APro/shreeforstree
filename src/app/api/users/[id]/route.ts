@@ -98,7 +98,7 @@ export async function PATCH(
       return badRequest("imagePath must point to this user's avatar folder");
     }
 
-    const updatedUser = await db
+    const [updatedUser] = await db
       .update(user)
       .set({
         ...(name && { name: name.trim() }),

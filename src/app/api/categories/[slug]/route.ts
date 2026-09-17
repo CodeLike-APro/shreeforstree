@@ -71,7 +71,7 @@ export async function PATCH(
       }
     }
 
-    const updatedCategory = await db
+    const [updatedCategory] = await db
       .update(categories)
       .set({
         ...(title && { title: title.trim(), slug }),

@@ -41,10 +41,8 @@ export async function PATCH(
         tx,
       );
 
-      const ownershipResponse = handleResponse(ownership);
-
-      if (ownershipResponse.status !== 200) {
-        return ownershipResponse;
+      if (ownership.kind !== "ok") {
+        return ownership;
       }
 
       const [updatedItem] = await tx

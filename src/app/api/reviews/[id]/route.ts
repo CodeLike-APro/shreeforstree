@@ -41,7 +41,7 @@ export async function DELETE(
       return forbidden("You do not have permission to delete this review");
     }
 
-    const deletedReview = await db
+    const [deletedReview] = await db
       .delete(reviews)
       .where(eq(reviews.id, reviewId))
       .returning();
