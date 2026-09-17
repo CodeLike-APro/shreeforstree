@@ -1,5 +1,5 @@
-import { ProductsWithMediaAndCategories } from "@/lib/queries/products";
 import Card from "@/utils/Card";
+import type { ProductsWithMediaAndCategories } from "@/lib/queries/products";
 
 export default function ProductGrid({
   allProducts,

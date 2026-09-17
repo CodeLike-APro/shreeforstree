@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import {
   badRequest,
   conflict,
@@ -10,6 +9,7 @@ import {
   unauthorized,
   validationError,
 } from "./api-response";
+import type { NextResponse } from "next/server";
 
 export type ResponseKind =
   | "created"

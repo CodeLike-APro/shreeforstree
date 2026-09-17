@@ -1,4 +1,4 @@
-import { orderStatusEnum, paymentStatusEnum } from "@/lib/db/schema";
+import type { orderStatusEnum, paymentStatusEnum } from "@/lib/db/schema";
 
 type orderStatuses = typeof orderStatusEnum.enumValues;
 type paymentStatuses = typeof paymentStatusEnum.enumValues;

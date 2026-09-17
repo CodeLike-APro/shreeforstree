@@ -1,5 +1,5 @@
 import { HERO_SLIDE_INTERVAL_MS } from "@/lib/constants";
-import { SVGProps } from "react";
+import type { SVGProps } from "react";
 
 export function RazorpayIcon(props: SVGProps<SVGSVGElement>) {
   return (

@@ -17,7 +17,7 @@ import {
 } from "@/lib/media/media-handle";
 import { adminMediaUploadSchema } from "@/lib/validators/media.validators";
 import { and, count, eq } from "drizzle-orm";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 const MAX_FILES: Record<
   | "product-gallery"

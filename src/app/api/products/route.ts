@@ -13,8 +13,8 @@ import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import getProducts from "@/lib/queries/products";
 import { createProductSchema } from "@/lib/validators/product.validators";
-import { NextRequest } from "next/server";
 import slugify from "slugify";
+import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {

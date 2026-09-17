@@ -16,8 +16,9 @@ import { orders } from "@/lib/db/schema/order.schema";
 import { reviews } from "@/lib/db/schema/review.schema";
 import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { createReviewSchema } from "@/lib/validators/review.validators";
-import { and, avg, count, eq, inArray, SQL } from "drizzle-orm";
-import { NextRequest } from "next/server";
+import { and, avg, count, eq, inArray } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
+import type { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,

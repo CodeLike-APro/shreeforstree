@@ -2,10 +2,12 @@
 
 import { orderReference } from "@/lib/orders";
 import { loadRazorpayCheckoutScript } from "@/lib/razorpay-checkout";
-import { RazorpayOptions } from "@/types/razorpay";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { ApiResult } from "@/types/api";
+import type { PaymentOrderData } from "@/types/api/payments";
+import type { RazorpayOptions } from "@/types/razorpay";
 
 export default function Payment() {
   const params = useParams();
@@ -46,7 +48,7 @@ export default function Payment() {
           return;
         }
 
-        const result = await res.json();
+        const result: ApiResult<PaymentOrderData> = await res.json();
 
         if (!result.success) {
           console.error("Failed to create payment order", result);

@@ -17,7 +17,7 @@ import {
 } from "@/lib/media/media-handle";
 import { mediaUploadSchema } from "@/lib/validators/media.validators";
 import { and, eq, inArray } from "drizzle-orm";
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 const MAX_FILES: Record<"avatar" | "review", number> = {
   avatar: 1,

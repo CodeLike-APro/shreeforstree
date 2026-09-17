@@ -11,13 +11,14 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_CHARGE } from "@/lib/constants";
 import { db } from "@/lib/db";
 import { orderItems, orders, orderStatusEnum } from "@/lib/db/schema";
-import type { addresses } from "@/lib/db/schema";
 import { createOrderSchema } from "@/lib/validators/order.validators";
-import { and, count, eq, ilike, or, sql, SQL } from "drizzle-orm";
-import { NextRequest } from "next/server";
+import { and, count, eq, ilike, or, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { getOrCreateSessionId } from "@/lib/cart-utils";
 import { setGuestOrderCookie } from "@/lib/order-utils";
+import type { addresses } from "@/lib/db/schema";
+import type { SQL } from "drizzle-orm";
+import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {

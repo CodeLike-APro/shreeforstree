@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
 import SparkLine from "./SparkLine";
+import type { ReactNode } from "react";
 
 export interface StatCardProps {
   icon: ReactNode;
@@ -19,41 +19,41 @@ export default function StatCard({
   sparklineData,
 }: StatCardProps) {
   return (
-    <div className="h-auto w-auto flex flex-col gap-2 border border-ink-25 rounded-lg p-4">
+    <div className="border-ink-25 flex h-auto w-auto flex-col gap-2 rounded-lg border p-4">
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center justify-center gap-2">
           <div
             aria-label={`${title} icon`}
-            className="flex items-center justify-center p-2 bg-blush/40 rounded-md text-rose-gold-dark"
+            className="bg-blush/40 text-rose-gold-dark flex items-center justify-center rounded-md p-2"
           >
             {icon}
           </div>
           <p
             aria-label={title}
-            className="font-body font-bold text-ink-40 uppercase tracking-wider text-sm "
+            className="font-body text-ink-40 text-sm font-bold tracking-wider uppercase"
           >
             {title}
           </p>
         </div>
         <div
           aria-label={`${title} change`}
-          className="font-body font-bold text-xs bg-sage/20 text-sage rounded-2xl px-1.5 py-0.5"
+          className="font-body bg-sage/20 text-sage rounded-2xl px-1.5 py-0.5 text-xs font-bold"
         >
           {change}
         </div>
       </div>
-      <div className="flex items-center justify-start min-w-67 ">
+      <div className="flex min-w-67 items-center justify-start">
         <div
           aria-label={`${title} amount`}
-          className="font-display text-ink font-bold text-3xl"
+          className="font-display text-ink text-3xl font-bold"
         >
           {amount}
         </div>
       </div>
-      <div className="flex w-full items-center justify-between ">
+      <div className="flex w-full items-center justify-between">
         <div
           aria-label={`${title} description`}
-          className="font-body text-xs text-ink-40 h-full flex items-end justify-start"
+          className="font-body text-ink-40 flex h-full items-end justify-start text-xs"
         >
           {bottomText}
         </div>

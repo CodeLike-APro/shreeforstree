@@ -13,8 +13,8 @@ import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
 import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
-import { NextRequest } from "next/server";
 import slugify from "slugify";
+import type { NextRequest } from "next/server";
 
 export async function GET(
   request: NextRequest,

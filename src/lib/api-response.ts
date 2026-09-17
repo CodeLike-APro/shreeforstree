@@ -1,5 +1,5 @@
-import { ApiError, ApiPaginated, ApiSuccess } from "@/types/api";
 import { NextResponse } from "next/server";
+import type { ApiError, ApiPaginated, ApiSuccess } from "@/types/api";
 
 // 200 OK
 export function ok<T>(

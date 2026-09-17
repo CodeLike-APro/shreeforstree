@@ -1,15 +1,7 @@
-import {
-  and,
-  count,
-  countDistinct,
-  desc,
-  eq,
-  inArray,
-  SQL,
-  sql,
-} from "drizzle-orm";
+import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
 import { categories, productCategories, products } from "../db/schema";
 import { db } from "../db";
+import type { SQL } from "drizzle-orm";
 
 export type ProductsWithMediaAndCategories = Awaited<
   ReturnType<

@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import AddToBag from "./AddToBag";
 import QuantitySelector from "./QuantitySelector";
-import { PRODUCT_SIZES } from "@/lib/db/schema";
 import Image from "next/image";
 import { X } from "lucide-react";
+import type { PRODUCT_SIZES } from "@/lib/db/schema";
 
 type ProductPurchaseProps = {
   sizes: (typeof PRODUCT_SIZES)[number][];

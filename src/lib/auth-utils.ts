@@ -1,8 +1,8 @@
-import { Tx } from "./cart-utils";
 import { db } from "./db";
 import { auth } from "./db/auth";
-import { cartItems, orders } from "./db/schema";
 import crypto from "crypto";
+import type { cartItems, orders } from "./db/schema";
+import type { Tx } from "./cart-utils";
 
 export async function getCurrentUser(input: Request | Headers) {
   try {
