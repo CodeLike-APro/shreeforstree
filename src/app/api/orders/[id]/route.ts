@@ -10,6 +10,8 @@ import { db } from "@/lib/db";
 import { resolveGuestToken } from "@/lib/order-utils";
 import { handleResponse } from "@/lib/response-handler";
 
+import type { OrderDetail } from "@/types/api/orders";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -54,7 +56,7 @@ export async function GET(
       return ownershipResponse;
     }
 
-    return ok("Order fetched successfully", order);
+    return ok<OrderDetail>("Order fetched successfully", order);
   } catch (error) {
     return internalServerError("Failed to fetch order", error);
   }

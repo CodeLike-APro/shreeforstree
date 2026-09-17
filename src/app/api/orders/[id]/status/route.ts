@@ -20,6 +20,9 @@ import { resolveGuestToken } from "@/lib/order-utils";
 import { handleResponse } from "@/lib/response-handler";
 import { updateOrderSchema } from "@/lib/validators/order.validators";
 
+import type { OrderStatusData } from "@/types/api/orders";
+import type { Order } from "@/types/models";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -66,7 +69,7 @@ export async function GET(
       return handleIsOwner;
     }
 
-    const statusAndFailureReason = (() => {
+    const statusAndFailureReason = ((): OrderStatusData => {
       if (
         order.paymentStatus === "success" &&
         order.orderStatus !== "not_placed"
@@ -91,9 +94,13 @@ export async function GET(
       return { status: "pending", failureReason: null };
     })();
 
-    return ok("Order fetched successfully", statusAndFailureReason, {
-      "Cache-Control": "no-store",
-    });
+    return ok<OrderStatusData>(
+      "Order fetched successfully",
+      statusAndFailureReason,
+      {
+        "Cache-Control": "no-store",
+      },
+    );
   } catch (error) {
     return internalServerError("Failed to fetch order", error);
   }
@@ -166,7 +173,7 @@ export async function PATCH(
       );
     }
 
-    return ok("Order status updated successfully", updatedOrder);
+    return ok<Order>("Order status updated successfully", updatedOrder);
   } catch (error) {
     return internalServerError("Failed to update order", error);
   }

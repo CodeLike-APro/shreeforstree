@@ -18,6 +18,8 @@ import { setGuestOrderCookie } from "@/lib/order-utils";
 import { createOrderSchema } from "@/lib/validators/order.validators";
 
 import type { addresses } from "@/lib/db/schema";
+import type { OrdersListItem } from "@/types/api/orders";
+import type { Order, OrderStatus } from "@/types/models";
 import type { SQL } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 
@@ -37,21 +39,18 @@ export async function GET(request: NextRequest) {
     );
     const offset = (page - 1) * limit;
     const conditions: SQL[] = [];
-    const orderStatuses = Object.values(orderStatusEnum.enumValues) as string[];
     const orderStatus = searchParams.get("orderStatus");
     const userId = searchParams.get("userId");
     const search = searchParams.get("search");
 
+    const isOrderStatus = (v: string): v is OrderStatus =>
+      (orderStatusEnum.enumValues as readonly string[]).includes(v);
+
     if (orderStatus) {
-      if (!orderStatuses.includes(orderStatus)) {
-        return badRequest("Invalid order status");
+      if (!isOrderStatus(orderStatus)) {
+        return badRequest("invalid order status");
       }
-      conditions.push(
-        eq(
-          orders.orderStatus,
-          orderStatus as (typeof orderStatusEnum.enumValues)[number],
-        ),
-      );
+      conditions.push(eq(orders.orderStatus, orderStatus));
     }
 
     const isAdmin = currentUser.role === "admin";
@@ -94,7 +93,7 @@ export async function GET(request: NextRequest) {
       orderBy: (orders, { desc }) => desc(orders.createdAt),
     });
 
-    return paginated(
+    return paginated<OrdersListItem>(
       "Orders fetched successfully",
       ordersData,
       countResult[0].count,
@@ -308,7 +307,7 @@ export async function POST(request: NextRequest) {
       await setGuestOrderCookie({ orderId: newOrder.id, guestToken });
     }
 
-    return created("Order created successfully", newOrder);
+    return created<Order>("Order created successfully", newOrder);
   } catch (error) {
     return internalServerError("Failed to create order", error);
   }

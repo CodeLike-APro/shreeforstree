@@ -15,6 +15,8 @@ import EmailShimmer, {
 import { useSession } from "@/lib/auth-client";
 
 import type { addresses } from "@/lib/db/schema";
+import type { ApiResult } from "@/types/api";
+import type { Order } from "@/types/models";
 
 type Address = typeof addresses.$inferSelect;
 
@@ -173,7 +175,7 @@ export default function Checkout() {
         return;
       }
 
-      const result = await res.json();
+      const result: ApiResult<Order> = await res.json();
 
       if (!result.success) {
         setIsPlacingOrder(false);

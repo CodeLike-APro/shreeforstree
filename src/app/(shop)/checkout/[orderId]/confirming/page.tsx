@@ -7,6 +7,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import type { ApiResult } from "@/types/api";
+import type { OrderDetail, OrderStatusData } from "@/types/api/orders";
+
 export default function ConfirmingOrder() {
   const params = useParams();
   const router = useRouter();
@@ -43,7 +46,13 @@ export default function ConfirmingOrder() {
           console.error("Failed to fetch order images");
           return;
         }
-        const data = await res.json();
+
+        const result: ApiResult<OrderDetail> = await res.json();
+        if (!result.success) {
+          console.error("Failed to fetch order images:", result.message);
+          return;
+        }
+        const data = result;
         setImageUrls(
           data.data.orderItems
             .map((item: { productImageUrl: string }) => item.productImageUrl)
@@ -75,7 +84,7 @@ export default function ConfirmingOrder() {
         return;
       }
 
-      const result = await res.json();
+      const result: ApiResult<OrderStatusData> = await res.json();
 
       if (!result.success) {
         console.error("Failed to fetch order status:", result.message);
