@@ -4,6 +4,8 @@ import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
 
+import type { PublicUser } from "@/types/api/users";
+
 export async function GET(request: Request) {
   try {
     const isAdmin = await adminCheck(request);
@@ -27,10 +29,11 @@ export async function GET(request: Request) {
 
     const users = await db.query.user.findMany({
       where: (user, { isNull }) => isNull(user.deletedAt),
+      columns: { image_path: false },
       limit: limit,
       offset: offset,
     });
-    return paginated(
+    return paginated<PublicUser>(
       "Data fetched successfully",
       users,
       countResult[0].count,

@@ -14,6 +14,8 @@ import { deleteFile } from "@/lib/media/media-handle";
 import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { updateUserSchema } from "@/lib/validators/user.validators";
 
+import type { PublicUser } from "@/types/api/users";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -34,13 +36,14 @@ export async function GET(
 
     const foundUser = await db.query.user.findFirst({
       where: (user, { eq }) => eq(user.id, id),
+      columns: { image_path: false },
     });
 
     if (!foundUser || foundUser.deletedAt) {
       return notFound("User not found");
     }
 
-    return ok("User fetched successfully", foundUser);
+    return ok<PublicUser>("User fetched successfully", foundUser);
   } catch (error) {
     return internalServerError("Failed to fetch user", error);
   }
@@ -110,7 +113,9 @@ export async function PATCH(
       .where(eq(user.id, id))
       .returning();
 
-    return ok("User updated successfully", updatedUser);
+    const { image_path, ...publicUser } = updatedUser;
+
+    return ok<PublicUser>("User updated successfully", publicUser);
   } catch (error) {
     return internalServerError("Failed to update user", error);
   }
