@@ -78,6 +78,13 @@
       "when": 1788932707994,
       "tag": "0010_regular_mikhail_rasputin",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789705641853,
+      "tag": "0011_chilly_miek",
+      "breakpoints": true
     }
   ]
 }
