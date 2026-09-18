@@ -11,6 +11,8 @@ import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { wishlist } from "@/lib/db/schema/wishlist.schema";
 
+import type { WishlistItem } from "@/types/models";
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ productId: string }> },
@@ -52,7 +54,10 @@ export async function DELETE(
         ),
       )
       .returning();
-    return ok("Item removed from wishlist successfully", deletedItem);
+    return ok<WishlistItem>(
+      "Item removed from wishlist successfully",
+      deletedItem,
+    );
   } catch (error) {
     return internalServerError(
       "Something went wrong while removing item from wishlist",

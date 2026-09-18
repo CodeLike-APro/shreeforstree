@@ -13,6 +13,9 @@ import { db } from "@/lib/db";
 import { products, wishlist } from "@/lib/db/schema";
 import { addWishlistSchema } from "@/lib/validators/wishlist.validators";
 
+import type { WishlistEntry } from "@/types/api/wishlist";
+import type { WishlistItem } from "@/types/models";
+
 export async function GET(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
@@ -40,7 +43,7 @@ export async function GET(request: Request) {
       .orderBy(desc(wishlist.addedAt));
 
     if (wishlistItems.length === 0) {
-      return ok("Wishlist fetched successfully", []);
+      return ok<WishlistEntry[]>("Wishlist fetched successfully", []);
     }
 
     const productIds = wishlistItems.map((item) => item.product.id);
@@ -71,7 +74,7 @@ export async function GET(request: Request) {
       },
     }));
 
-    return ok("Wishlist fetched successfully", itemsWithMedia);
+    return ok<WishlistEntry[]>("Wishlist fetched successfully", itemsWithMedia);
   } catch (error) {
     return internalServerError(
       "Something went wrong while fetching your wishlist",
@@ -131,7 +134,10 @@ export async function POST(request: Request) {
       })
       .returning();
 
-    return created("Product added to wishlist successfully", newWishlistItem);
+    return created<WishlistItem>(
+      "Product added to wishlist successfully",
+      newWishlistItem,
+    );
   } catch (error) {
     return internalServerError(
       "Something went wrong while adding item to wishlist",
