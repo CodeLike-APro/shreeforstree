@@ -32,9 +32,9 @@ export function itemCount(count: number): string {
   return `${count} item${count !== 1 ? "s" : ""}`;
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(date: Date | string | number): string {
   const options = { day: "numeric", month: "short", year: "numeric" } as const;
-  return date.toLocaleDateString("en-IN", options);
+  return new Date(date).toLocaleDateString("en-IN", options);
 }
 
 export function handleCopyToClipboard(text: string) {
