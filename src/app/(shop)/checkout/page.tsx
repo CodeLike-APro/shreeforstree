@@ -14,12 +14,9 @@ import EmailShimmer, {
 } from "@/components/ui/Shimmer";
 import { useSession } from "@/lib/auth-client";
 
-import type { addresses } from "@/lib/db/schema";
 import type { ApiResult, Jsonified } from "@/types/api";
 import type { CartSummary } from "@/types/api/cart";
-import type { Order } from "@/types/models";
-
-type Address = typeof addresses.$inferSelect;
+import type { Address, Order } from "@/types/models";
 
 export default function Checkout() {
   const { data: session, isPending } = useSession();
@@ -36,7 +33,8 @@ export default function Checkout() {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const emailLoading = isPending;
   const displayedEmail = email ?? session?.user.email ?? "";
-  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
+  const [selectedAddress, setSelectedAddress] =
+    useState<Jsonified<Address> | null>(null);
   const router = useRouter();
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { createAddressSchema } from "@/lib/validators/address.validators";
 
+import type { Address } from "@/types/models";
 import type { SQL } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       offset,
     });
 
-    return paginated(
+    return paginated<Address>(
       "Address fetched successfully",
       userAddresses,
       countResult[0].count,
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
       isDefault,
     } = result.data;
 
-    const newAddress = await db.transaction(async (tx) => {
+    const [newAddress] = await db.transaction(async (tx) => {
       if (isDefault) {
         await tx
           .update(addresses)
@@ -128,7 +129,7 @@ export async function POST(request: Request) {
       return address;
     });
 
-    return created("Address created successfully", newAddress);
+    return created<Address>("Address created successfully", newAddress);
   } catch (error) {
     return internalServerError("Failed to create address", error);
   }

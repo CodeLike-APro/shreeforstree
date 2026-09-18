@@ -5,6 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { createAddressSchema } from "@/lib/validators/address.validators";
 
+import type { ApiResult } from "@/types/api";
+import type { AddressFieldErrors } from "@/types/api/addresses";
+import type { Address } from "@/types/models";
+
 const inputBaseClasses: string =
   "peer border-ink/35 font-label h-9 w-full rounded-md border-[1.5] px-2 py-3 placeholder:text-sm btn-focus";
 
@@ -18,10 +22,6 @@ const focusableSelector: string =
   "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
 
 const errorBaseClasses: string = "font-label mt-1 text-sm text-red-600";
-
-type FieldErrors = Partial<
-  Record<keyof typeof createAddressSchema.shape, string[]>
->;
 
 export default function AddressModal({
   isOpen,
@@ -50,7 +50,7 @@ export default function AddressModal({
   const [pincode, setPincode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
-  const [errors, setErrors] = useState<FieldErrors>({});
+  const [errors, setErrors] = useState<AddressFieldErrors>({});
   const panelRef = useRef<HTMLFormElement>(null);
 
   const addressData = {
@@ -134,7 +134,7 @@ export default function AddressModal({
           setLoading(false);
           return;
         }
-        const result = await res.json();
+        const result: ApiResult<Address> = await res.json();
         if (!result.success) {
           toast.error("Failed to save address");
           setLoading(false);

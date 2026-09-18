@@ -8,22 +8,8 @@ import { AddressShimmer } from "@/components/ui/Shimmer";
 import { useSession } from "@/lib/auth-client";
 import AddressModal from "./AddressModal";
 
-type Address = {
-  id: string;
-  label: string;
-  fullName: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string | null;
-  city: string;
-  state: string;
-  pincode: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: string;
-  country: string;
-  isDefault: boolean;
-};
+import type { ApiPaginatedResult, ApiResult, Jsonified } from "@/types/api";
+import type { Address } from "@/types/models";
 
 type IsModalOpen = {
   modalMode: "new" | "edit" | null;
@@ -37,9 +23,9 @@ export default function AllAddresses({
 }: {
   expand: boolean;
   onCollapse: () => void;
-  onSelect: (Address: Address) => void;
+  onSelect: (address: Jsonified<Address>) => void;
 }) {
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [addresses, setAddresses] = useState<Jsonified<Address>[]>([]);
   const [isDropdownOpenId, setIsDropdownOpenId] = useState<string | null>(null);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState<IsModalOpen>({
     modalMode: null,
@@ -70,7 +56,7 @@ export default function AllAddresses({
           setLoading(false);
           return;
         }
-        const result = await res.json();
+        const result: ApiPaginatedResult<Address> = await res.json();
         if (!result.success) {
           toast.error("Failed to fetch addresses");
           console.error("Failed to fetch addresses", result);
@@ -80,10 +66,8 @@ export default function AllAddresses({
         const data = result.data;
         setAddresses(data);
         setSelectedId((prev) => {
-          if (prev && data.some((a: Address) => a.id === prev)) return prev;
-          return (
-            data.find((a: Address) => a.isDefault)?.id ?? data[0]?.id ?? null
-          );
+          if (prev && data.some((a) => a.id === prev)) return prev;
+          return data.find((a) => a.isDefault)?.id ?? data[0]?.id ?? null;
         });
         setLoading(false);
         return data;
@@ -91,15 +75,14 @@ export default function AllAddresses({
         try {
           const raw = localStorage.getItem("guestAddress");
           const parsed = raw ? JSON.parse(raw) : [];
-          const existingAddress: Address[] = Array.isArray(parsed)
+          const existingAddress: Jsonified<Address>[] = Array.isArray(parsed)
             ? parsed
             : [];
           setAddresses(existingAddress);
           setSelectedId((prev) => {
-            if (prev && existingAddress.some((a: Address) => a.id === prev))
-              return prev;
+            if (prev && existingAddress.some((a) => a.id === prev)) return prev;
             return (
-              existingAddress.find((a: Address) => a.isDefault)?.id ??
+              existingAddress.find((a) => a.isDefault)?.id ??
               existingAddress[0]?.id ??
               null
             );
@@ -155,6 +138,14 @@ export default function AllAddresses({
           });
           return;
         }
+
+        const result: ApiResult<null> = await res.json();
+
+        if (!result.success) {
+          toast.error("Failed to delete address");
+          console.error("Failed to delete address", result.message);
+        }
+
         setDeleteLoadingIds((prev) => {
           const newSet = new Set(prev);
           newSet.delete(id);

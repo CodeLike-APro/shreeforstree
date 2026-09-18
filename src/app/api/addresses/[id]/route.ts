@@ -12,6 +12,8 @@ import { db } from "@/lib/db";
 import { addresses } from "@/lib/db/schema";
 import { updateAddressSchema } from "@/lib/validators/address.validators";
 
+import type { Address } from "@/types/models";
+
 const getAddressById = async (
   params: Promise<{ id: string }>,
   request: Request,
@@ -55,7 +57,7 @@ export async function GET(
     if (!response.success) return response.response;
 
     const { address } = response;
-    return ok("Address fetched successfully", address);
+    return ok<Address>("Address fetched successfully", address);
   } catch (error) {
     return internalServerError("Failed to fetch address", error);
   }
@@ -122,7 +124,7 @@ export async function PATCH(
 
       return updated;
     });
-    return ok("Address updated successfully", updatedAddress);
+    return ok<Address>("Address updated successfully", updatedAddress);
   } catch (error) {
     return internalServerError("Failed to update address", error);
   }
