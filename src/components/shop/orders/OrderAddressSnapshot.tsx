@@ -1,18 +1,21 @@
-type Address = {
-  fullName: string;
-  phone: string;
-  addressLine1: string;
-  addressLine2: string | null;
-  city: string;
-  state: string;
-  pincode: string;
-  country: string;
-};
+import type { Address } from "@/types/models";
+
+type ShippingAddress = Pick<
+  Address,
+  | "fullName"
+  | "phone"
+  | "addressLine1"
+  | "addressLine2"
+  | "city"
+  | "state"
+  | "pincode"
+  | "country"
+>;
 
 export default function OrderAddressSnapshot({
   address,
 }: {
-  address: Address;
+  address: ShippingAddress;
 }) {
   return (
     <div className="font-label border-ink/10 flex w-full flex-col items-start justify-center gap-4 rounded-xl border p-4">

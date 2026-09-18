@@ -194,7 +194,7 @@ export default function AddressModal({
               setFetchLoading(false);
               return;
             }
-            const result = await res.json();
+            const result: ApiResult<Address> = await res.json();
             if (!result.success) {
               toast.error("Failed to fetch address");
               console.error("Failed to fetch address", result);

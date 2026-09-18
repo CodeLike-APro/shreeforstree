@@ -1,15 +1,12 @@
-import type { orderStatusEnum, paymentStatusEnum } from "@/lib/db/schema";
-
-type orderStatuses = typeof orderStatusEnum.enumValues;
-type paymentStatuses = typeof paymentStatusEnum.enumValues;
+import type { OrderStatus, PaymentStatus } from "@/types/models";
 
 type OrderStatusColor = {
-  status: orderStatuses[number];
+  status: OrderStatus;
   bgColor: string;
   textColor: string;
 };
 type PaymentStatusColor = {
-  status: paymentStatuses[number];
+  status: PaymentStatus;
   bgColor: string;
   textColor: string;
 };
@@ -63,11 +60,11 @@ export default function OrderStatusBadge({
 }:
   | {
       kind: "order";
-      status: orderStatuses[number];
+      status: OrderStatus;
     }
   | {
       kind: "payment";
-      status: paymentStatuses[number];
+      status: PaymentStatus;
     }) {
   const correctStatus =
     kind === "order" && status.toLowerCase() === "not_placed"

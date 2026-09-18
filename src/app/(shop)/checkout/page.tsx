@@ -14,7 +14,7 @@ import EmailShimmer, {
 } from "@/components/ui/Shimmer";
 import { useSession } from "@/lib/auth-client";
 
-import type { ApiResult, Jsonified } from "@/types/api";
+import type { ApiError, ApiResult, Jsonified } from "@/types/api";
 import type { CartSummary } from "@/types/api/cart";
 import type { Address, Order } from "@/types/models";
 
@@ -145,7 +145,7 @@ export default function Checkout() {
       if (!res.ok) {
         setIsPlacingOrder(false);
         setOrderError("Failed to place order");
-        const errorResponse = await res.json();
+        const errorResponse: ApiError = await res.json();
         console.error("Failed to place order", errorResponse);
         toast.error(errorResponse.message || "Failed to place order");
         return;

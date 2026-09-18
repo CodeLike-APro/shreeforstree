@@ -58,7 +58,9 @@ export default function Categories() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ isActive: next }),
         });
-        const payload = await res.json().catch(() => null);
+        const payload: ApiResult<Category> | null = await res
+          .json()
+          .catch(() => null);
         if (!res.ok) {
           toast.error(payload?.message ?? "Couldn't update the category.");
           return;
@@ -81,7 +83,9 @@ export default function Categories() {
       const res = await fetch(`/api/categories/${category.slug}`, {
         method: "DELETE",
       });
-      const payload = await res.json().catch(() => null);
+      const payload: ApiResult<Category> | null = await res
+        .json()
+        .catch(() => null);
       if (!res.ok) {
         toast.error(payload?.message ?? "Couldn't delete the category.");
         return;

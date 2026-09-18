@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 
-import type { ApiResult } from "@/types/api";
+import type { ApiError, ApiResult } from "@/types/api";
 import type { CartMergeData } from "@/types/api/cart";
 
 export default function CartMerge() {
@@ -31,7 +31,8 @@ export default function CartMerge() {
         });
 
         if (!res.ok) {
-          console.error("Failed to merge carts", await res.json());
+          const body: ApiError = await res.json();
+          console.error("Failed to merge carts", body);
           return;
         }
 
