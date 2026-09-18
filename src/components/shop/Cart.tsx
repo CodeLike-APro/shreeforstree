@@ -18,30 +18,9 @@ import { RazorpayIcon } from "../ui/Icon";
 import { CartItemShimmerGrid } from "../ui/Shimmer";
 import QuantitySelector from "./product/QuantitySelector";
 
-type Cart = {
-  cartId: string;
-  items: {
-    product: {
-      title: string;
-      price: string;
-      discountedPrice: string | null;
-      imageUrl: string;
-      isActive: boolean;
-    };
-    id: string;
-    cartId: string;
-    size: string;
-    updatedAt: Date;
-    productId: string;
-    quantity: number;
-  }[];
-  originalPriceTotal: string;
-  discountedPriceTotal: string;
-  shippingCharge: string;
-  discountAmount: string;
-  amountToFreeShipping: string;
-  total: string;
-};
+import type { ApiResult, Jsonified } from "@/types/api";
+import type { CartSummary } from "@/types/api/cart";
+import type { CartItem } from "@/types/models";
 
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
@@ -65,7 +44,7 @@ export default function Cart({
   const prefersReducedMotion = useReducedMotion();
   const [loading, setLoading] = useState(true);
   const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
-  const [cart, setCart] = useState<Cart | null>(null);
+  const [cart, setCart] = useState<Jsonified<CartSummary> | null>(null);
   const [draftQty, setDraftQty] = useState<Record<string, number | "">>({});
   const router = useRouter();
 
@@ -140,13 +119,13 @@ export default function Cart({
         setLoading(false);
         return;
       }
-      const result = await res.json();
+      const result: ApiResult<CartSummary> = await res.json();
       if (!result.success) {
         toast.error(`Failed to load cart items. Please try again later.`);
         setLoading(false);
         return;
       }
-      const cartItems = result.data as Cart;
+      const cartItems = result.data;
       setCart(cartItems);
       setLoading(false);
     } catch (error) {
@@ -180,7 +159,7 @@ export default function Cart({
         toast.error("Failed to update quantity. Please try again later.");
         return false;
       }
-      const result = await updateItems.json();
+      const result: ApiResult<CartItem> = await updateItems.json();
       if (!result.success) {
         toast.error("Failed to update quantity. Please try again later.");
         return false;
@@ -245,7 +224,7 @@ export default function Cart({
         toast.error(`Failed to remove item from cart. Please try again later.`);
         return;
       }
-      const result = await res.json();
+      const result: ApiResult<CartItem> = await res.json();
       if (!result.success) {
         toast.error(`Failed to remove item from cart. Please try again later.`);
         return;
@@ -328,7 +307,7 @@ export default function Cart({
                           <Image
                             className="aspect-3/4 h-auto w-full rounded-md object-cover"
                             fill={true}
-                            src={item.product.imageUrl}
+                            src={item.product.imageUrl ?? "/images/white.webp"}
                             alt={item.product.title}
                           />
                         </div>

@@ -7,6 +7,8 @@ import { cartItems } from "@/lib/db/schema";
 import { handleResponse } from "@/lib/response-handler";
 import { updateCartItemSchema } from "@/lib/validators/cart.validators";
 
+import type { CartItem } from "@/types/models";
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ itemId: string }> },
@@ -55,7 +57,12 @@ export async function PATCH(
 
       return updatedItem;
     });
-    return ok("Cart item updated successfully", updatedItem);
+
+    if ("kind" in updatedItem) {
+      return handleResponse(updatedItem);
+    }
+
+    return ok<CartItem>("Cart item updated successfully", updatedItem);
   } catch (error) {
     return internalServerError("Failed to update cart item", error);
   }
@@ -87,7 +94,7 @@ export async function DELETE(
       .where(eq(cartItems.id, itemId))
       .returning();
 
-    return ok("Cart item deleted successfully", deletedItem);
+    return ok<CartItem>("Cart item deleted successfully", deletedItem);
   } catch (error) {
     return internalServerError("Failed to delete cart item", error);
   }

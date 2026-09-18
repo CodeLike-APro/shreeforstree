@@ -15,40 +15,18 @@ import EmailShimmer, {
 import { useSession } from "@/lib/auth-client";
 
 import type { addresses } from "@/lib/db/schema";
-import type { ApiResult } from "@/types/api";
+import type { ApiResult, Jsonified } from "@/types/api";
+import type { CartSummary } from "@/types/api/cart";
 import type { Order } from "@/types/models";
 
 type Address = typeof addresses.$inferSelect;
 
-type Cart = {
-  cartId: string;
-  items: {
-    product: {
-      title: string;
-      price: string;
-      discountedPrice: string | null;
-      imageUrl: string;
-      isActive: boolean;
-    };
-    id: string;
-    cartId: string;
-    size: string;
-    updatedAt: Date;
-    productId: string;
-    quantity: number;
-  }[];
-  originalPriceTotal: string;
-  discountedPriceTotal: string;
-  shippingCharge: string;
-  discountAmount: string;
-  amountToFreeShipping: string;
-  total: string;
-};
-
 export default function Checkout() {
   const { data: session, isPending } = useSession();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [cartItems, setCartItems] = useState<Cart | null>(null);
+  const [cartItems, setCartItems] = useState<Jsonified<CartSummary> | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [email, setEmail] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -95,7 +73,7 @@ export default function Checkout() {
         return;
       }
 
-      const result = await res.json();
+      const result: ApiResult<CartSummary> = await res.json();
 
       if (!result.success) {
         toast.error("Failed to fetch items");
@@ -104,7 +82,7 @@ export default function Checkout() {
         return;
       }
 
-      const data = result.data as Cart;
+      const data = result.data;
       setCartItems(data);
       setIsLoading(false);
     } catch (error) {
@@ -332,7 +310,7 @@ export default function Checkout() {
                     >
                       <div className="relative flex aspect-3/4 w-18 overflow-hidden rounded-lg">
                         <Image
-                          src={item.product.imageUrl}
+                          src={item.product.imageUrl ?? "/images/white.webp"}
                           alt={item.product.title}
                           fill={true}
                           sizes="contain"

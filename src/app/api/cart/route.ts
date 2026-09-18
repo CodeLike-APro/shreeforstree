@@ -20,6 +20,9 @@ import { db } from "@/lib/db";
 import { cartItems } from "@/lib/db/schema/cartItem.schema";
 import { addCartItemSchema } from "@/lib/validators/cart.validators";
 
+import type { CartClearData, CartSummary } from "@/types/api/cart";
+import type { CartItem } from "@/types/models";
+
 export async function GET(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
@@ -36,7 +39,7 @@ export async function GET(request: Request) {
     const cart = cartResult;
 
     if (!cart.cartItems || cart.cartItems.length === 0) {
-      return ok("No items in cart", {
+      return ok<CartSummary>("No items in cart", {
         cartId: cart.id,
         items: [],
         originalPriceTotal: "0.00",
@@ -113,7 +116,7 @@ export async function GET(request: Request) {
 
     const total = discountedPriceTotal + shippingCharge;
 
-    return ok("Cart fetched successfully", {
+    return ok<CartSummary>("Cart fetched successfully", {
       cartId: cart.id,
       items: activeCartItems,
       originalPriceTotal: String(originalPriceTotal.toFixed(2)),
@@ -183,7 +186,11 @@ export async function POST(request: Request) {
       });
     });
 
-    return ok("Item added to cart successfully", updatedItem);
+    if (updatedItem instanceof Response) {
+      return updatedItem;
+    }
+
+    return ok<CartItem>("Item added to cart successfully", updatedItem);
   } catch (error) {
     if (error instanceof Response) {
       return error;
@@ -213,7 +220,7 @@ export async function DELETE(request: Request) {
       .where(eq(cartItems.cartId, cart.id))
       .returning();
 
-    return ok("Cart cleared successfully", { clearedCart });
+    return ok<CartClearData>("Cart cleared successfully", { clearedCart });
   } catch (error) {
     if (error instanceof Response) {
       return error;

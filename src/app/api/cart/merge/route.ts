@@ -12,6 +12,7 @@ import { carts } from "@/lib/db/schema/cart.schema";
 import { handleResponse } from "@/lib/response-handler";
 
 import type { ServiceResponse } from "@/lib/response-handler";
+import type { CartMergeData } from "@/types/api/cart";
 
 export async function POST(request: Request) {
   try {
@@ -24,9 +25,7 @@ export async function POST(request: Request) {
     const sessionId = await getOrCreateSessionId();
 
     const mergedCartItems = await db.transaction(
-      async (
-        tx,
-      ): Promise<ServiceResponse<{ merged: boolean; userCartId?: string }>> => {
+      async (tx): Promise<ServiceResponse<CartMergeData>> => {
         const guestCart = await tx.query.carts.findFirst({
           where: (carts, { and, eq, isNull }) =>
             and(eq(carts.sessionId, sessionId), isNull(carts.userId)),

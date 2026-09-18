@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useSession } from "@/lib/auth-client";
 
+import type { ApiResult } from "@/types/api";
+import type { CartMergeData } from "@/types/api/cart";
+
 export default function CartMerge() {
   const { data: session, isPending } = useSession();
 
@@ -32,7 +35,7 @@ export default function CartMerge() {
           return;
         }
 
-        const result = await res.json();
+        const result: ApiResult<CartMergeData> = await res.json();
 
         if (!result.success) {
           console.error("Failed to merge carts", result);
