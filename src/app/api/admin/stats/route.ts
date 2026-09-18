@@ -20,6 +20,7 @@ import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { orderItems, orders, products, reviews, user } from "@/lib/db/schema";
 
+import type { AdminStats, StatsPeriod } from "@/types/api/admin";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -31,7 +32,6 @@ export async function GET(request: NextRequest) {
     const periodParam = request.nextUrl.searchParams.get("period") ?? "month";
     const fromParam = request.nextUrl.searchParams.get("from");
     const toParam = request.nextUrl.searchParams.get("to");
-    const period = fromParam && toParam ? "custom" : periodParam;
 
     let startDate: Date;
     let endDate: Date = new Date();
@@ -42,6 +42,13 @@ export async function GET(request: NextRequest) {
       year: 365,
       "2year": 730,
     };
+
+    const period: StatsPeriod =
+      fromParam && toParam
+        ? "custom"
+        : periodParam in PERIODS
+          ? (periodParam as StatsPeriod)
+          : "month";
 
     if (fromParam && toParam) {
       startDate = new Date(fromParam);
@@ -196,7 +203,7 @@ export async function GET(request: NextRequest) {
 
     const { total: totalReviews, averageRating } = reviewStats[0] ?? {};
 
-    return ok("Stats fetched successfully", {
+    return ok<AdminStats>("Stats fetched successfully", {
       period,
       dateRange: {
         from: startDate.toISOString(),
