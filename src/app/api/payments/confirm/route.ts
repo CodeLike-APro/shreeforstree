@@ -11,6 +11,8 @@ import { resolveGuestToken } from "@/lib/order-utils";
 import { handleResponse } from "@/lib/response-handler";
 import { confirmPaymentSchema } from "@/lib/validators/payment.validator";
 
+import type { PaymentConfirmData } from "@/types/api/payments";
+
 export async function POST(request: Request) {
   try {
     const currentUser = await getCurrentUser(request);
@@ -94,7 +96,7 @@ export async function POST(request: Request) {
       },
     );
 
-    return ok("Payment received, confirming", { orderId });
+    return ok<PaymentConfirmData>("Payment received, confirming", { orderId });
   } catch (error) {
     return internalServerError(
       "An error occurred while verifying the payment",
