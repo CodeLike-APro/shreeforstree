@@ -1,3 +1,4 @@
+import { avg, count } from "drizzle-orm";
 import { and, eq, inArray } from "drizzle-orm/sql/expressions/conditions";
 import slugify from "slugify";
 import {
@@ -10,11 +11,20 @@ import {
 } from "@/lib/api-response";
 import { adminCheck } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { orderItems, productCategories, productMedia } from "@/lib/db/schema";
+import {
+  orderItems,
+  productCategories,
+  productMedia,
+  reviews,
+} from "@/lib/db/schema";
 import { products } from "@/lib/db/schema/products.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
 import { updateProductSchema } from "@/lib/validators/product.validators";
 
+import type {
+  ProductDetail,
+  ProductDetailWithRating,
+} from "@/types/api/products";
 import type { NextRequest } from "next/server";
 
 export async function GET(
@@ -43,7 +53,21 @@ export async function GET(
       return notFound("Product not found");
     }
 
-    return ok("Product fetched successfully", product);
+    const [{ average, total }] = await db
+      .select({
+        average: avg(reviews.rating),
+        total: count(),
+      })
+      .from(reviews)
+      .where(eq(reviews.productId, productId));
+
+    const averageRating = average ? parseFloat(average).toFixed(1) : "0.0";
+
+    return ok<ProductDetailWithRating>("Product fetched successfully", {
+      ...product,
+      averageRating,
+      reviewCount: total,
+    });
   } catch (error) {
     return internalServerError("Failed to fetch product", error);
   }
@@ -320,7 +344,7 @@ export async function PATCH(
         return internalServerError("Failed to update product");
       }
 
-      return ok("Product updated successfully", updatedProduct);
+      return ok<ProductDetail>("Product updated successfully", updatedProduct);
     } catch (error) {
       console.error("Failed to update product", error);
       return internalServerError("Failed to update product", error);

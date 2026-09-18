@@ -12,6 +12,8 @@ import { db } from "@/lib/db";
 import { reviews } from "@/lib/db/schema/review.schema";
 import { deleteFiles } from "@/lib/media/media-handle";
 
+import type { Review } from "@/types/models";
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -46,13 +48,13 @@ export async function DELETE(
       .where(eq(reviews.id, reviewId))
       .returning();
 
-    // storage cleanup after the DB delete succeeded — if the delete had
+    // storage cleanup after the DB delete succeeded- if the delete had
     // failed, the review must keep its images
     if (review.imagesPath && review.imagesPath.length > 0) {
       await deleteFiles(review.imagesPath);
     }
 
-    return ok("Review deleted successfully", deletedReview);
+    return ok<Review>("Review deleted successfully", deletedReview);
   } catch (error) {
     return internalServerError(
       "An error occurred while deleting the review",

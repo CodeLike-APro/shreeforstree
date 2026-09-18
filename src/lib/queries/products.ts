@@ -2,6 +2,7 @@ import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db";
 import { categories, productCategories, products } from "../db/schema";
 
+import type { ProductListItem } from "@/types/api/products";
 import type { SQL } from "drizzle-orm";
 
 export type ProductsWithMediaAndCategories = Awaited<
@@ -101,7 +102,7 @@ export default async function getProducts({
   }
 
   let countResult: { count: number }[];
-  let allProducts: ProductsWithMediaAndCategories;
+  let allProducts: ProductListItem[];
 
   if (tsqueryString) {
     // COUNT

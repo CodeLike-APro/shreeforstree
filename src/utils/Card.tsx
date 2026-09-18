@@ -8,6 +8,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatAmount } from "@/lib/orders";
 
+import type { ProductMedia } from "@/types/models";
+
 export type CardVariant =
   "customer-product" | "admin-product" | "admin-category";
 
@@ -24,7 +26,7 @@ export interface CardData {
   title: string;
   images?: string[];
   image?: string | null;
-  productMedia?: CardMedia[];
+  productMedia?: Pick<ProductMedia, "url" | "type" | "sortOrder" | "isHero">[];
   categoryImageUrl?: string | null;
   price?: number | string | null;
   discountedPrice?: number | string | null;

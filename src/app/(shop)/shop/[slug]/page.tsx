@@ -5,6 +5,8 @@ import ProductGallery from "@/components/shop/product/ProductGallery";
 import ProductPurchase from "@/components/shop/product/ProductPurchase";
 import { db } from "@/lib/db";
 
+import type { ProductDetail } from "@/types/api/products";
+
 export default async function ProductPage({
   params,
 }: {
@@ -12,7 +14,7 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
 
-  const product = await db.query.products.findFirst({
+  const product: ProductDetail | undefined = await db.query.products.findFirst({
     where: (products, { eq }) => eq(products.slug, slug),
     with: {
       productMedia: {

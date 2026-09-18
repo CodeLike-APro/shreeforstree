@@ -1,4 +1,4 @@
-import { and, avg, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray } from "drizzle-orm";
 import {
   badRequest,
   conflict,
@@ -6,7 +6,7 @@ import {
   forbidden,
   internalServerError,
   notFound,
-  ok,
+  paginated,
   unauthorized,
 } from "@/lib/api-response";
 import { getCurrentUser } from "@/lib/auth-utils";
@@ -18,6 +18,8 @@ import { reviews } from "@/lib/db/schema/review.schema";
 import { isOwnedMediaPath } from "@/lib/media/path-guard";
 import { createReviewSchema } from "@/lib/validators/review.validators";
 
+import type { ProductReview } from "@/types/api/reviews";
+import type { Review } from "@/types/models";
 import type { SQL } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 
@@ -73,22 +75,18 @@ export async function GET(
           },
         },
       },
+      orderBy: (reviews, { desc }) => desc(reviews.createdAt),
     });
-    const averageRating = await db
-      .select({ average: avg(reviews.rating) })
-      .from(reviews)
-      .where(eq(reviews.productId, productId));
-    const raw = averageRating[0]?.average;
-    const formatted = raw ? parseFloat(raw).toFixed(1) : "0.0";
-    const totalReviews = countResult[0]?.count ?? 0;
-    const totalPages = Math.ceil(totalReviews / limit);
 
-    return ok("Reviews fetched successfully", {
-      reviews: reviewData,
-      averageRating: formatted,
+    const totalReviews = countResult[0]?.count ?? 0;
+
+    return paginated<ProductReview>(
+      "Reviews fetched successfully",
+      reviewData,
       totalReviews,
-      totalPages,
-    });
+      page,
+      limit,
+    );
   } catch (error) {
     return internalServerError(
       "An error occurred while fetching reviews",
@@ -192,7 +190,7 @@ export async function POST(
         })
         .returning();
 
-      return created("Review created successfully", newReview);
+      return created<Review>("Review created successfully", newReview);
     } catch (error) {
       // unique (userId, productId) violation from a concurrent submission
       if (isUniqueViolation(error)) {

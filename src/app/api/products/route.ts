@@ -15,6 +15,8 @@ import { deleteFiles, uploadFiles } from "@/lib/media/media-handle";
 import getProducts from "@/lib/queries/products";
 import { createProductSchema } from "@/lib/validators/product.validators";
 
+import type { ProductListItem } from "@/types/api/products";
+import type { Product } from "@/types/models";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -52,7 +54,7 @@ export async function GET(request: NextRequest) {
       limit,
     });
 
-    return paginated(
+    return paginated<ProductListItem>(
       "All products fetched successfully",
       products.allProducts,
       products.count,
@@ -224,7 +226,7 @@ export async function POST(request: NextRequest) {
         }
         return [product];
       });
-      return created("Product created successfully", newProduct);
+      return created<Product>("Product created successfully", newProduct);
     } catch (error) {
       await deleteFiles(uploadedFIlesData.map((file) => file.path));
       return internalServerError("Error creating product", error);
