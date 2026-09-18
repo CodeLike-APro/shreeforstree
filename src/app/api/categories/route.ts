@@ -16,17 +16,23 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { deleteFile, uploadSingleFile } from "@/lib/media/media-handle";
 import { createCategorySchema } from "@/lib/validators/category.validators";
 
+import type { Category } from "@/types/models";
+
 export async function GET(request: Request) {
   try {
     const isAdmin = await adminCheck(request);
     const allCategories = isAdmin
       ? await db.select().from(categories)
       : await db.select().from(categories).where(eq(categories.isActive, true));
-    return ok("All categories fetched successfully", allCategories, {
-      "Cache-Control": isAdmin
-        ? "no-store"
-        : "private, max-age=300, stale-while-revalidate=600",
-    });
+    return ok<Category[]>(
+      "All categories fetched successfully",
+      allCategories,
+      {
+        "Cache-Control": isAdmin
+          ? "no-store"
+          : "private, max-age=300, stale-while-revalidate=600",
+      },
+    );
   } catch (error) {
     return internalServerError("Failed to fetch categories", error);
   }
@@ -96,7 +102,7 @@ export async function POST(request: Request) {
           categoryImagePath: uploaded?.path || null,
         })
         .returning();
-      return created("Category created successfully", newCategory);
+      return created<Category>("Category created successfully", newCategory);
     } catch (error) {
       if (uploaded && uploaded.path) {
         await deleteFile(uploaded.path);

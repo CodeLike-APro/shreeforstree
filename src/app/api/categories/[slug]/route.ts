@@ -15,6 +15,8 @@ import { categories } from "@/lib/db/schema/category.schema";
 import { deleteFile } from "@/lib/media/media-handle";
 import { updateCategorySchema } from "@/lib/validators/category.validators";
 
+import type { Category } from "@/types/models";
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -83,7 +85,7 @@ export async function PATCH(
       })
       .where(eq(categories.slug, categorySlug))
       .returning();
-    return ok("Category updated successfully", updatedCategory);
+    return ok<Category>("Category updated successfully", updatedCategory);
   } catch (error) {
     return internalServerError("Error updating category", error);
   }
@@ -133,7 +135,7 @@ export async function DELETE(
     }
     await db.delete(categories).where(eq(categories.slug, categorySlug));
 
-    return ok("Category deleted successfully", category);
+    return ok<Category>("Category deleted successfully", category);
   } catch (error) {
     return internalServerError("Error deleting category", error);
   }

@@ -8,35 +8,16 @@ import { toast } from "sonner";
 import { updateCategorySchema } from "@/lib/validators/category.validators";
 import FileUpload from "@/utils/FileUpload";
 
-export interface EditableCategory {
-  id: string;
-  title: string;
-  slug: string;
-  description: string | null;
-  categoryImageUrl: string | null;
-  categoryImagePath: string | null;
-  sizeChartImageUrl: string | null;
-  sizeChartImagePath: string | null;
-  isActive: boolean;
-}
-
-interface ApiEnvelope {
-  success: boolean;
-  message: string;
-  data: unknown;
-  errors?: Record<string, string[]>;
-}
+import type { ApiResult } from "@/types/api";
+import type { CategoryFieldErrors } from "@/types/api/categories";
+import type { Category } from "@/types/models";
 
 interface FieldErrors {
   title?: string;
   description?: string;
 }
 
-export default function CategoryEditForm({
-  category,
-}: {
-  category: EditableCategory;
-}) {
+export default function CategoryEditForm({ category }: { category: Category }) {
   const router = useRouter();
 
   const [title, setTitle] = useState(category.title);
@@ -87,7 +68,6 @@ export default function CategoryEditForm({
     const handler = (e: BeforeUnloadEvent) => {
       if (!isDirty) return;
       e.preventDefault();
-      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
@@ -241,9 +221,9 @@ export default function CategoryEditForm({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(patchBody),
         });
-        const payload = (await res
+        const payload: ApiResult<Category> | null = await res
           .json()
-          .catch(() => null)) as ApiEnvelope | null;
+          .catch(() => null);
 
         if (!res.ok) {
           if (res.status === 401 || res.status === 403) {
@@ -259,10 +239,13 @@ export default function CategoryEditForm({
             toast.error("That name is already taken.", { id: toastId });
             return;
           }
-          if (res.status === 400 && payload?.errors) {
+          if (res.status === 400 && payload) {
+            const fieldErrors = !payload.success
+              ? (payload.errors as CategoryFieldErrors | undefined)
+              : undefined;
             setErrors({
-              title: payload.errors.title?.[0],
-              description: payload.errors.description?.[0],
+              title: fieldErrors?.title?.[0],
+              description: fieldErrors?.description?.[0],
             });
             toast.error(payload.message ?? "Please fix the fields.", {
               id: toastId,

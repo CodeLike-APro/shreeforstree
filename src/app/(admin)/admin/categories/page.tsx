@@ -7,19 +7,14 @@ import { toast } from "sonner";
 import { CardShimmerGrid } from "@/components/ui/Shimmer";
 import Card from "@/utils/Card";
 
-interface CategoryRow {
-  id: string;
-  slug: string;
-  title: string;
-  isActive: boolean;
-  [key: string]: unknown;
-}
+import type { ApiResult, Jsonified } from "@/types/api";
+import type { Category } from "@/types/models";
 
 export default function Categories() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
-  const [categories, setCategories] = useState<CategoryRow[]>([]);
+  const [categories, setCategories] = useState<Jsonified<Category>[]>([]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -30,17 +25,15 @@ export default function Categories() {
         setCategoriesError(true);
         return;
       }
-      const result = await res.json();
+      const result: ApiResult<Category[]> = await res.json();
       if (!result.success) {
         setCategoriesError(true);
         return;
       }
-      const list = Array.isArray(result.data)
-        ? result.data
-        : Array.isArray(result)
-          ? result
-          : (result.data?.categories ?? []);
-      setCategories(list);
+
+      const data = result.data;
+
+      setCategories(data);
     } catch (error) {
       console.error("Failed to load categories:", error);
       setCategoriesError(true);
@@ -56,29 +49,34 @@ export default function Categories() {
     fetchData();
   }, [fetchCategories]);
 
-  const handleToggleStatus = useCallback(async (category: CategoryRow) => {
-    const next = !category.isActive;
-    try {
-      const res = await fetch(`/api/categories/${category.slug}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: next }),
-      });
-      const payload = await res.json().catch(() => null);
-      if (!res.ok) {
-        toast.error(payload?.message ?? "Couldn't update the category.");
-        return;
+  const handleToggleStatus = useCallback(
+    async (category: Jsonified<Category>) => {
+      const next = !category.isActive;
+      try {
+        const res = await fetch(`/api/categories/${category.slug}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive: next }),
+        });
+        const payload = await res.json().catch(() => null);
+        if (!res.ok) {
+          toast.error(payload?.message ?? "Couldn't update the category.");
+          return;
+        }
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === category.id ? { ...c, isActive: next } : c,
+          ),
+        );
+        toast.success(next ? "Category activated." : "Category deactivated.");
+      } catch {
+        toast.error("Something went wrong. Please try again.");
       }
-      setCategories((prev) =>
-        prev.map((c) => (c.id === category.id ? { ...c, isActive: next } : c)),
-      );
-      toast.success(next ? "Category activated." : "Category deactivated.");
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    }
-  }, []);
+    },
+    [],
+  );
 
-  const handleDelete = useCallback(async (category: CategoryRow) => {
+  const handleDelete = useCallback(async (category: Jsonified<Category>) => {
     try {
       const res = await fetch(`/api/categories/${category.slug}`, {
         method: "DELETE",

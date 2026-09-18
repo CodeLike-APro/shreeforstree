@@ -7,9 +7,8 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { useSearch } from "./useSearch";
 
-import type { categories } from "@/lib/db/schema";
-
-type Category = typeof categories.$inferSelect;
+import type { ApiResult, Jsonified } from "@/types/api";
+import type { Category } from "@/types/models";
 
 const emptySubscribe = () => () => {};
 const getSnapshot = () => true;
@@ -24,7 +23,7 @@ export function SearchPanel({
 }) {
   const { recentSearches, removeRecent, submit, query, setQuery } = useSearch();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Jsonified<Category>[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
 
@@ -38,17 +37,14 @@ export function SearchPanel({
           setCategoriesError(true);
           return;
         }
-        const result = await res.json();
+        const result: ApiResult<Category[]> = await res.json();
         if (!result.success) {
           setCategoriesError(true);
           return;
         }
-        const list = Array.isArray(result.data)
-          ? result.data
-          : Array.isArray(result)
-            ? result
-            : (result.data?.categories ?? []);
-        setCategories(list);
+        const data = result.data;
+
+        setCategories(data);
       } catch (error) {
         console.error("Failed to load categories:", error);
         setCategoriesError(true);
@@ -199,9 +195,9 @@ export function SearchPanel({
                       No categories to load
                     </p>
                   ) : (
-                    categories.map((cat: Category, idx: number) => (
+                    categories.map((cat) => (
                       <div
-                        key={cat.id || idx}
+                        key={cat.id}
                         className="group relative aspect-5/3 w-full cursor-pointer overflow-hidden rounded"
                       >
                         <Image

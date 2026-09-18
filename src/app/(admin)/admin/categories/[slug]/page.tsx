@@ -19,19 +19,5 @@ export default async function EditCategoryPage({
     notFound();
   }
 
-  return (
-    <CategoryEditForm
-      category={{
-        id: category.id,
-        title: category.title,
-        slug: category.slug,
-        description: category.description,
-        categoryImageUrl: category.categoryImageUrl,
-        categoryImagePath: category.categoryImagePath,
-        sizeChartImageUrl: category.sizeChartImageUrl,
-        sizeChartImagePath: category.sizeChartImagePath,
-        isActive: category.isActive,
-      }}
-    />
-  );
+  return <CategoryEditForm category={category} />;
 }

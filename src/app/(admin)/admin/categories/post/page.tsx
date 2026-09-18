@@ -6,12 +6,9 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import FileUpload from "@/utils/FileUpload";
 
-interface ApiResponse {
-  success: boolean;
-  message: string;
-  data: unknown;
-  errors?: Record<string, string[]>;
-}
+import type { ApiResult } from "@/types/api";
+import type { CategoryFieldErrors } from "@/types/api/categories";
+import type { Category } from "@/types/models";
 
 export default function PostCategory() {
   const router = useRouter();
@@ -30,7 +27,6 @@ export default function PostCategory() {
     const handler = (e: BeforeUnloadEvent) => {
       if (!isDirty) return;
       e.preventDefault();
-      e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
@@ -70,6 +66,8 @@ export default function PostCategory() {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+  //TODO: Handle Depreceated Syntaxes
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -93,17 +91,18 @@ export default function PostCategory() {
         method: "POST",
         body: formData,
       });
-      const payload = (await res
+      const payload: ApiResult<Category> | null = await res
         .json()
-        .catch(() => null)) as ApiResponse | null;
+        .catch(() => null);
 
       if (!res.ok) {
-        const firstFieldError = payload?.errors
-          ? Object.values(payload.errors).flat()[0]
-          : undefined;
+        const fieldError =
+          payload && !payload.success
+            ? (payload.errors as CategoryFieldErrors | undefined)
+            : undefined;
         toast.error(payload?.message ?? "Failed to create category", {
           id: toastId,
-          description: firstFieldError,
+          description: fieldError?.description?.[0] ?? fieldError?.title?.[0],
         });
         return;
       }
