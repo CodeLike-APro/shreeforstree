@@ -1,7 +1,7 @@
-export default function Home() {
+export default function Contact() {
   return (
-    <div className=" h-screen w-full text-center flex flex-col items-center  justify-center">
-      <h1 className="text-4xl md:text-8xl font-display md:text-ink font-bold">
+    <div className="flex h-screen w-full flex-col items-center justify-center text-center">
+      <h1 className="font-display md:text-ink text-4xl font-bold md:text-8xl">
         Contact
       </h1>
     </div>
