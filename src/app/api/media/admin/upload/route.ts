@@ -18,6 +18,12 @@ import {
 } from "@/lib/media/media-handle";
 import { adminMediaUploadSchema } from "@/lib/validators/media.validators";
 
+import type {
+  CategoryImageUploadData,
+  HeroUploadData,
+  SizeChartUploadData,
+  UploadedMedia,
+} from "@/types/api/media";
 import type { NextRequest } from "next/server";
 
 const MAX_FILES: Record<
@@ -115,7 +121,10 @@ export async function POST(request: NextRequest) {
           categoryImagePath: categories.categoryImagePath,
         });
 
-      return ok("Category image uploaded successfully", updatedCategory);
+      return ok<CategoryImageUploadData>(
+        "Category image uploaded successfully",
+        updatedCategory,
+      );
     }
 
     if (type === "category-size-chart") {
@@ -161,7 +170,10 @@ export async function POST(request: NextRequest) {
           sizeChartImagePath: categories.sizeChartImagePath,
         });
 
-      return ok("Category size chart uploaded successfully", updatedCategory);
+      return ok<SizeChartUploadData>(
+        "Category size chart uploaded successfully",
+        updatedCategory,
+      );
     }
 
     // product-hero and product-gallery both target a product folder and (for
@@ -227,7 +239,10 @@ export async function POST(request: NextRequest) {
         await deleteFiles([existing.path]);
       }
 
-      return ok("Hero image uploaded successfully", updatedHeroImage);
+      return ok<HeroUploadData>(
+        "Hero image uploaded successfully",
+        updatedHeroImage,
+      );
     }
 
     if (type === "product-fabric") {
@@ -269,7 +284,7 @@ export async function POST(request: NextRequest) {
       const folder = `products/${productId}/fabric`;
       const uploaded = await uploadFiles(files, folder);
 
-      return ok(
+      return ok<UploadedMedia[]>(
         "Fabric swatch files uploaded successfully",
         uploaded.map(({ publicUrl, path, type: mediaType }) => ({
           url: publicUrl,
@@ -310,7 +325,7 @@ export async function POST(request: NextRequest) {
 
     const folder = `products/${productId}`;
     const uploaded = await uploadFiles(files, folder);
-    return ok(
+    return ok<UploadedMedia[]>(
       "Files uploaded successfully",
       uploaded.map(({ publicUrl, path, type: mediaType }) => ({
         url: publicUrl,

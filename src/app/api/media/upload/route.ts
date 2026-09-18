@@ -18,6 +18,7 @@ import {
 } from "@/lib/media/media-handle";
 import { mediaUploadSchema } from "@/lib/validators/media.validators";
 
+import type { AvatarUploadData, UploadedMedia } from "@/types/api/media";
 import type { NextRequest } from "next/server";
 
 const MAX_FILES: Record<"avatar" | "review", number> = {
@@ -91,7 +92,10 @@ export async function POST(request: NextRequest) {
         await deleteFiles([existing.image_path]);
       }
 
-      return created("Avatar uploaded successfully", updatedUser);
+      return created<AvatarUploadData>(
+        "Avatar uploaded successfully",
+        updatedUser,
+      );
     }
 
     // mirror the review-creation eligibility rule so users can't fill
@@ -118,7 +122,7 @@ export async function POST(request: NextRequest) {
     const folder = `reviews/${currentUser.id}/${productId}`;
     const uploaded = await uploadFiles(files, folder);
 
-    return ok(
+    return ok<UploadedMedia[]>(
       "Files uploaded successfully",
       uploaded.map(({ publicUrl, path, type }) => ({
         url: publicUrl,

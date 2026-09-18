@@ -4,6 +4,7 @@ import type {
   ProductCategory,
   ProductMedia,
 } from "../models";
+import type { UploadedMedia } from "./media";
 
 type ProductCategoryLink<C> = ProductCategory & { category: C };
 
@@ -30,7 +31,4 @@ export type ProductDetailWithRating = ProductDetail & {
 
 // PATCH /api/products/[id] request body: already-uploaded media refs
 
-export type ProductMediaRef = Pick<
-  ProductMedia,
-  "url" | "path" | "type" | "sortOrder"
->;
+export type ProductMediaRef = UploadedMedia & Pick<ProductMedia, "sortOrder">;
