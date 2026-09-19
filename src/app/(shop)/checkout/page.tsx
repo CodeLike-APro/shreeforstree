@@ -8,7 +8,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import z4 from "zod/v4";
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
-import EmailShimmer, {
+import {
+  EmailShimmer,
   OrderItemsShimmerGrid,
   PaymentSummaryShimmer,
 } from "@/components/ui/Shimmer";

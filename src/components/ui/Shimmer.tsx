@@ -190,10 +190,35 @@ export function PaymentSummaryShimmer() {
   );
 }
 
-export default function EmailShimmer() {
+export function EmailShimmer() {
   return (
     <div className="border-ink/35 h-9 w-[60%] rounded-lg border-[1.5] px-2 py-1.5">
       <Shimmer className="h-full w-3/4" />
+    </div>
+  );
+}
+
+export function AdminOrdersShimmer() {
+  return (
+    <div className="border-ink/10 flex h-20 w-full items-center justify-between overflow-hidden rounded-xl border p-4">
+      <div className="flex h-full w-1/3 flex-col gap-2">
+        <Shimmer className="h-5 w-1/2" />
+        <Shimmer className="h-5 w-3/4" />
+      </div>
+      <div className="flex h-full w-1/3 flex-col items-end gap-2">
+        <Shimmer className="h-5 w-1/2" />
+        <Shimmer className="h-5 w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+export function AdminOrdersShimmerGrid({ count = 5 }: { count?: number }) {
+  return (
+    <div className="flex w-full flex-col items-center justify-center gap-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <AdminOrdersShimmer key={i} />
+      ))}
     </div>
   );
 }

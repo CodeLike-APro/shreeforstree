@@ -194,7 +194,7 @@
 }
 
 .btn-focus {
-  @apply cursor-pointer transition-colors duration-150;
+  @apply transition-colors duration-150;
 
   @apply focus:ring-0 focus:outline-none;
 
