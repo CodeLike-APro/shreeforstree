@@ -75,14 +75,6 @@
 }
 
 @layer utilities {
-  /* Tracked-out uppercase label style used throughout nav, buttons, eyebrows */
-  .label-caps {
-    font-family: var(--font-label);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
   /* Rose-gold running-stitch divider — the signature motif */
   .stitch-divider {
     height: 2px;
@@ -191,6 +183,11 @@
   to {
     stroke-dashoffset: 0;
   }
+}
+
+/* Tracked-out uppercase label style used throughout nav, buttons, eyebrows */
+.label-caps {
+  @apply font-label tracking-widest uppercase;
 }
 
 .btn-focus {
