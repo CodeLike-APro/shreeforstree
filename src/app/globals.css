@@ -128,6 +128,11 @@
 
   @media (prefers-reduced-motion: reduce) {
     .shimmer::after,
+    .animate-glow-spin,
+    .animate-glow-breathe,
+    .animate-shimmer,
+    .animate-spin,
+    .animate-pulse,
     .animate-ken-burns,
     .animate-slide-ring {
       animation: none;
@@ -191,7 +196,7 @@
 }
 
 .btn-focus {
-  @apply transition-colors duration-150;
+  @apply transition-colors duration-150 select-none;
 
   @apply focus:ring-0 focus:outline-none;
 
