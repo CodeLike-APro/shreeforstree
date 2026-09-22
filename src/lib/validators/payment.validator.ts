@@ -31,6 +31,10 @@ export const razorpayPaymentEntitySchema = z4.object({
   error_reason: z4.string().nullish(),
 });
 
+export const refundSchema = z4.object({
+  orderId: z4.uuid(),
+});
+
 export type RazorpayPaymentEntity = z4.infer<
   typeof razorpayPaymentEntitySchema
 >;
