@@ -1,0 +1,151 @@
+"use client";
+
+import { Loader, TriangleAlert, X } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
+
+const focusableSelector: string =
+  "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+export default function ConfirmDialog({
+  open,
+  title,
+  description,
+  warning,
+  cancelLabel,
+  confirmLabel,
+  confirmVariant,
+  loading,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  title: string;
+  description: string;
+  warning?: string;
+  cancelLabel: string;
+  confirmLabel: string;
+  confirmVariant: "rust" | "ink";
+  loading: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const variant =
+    confirmVariant === "rust"
+      ? "bg-rust hover:bg-rust/90"
+      : "bg-ink hover:bg-ink/90";
+
+  useEffect(() => {
+    if (!open) return;
+    cancelRef.current?.focus();
+    document.body.style.overflow = "hidden";
+    const handlePointer = (e: MouseEvent) => {
+      if (loading) return;
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target)) return;
+      onCancel();
+    };
+
+    const getFocusable = Array.from(
+      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
+    ).filter((el) => el.getClientRects().length > 0) as HTMLElement[];
+
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (loading) return;
+        onCancel();
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+      if (getFocusable.length === 0) {
+        e.preventDefault();
+      }
+
+      const first = getFocusable[0];
+      const last = getFocusable[getFocusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey && active === first) {
+        e.preventDefault();
+        last.focus();
+        return;
+      }
+
+      if (!e.shiftKey && active === last) {
+        e.preventDefault();
+        first.focus();
+        return;
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "";
+    };
+  }, [onCancel, open, loading]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <>
+      <div className="bg-ink-40 fixed inset-0 z-100 flex items-center justify-center backdrop-blur-sm">
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          className="bg-paper relative flex w-full max-w-md flex-col gap-4 rounded-2xl p-6"
+        >
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="hover:bg-ink/10 btn-focus absolute top-3 right-3 rounded-full p-1.5 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <X size={16} />
+          </button>
+          <div>
+            <h2 id="confirm-title" className="text-lg tracking-wide">
+              {title}
+            </h2>
+            <p className="text-ink-55">{description}</p>
+          </div>
+          {warning && (
+            <div className="bg-rust/10 border-rust/70 text-rust flex gap-3 rounded-xl border p-4">
+              <TriangleAlert size={16} className="mt-0.5 shrink-0" />
+              <p>{warning}</p>
+            </div>
+          )}
+          <div className="mt-2 flex items-center justify-end gap-2">
+            <button
+              type="button"
+              ref={cancelRef}
+              onClick={onCancel}
+              disabled={loading}
+              className="border-ink btn-focus font-label hover:bg-ink hover:text-paper cursor-pointer rounded-md border px-2 py-1.5 text-base transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {cancelLabel}
+            </button>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={loading}
+              className={`btn-focus font-label text-paper flex cursor-pointer items-center justify-center gap-1.5 rounded-md px-2 py-1.75 text-base transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${variant}`}
+            >
+              {confirmLabel}
+
+              {loading && <Loader size={15} className="animate-spin" />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body,
+  );
+}
