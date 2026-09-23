@@ -91,15 +91,6 @@ export default function ShipOrderDialog({
     };
   }, [onCancel, open, loading]);
 
-  useEffect(() => {
-    if (!open) return;
-    const clearFields = () => {
-      setTrackingNumber(null);
-      setEstimatedDelivery(null);
-    };
-    clearFields();
-  }, [open]);
-
   if (!open) return null;
 
   return createPortal(

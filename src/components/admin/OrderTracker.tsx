@@ -150,13 +150,15 @@ export default function OrderTracker({
           }}
         />
       )}
-      <ShipOrderDialog
-        open={shipDialogOpen}
-        loading={pending !== null}
-        onCancel={() => setShipDialogOpen(false)}
-        onConfirm={handleConfirm}
-        errors={shipErrors}
-      />
+      {shipDialogOpen && (
+        <ShipOrderDialog
+          open
+          loading={pending !== null}
+          onCancel={() => setShipDialogOpen(false)}
+          onConfirm={handleConfirm}
+          errors={shipErrors}
+        />
+      )}
 
       <div className="flex w-full flex-col items-start justify-between gap-4">
         <h5 className="label-caps text-ink-55 w-full text-xs">status</h5>
@@ -263,7 +265,10 @@ export default function OrderTracker({
                           isDestructive
                             ? () => setDialog(next)
                             : needsTracking
-                              ? () => setShipDialogOpen(true)
+                              ? () => {
+                                  setShipErrors({});
+                                  setShipDialogOpen(true);
+                                }
                               : () => move(next)
                         }
                         className={[
