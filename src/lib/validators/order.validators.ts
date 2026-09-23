@@ -29,7 +29,7 @@ export const createOrderSchema = z4
     return true;
   });
 
-export const updateOrderSchema = z4.object({
+export const updateOrderFields = z4.object({
   orderStatus: z4.enum([
     "placed",
     "confirmed",
@@ -38,4 +38,14 @@ export const updateOrderSchema = z4.object({
     "cancelled",
     "returned",
   ]),
+  trackingNumber: z4.string().trim().min(1).max(100).optional(),
+  estimatedDelivery: z4.coerce.date().optional(),
 });
+
+export const updateOrderSchema = updateOrderFields.refine(
+  (data) => data.orderStatus !== "shipped" || !!data.trackingNumber,
+  {
+    message: "Tracking number is required to mark an order shipped",
+    path: ["trackingNumber"],
+  },
+);
