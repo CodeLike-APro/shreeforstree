@@ -594,6 +594,13 @@ and `payments`.
   `ApiPaginatedResult<OrdersListItem>`, shows `<AdminOrdersShimmerGrid />` while loading, and
   renders `<PaginationButtons totalPages currentPage onPageChange />` only when
   `pagination.totalPages > 1` (a parent `gap-4` would otherwise leave a stray gap).
+- **Both order lists share `OrdersListItem`**, and the shared half is only
+  `orderItems: Pick<OrderItem, "id">[]` - enough for `itemCount()`. The customer list also
+  selects `productImageUrl` for a row thumbnail, so that field is
+  `Partial<Pick<OrderItem, "productImageUrl">>` on the type: present when the query asks for it,
+  absent for the admin list, and narrowed before use. When two callers of one payload type need
+  different columns, widen the type with `Partial` and keep the `columns:` selection per query
+  rather than forking the type.
 - `GET /api/orders` supports `?search=` **for admins only** - it matches
   `shippingFullName`, `shippingEmail`, or the 8-character order reference via
   ``ilike(sql`upper(right(${orders.id}::text, 8))`, term.toUpperCase())``. The list page does not
