@@ -11,6 +11,15 @@ import { db } from "@/lib/db";
 import { formatAmount, formatDate, orderReference } from "@/lib/orders";
 
 import type { OrderDetail } from "@/types/api/orders";
+import type { PaymentStatus } from "@/types/models";
+
+const paymentStatusColors: Record<PaymentStatus, string> = {
+  pending: "text-ink-55",
+  success: "text-sage",
+  failed: "text-crimson",
+  refunded: "text-plum",
+  expired: "text-crimson-dark",
+};
 
 export default async function AdminOrderDetail({
   params,
@@ -170,10 +179,20 @@ export default async function AdminOrderDetail({
                 Payment
               </h5>
             </div>
-            <div className="border-ink/10 flex w-full flex-col gap-2 border-b p-4">
+            <div
+              className={[
+                "flex w-full flex-col gap-2 p-4",
+                orderDetails.payments[0].status === "refunded" &&
+                  "border-ink/10 border-b",
+              ].join(" ")}
+            >
               <div className="flex w-full items-center justify-between">
                 <h6 className="text-ink-55">Status</h6>
-                <p>{orderDetails.payments[0].status}</p>
+                <p
+                  className={`${paymentStatusColors[orderDetails.payments[0].status]}`}
+                >
+                  {orderDetails.payments[0].status}
+                </p>
               </div>
               <div className="flex w-full items-center justify-between">
                 <h6 className="text-ink-55">Method</h6>
@@ -192,6 +211,8 @@ export default async function AdminOrderDetail({
                       </span>
                     </p>
                     <a
+                      target="_blank"
+                      rel="noopener noreferrer"
                       href={`https://dashboard.razorpay.com/app/payments/${orderDetails.payments[0].transactionId}`}
                       className="font-label text-rose-gold hover:text-rose-gold-dark mr-1 flex gap-3 text-sm hover:underline"
                     >
@@ -209,16 +230,21 @@ export default async function AdminOrderDetail({
               </div>
               <div className="flex w-full items-center justify-between">
                 <h6 className="text-ink-55">Amount</h6>
-                <p>{orderDetails.payments[0].amount}</p>
+                <p>{formatAmount(orderDetails.payments[0].amount)}</p>
               </div>
             </div>
-            <div className="flex gap-3 p-4">
-              <Check size={15} className="text-sage mt-1" />
-              <p className="text-ink-55">
-                Refunded in Razorpay and recorded here on{" "}
-                <span className="text-ink font-semibold">16 Sept 2026</span>.
-              </p>
-            </div>
+            {orderDetails.payments[0].status === "refunded" && (
+              <div className="flex gap-3 p-4">
+                <Check size={15} className="text-sage mt-1" />
+                <p className="text-ink-55">
+                  Refunded in Razorpay and recorded here on{" "}
+                  <span className="text-ink font-semibold">
+                    {formatDate(orderDetails.payments[0].updatedAt)}
+                  </span>
+                  .
+                </p>
+              </div>
+            )}
           </div>
           <div className="font-label border-ink/10 flex w-full flex-col items-start justify-center rounded-xl border">
             <div className="border-ink/10 w-full border-b p-4">
