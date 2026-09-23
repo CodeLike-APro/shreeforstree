@@ -77,11 +77,12 @@ export function notFound(message: string = "Not Found", errors?: unknown) {
 }
 
 // 409 Conflict
-export function conflict(message: string) {
+export function conflict(message: string, errors?: unknown) {
   const body: ApiError = {
     success: false,
     message,
     data: null,
+    errors,
   };
   return NextResponse.json(body, {
     status: 409,
