@@ -44,17 +44,6 @@ export default async function ConfirmationPage({
       title: item.productTitle,
     }));
 
-  const address = {
-    fullName: orderDetails.shippingFullName,
-    phone: orderDetails.shippingPhone,
-    addressLine1: orderDetails.shippingAddressLine1,
-    addressLine2: orderDetails.shippingAddressLine2,
-    city: orderDetails.shippingCity,
-    state: orderDetails.shippingState,
-    pincode: orderDetails.shippingPincode,
-    country: orderDetails.shippingCountry,
-  };
-
   return (
     <div className="flex items-center justify-center px-8 py-20">
       <div className="flex w-[40%] max-w-4xl flex-col items-center justify-center gap-7">
@@ -112,7 +101,7 @@ export default async function ConfirmationPage({
               </div>
             </div>
             <div>
-              <OrderAddressSnapshot address={address} />
+              <OrderAddressSnapshot address={orderDetails} />
             </div>
           </div>
         </div>

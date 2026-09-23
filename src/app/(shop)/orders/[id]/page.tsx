@@ -37,17 +37,6 @@ export default async function OrderDetails({
     return notFound();
   }
 
-  const address = {
-    fullName: orderDetails.shippingFullName,
-    phone: orderDetails.shippingPhone,
-    addressLine1: orderDetails.shippingAddressLine1,
-    addressLine2: orderDetails.shippingAddressLine2,
-    city: orderDetails.shippingCity,
-    state: orderDetails.shippingState,
-    pincode: orderDetails.shippingPincode,
-    country: orderDetails.shippingCountry,
-  };
-
   return (
     <div className="px-8 py-10">
       <BackButton title="Orders" />
@@ -185,7 +174,7 @@ export default async function OrderDetails({
             </div>
           </div>
           <div className="w-full">
-            <OrderAddressSnapshot address={address} />
+            <OrderAddressSnapshot address={orderDetails} />
           </div>
         </div>
       </div>

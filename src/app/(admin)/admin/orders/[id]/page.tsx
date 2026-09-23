@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import z4 from "zod/v4";
 import OrderTracker from "@/components/admin/OrderTracker";
 import RefundBanner from "@/components/admin/RefundBanner";
+import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
 import { BackButton, CopyButton } from "@/components/ui/Buttons";
 import OrderStatusBadge from "@/components/ui/OrderStatusBadge";
 import { db } from "@/lib/db";
@@ -32,20 +33,10 @@ export default async function AdminOrderDetail({
     },
   );
   if (!orderDetails) return notFound();
-
-  const _address = {
-    fullName: orderDetails.shippingFullName,
-    phone: orderDetails.shippingPhone,
-    addressLine1: orderDetails.shippingAddressLine1,
-    addressLine2: orderDetails.shippingAddressLine2,
-    city: orderDetails.shippingCity,
-    state: orderDetails.shippingState,
-    pincode: orderDetails.shippingPincode,
-    country: orderDetails.shippingCountry,
-  };
   return (
     <div className="p-6">
       <BackButton title="Orders" />
+
       <div>
         <div className="mt-4 flex items-center justify-start gap-2">
           <h1 className="font-label text-3xl">
@@ -172,67 +163,7 @@ export default async function AdminOrderDetail({
               </div>
             </div>
           </div>
-          <div className="font-label border-ink/10 flex w-full flex-col items-start justify-center rounded-xl border">
-            <div className="border-ink/10 w-full border-b p-4">
-              <h5 className="font-label text-ink-55 text-xs tracking-widest uppercase">
-                Delivering to
-              </h5>
-            </div>
-
-            <div className="border-ink/10 w-full border-b p-4">
-              <div className="flex flex-col items-start gap-1">
-                <h5 className="font-display text-lg font-semibold">
-                  {orderDetails.shippingFullName}
-                </h5>
-                <a
-                  href={`tel:${orderDetails.shippingPhone}`}
-                  className="text-ink-55 font-label flex gap-2 text-sm tracking-wide"
-                >
-                  {orderDetails.shippingPhone}
-                </a>
-              </div>
-              <div className="text-ink flex flex-col items-start text-base">
-                <p>{orderDetails.shippingAddressLine1}</p>
-                {orderDetails.shippingAddressLine2 && (
-                  <p>{orderDetails.shippingAddressLine2}</p>
-                )}
-                <p>
-                  {orderDetails.shippingCity}, {orderDetails.shippingState},{" "}
-                  {orderDetails.shippingPincode}
-                </p>
-                <p>{orderDetails.shippingCountry}</p>
-              </div>
-            </div>
-
-            <div className="border-ink/10 w-full border-b p-4">
-              <h5 className="font-label text-ink-55 text-xs tracking-widest uppercase">
-                Tracking number
-              </h5>
-            </div>
-            <div className="flex w-full flex-col gap-4 p-4">
-              <div className="flex w-full flex-col gap-2">
-                <div className="flex w-full items-center gap-4">
-                  <p className="bg-ink/5 text-ink flex h-10 w-full items-center justify-start rounded-md p-4 font-mono text-sm">
-                    Tracking no.
-                  </p>
-                  <CopyButton text="Tracking no." />
-                </div>
-                <p>Estimated delivery 2 Oct 2026</p>
-              </div>
-              <div>
-                <a className="text-rose-gold hover:text-rose-gold-dark flex cursor-pointer gap-2 select-none hover:underline">
-                  Track here{" "}
-                  <span>
-                    <SquareArrowOutUpRight size={14} className="mt-1" />
-                  </span>
-                </a>
-                <p className="text-ink-40 text-sm">
-                  Paste your tracking number into the tracking box on their
-                  site.
-                </p>
-              </div>
-            </div>
-          </div>
+          <OrderAddressSnapshot address={orderDetails} />
           <div className="font-label border-ink/10 flex w-full flex-col items-start justify-center rounded-xl border">
             <div className="border-ink/10 w-full border-b p-4">
               <h5 className="font-label text-ink-55 text-xs tracking-widest uppercase">
