@@ -6,8 +6,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { VALID_ORDER_TRANSITIONS } from "@/lib/constants";
+import ShipOrderDialog from "./ShipOrderDialog";
 
 import type { ApiResult } from "@/types/api";
+import type { OrderFieldErrors } from "@/types/api/orders";
 import type { Order, OrderStatus, PaymentStatus } from "@/types/models";
 
 const STEPS = ["placed", "confirmed", "shipped", "delivered"] as const;
@@ -77,11 +79,16 @@ export default function OrderTracker({
 
   const isTerminal = orderStatus === "cancelled" || orderStatus === "returned";
   const isPaid = paymentStatus === "success";
+  const [shipDialogOpen, setShipDialogOpen] = useState<boolean>(false);
+  const [shipErrors, setShipErrors] = useState<OrderFieldErrors>({});
 
   const [pending, setPending] = useState<OrderStatus | null>(null);
   const [dialog, setDialog] = useState<"cancelled" | "returned" | null>(null);
 
-  async function move(next: OrderStatus) {
+  async function move(
+    next: OrderStatus,
+    extra?: { trackingNumber?: string; estimatedDelivery?: string },
+  ) {
     setPending(next);
     try {
       const res = await fetch(`/api/orders/${orderId}/status`, {
@@ -89,26 +96,44 @@ export default function OrderTracker({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ orderStatus: next }),
+        body: JSON.stringify({ orderStatus: next, ...extra }),
       });
 
       const result: ApiResult<Order> = await res.json();
 
       if (!result.success) {
         toast.error(result.message);
-        if (res.status === 409) router.refresh();
-        return;
+        if (res.status === 409 && !result.errors) router.refresh();
+        return { ok: false, error: result.errors };
       }
 
       toast.success(`Order moved to ${next}`);
       router.refresh();
+      return { ok: true };
     } catch (error) {
       toast.error("Something went wrong, please try again.");
       console.error(error);
+      return { ok: false };
     } finally {
       setPending(null);
     }
   }
+
+  const handleConfirm = async (
+    trackingNumber: string,
+    estimatedDelivery: string | null,
+  ) => {
+    setShipErrors({});
+    const result = await move("shipped", {
+      trackingNumber,
+      ...(estimatedDelivery && { estimatedDelivery }),
+    });
+    if (!result.ok) {
+      setShipErrors((result.error ?? {}) as OrderFieldErrors);
+      return;
+    }
+    setShipDialogOpen(false);
+  };
 
   return (
     <div className="border-ink/10 w-full rounded-xl border p-4">
@@ -125,6 +150,13 @@ export default function OrderTracker({
           }}
         />
       )}
+      <ShipOrderDialog
+        open={shipDialogOpen}
+        loading={pending !== null}
+        onCancel={() => setShipDialogOpen(false)}
+        onConfirm={handleConfirm}
+        errors={shipErrors}
+      />
 
       <div className="flex w-full flex-col items-start justify-between gap-4">
         <h5 className="label-caps text-ink-55 w-full text-xs">status</h5>
@@ -219,6 +251,7 @@ export default function OrderTracker({
                   {transitions.map((next) => {
                     const isDestructive =
                       next === "cancelled" || next === "returned";
+                    const needsTracking = next === "shipped";
 
                     return (
                       <button
@@ -229,7 +262,9 @@ export default function OrderTracker({
                         onClick={
                           isDestructive
                             ? () => setDialog(next)
-                            : () => move(next)
+                            : needsTracking
+                              ? () => setShipDialogOpen(true)
+                              : () => move(next)
                         }
                         className={[
                           "btn-focus label-caps flex cursor-pointer items-center justify-center gap-2 rounded-md border p-3 text-xs font-bold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50",
