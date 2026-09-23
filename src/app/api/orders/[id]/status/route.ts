@@ -15,6 +15,7 @@ import {
 } from "@/lib/auth-utils";
 import { VALID_ORDER_TRANSITIONS } from "@/lib/constants";
 import { db } from "@/lib/db";
+import { isUniqueViolation } from "@/lib/db/errors";
 import { orders } from "@/lib/db/schema/order.schema";
 import { resolveGuestToken } from "@/lib/order-utils";
 import { handleResponse } from "@/lib/response-handler";
@@ -142,7 +143,7 @@ export async function PATCH(
       return notFound("Order not found");
     }
 
-    const { orderStatus } = result.data;
+    const { orderStatus, trackingNumber, estimatedDelivery } = result.data;
 
     const validTransitions = VALID_ORDER_TRANSITIONS[order.orderStatus];
 
@@ -158,6 +159,8 @@ export async function PATCH(
         orderStatus,
         ...((orderStatus === "cancelled" || orderStatus === "returned") &&
           order.paymentStatus === "success" && { refundRequired: true }),
+        ...(trackingNumber !== undefined && { trackingNumber }),
+        ...(estimatedDelivery !== undefined && { estimatedDelivery }),
       })
       // optimistic guard: only apply if the status is still the one the
       // transition was validated against, so concurrent updates can't
@@ -175,6 +178,10 @@ export async function PATCH(
 
     return ok<Order>("Order status updated successfully", updatedOrder);
   } catch (error) {
+    if (isUniqueViolation(error)) {
+      const message = "That tracking number is already on another order.";
+      return conflict(message, { trackingNumber: [message] });
+    }
     return internalServerError("Failed to update order", error);
   }
 }
