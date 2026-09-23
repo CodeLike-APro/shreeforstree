@@ -65,11 +65,14 @@ pnpm db:studio      # drizzle-kit studio
 pnpm db:push        # drizzle-kit push
 ```
 
-`pnpm check` baseline: tsc clean, 6 eslint warnings (5 `@next/next/no-img-element` in the admin
-media components, 1 unused `pagination` state in `admin/orders/page.tsx`). Anything above that
-is new. `@typescript-eslint/no-unused-vars` is `warn` with `ignoreRestSiblings` and `^_`
+`pnpm check` baseline: tsc clean, prettier clean, 5 eslint warnings - all
+`@next/next/no-img-element` (`ProductForm.tsx:1366`, `ProductMediaManager.tsx:98/182/251`,
+`FileUpload.tsx:146`). Anything above that is new.
+`@typescript-eslint/no-unused-vars` is `warn` with `ignoreRestSiblings` and `^_`
 ignore patterns, so `const { image_path: _drop, ...rest } = row` is the sanctioned way to strip
-a field. `.prettierignore` excludes `.next`, `node_modules`, `src/lib/db/migrations` and
+a field. `react-hooks/set-state-in-effect` is an **error** here, and it fires only on a direct
+`setState()` in an effect body - a call wrapped in a helper closure does not trip it. Probe the
+rule with a throwaway file and `pnpm exec eslint` before claiming what it will or won't flag. `.prettierignore` excludes `.next`, `node_modules`, `src/lib/db/migrations` and
 `pnpm-lock.yaml` (one path per line - a space-separated list silently matches nothing).
 
 ### Reading Next.js docs
@@ -91,7 +94,7 @@ src/
 |   |       |-- dashboard/page.tsx
 |   |       |-- products/{page,new/page,[id]/{page,loading}}.tsx
 |   |       |-- categories/{page,post/page,[slug]/{page,loading,CategoryEditForm}}.tsx
-|   |       |-- orders/page.tsx                 client; fetches GET /api/orders (in progress, uncommitted)
+|   |       |-- orders/{page.tsx,[id]/page.tsx}   list (client, paged) + detail (server, direct db)
 |   |       |-- users/page.tsx
 |   |       |-- notifications/page.tsx
 |   |       `-- settings/page.tsx
@@ -109,7 +112,7 @@ src/
 |   |   |       |-- payment/page.tsx            opens Razorpay Checkout
 |   |   |       `-- confirming/page.tsx         polls order status until resolved
 |   |   |-- orders/
-|   |   |   |-- page.tsx                        list - server component, db query (in progress, uncommitted)
+|   |   |   |-- page.tsx                        list - server component, db query
 |   |   |   `-- [id]/
 |   |   |       |-- page.tsx                    order detail (noindex)
 |   |   |       `-- confirmation/page.tsx       post-payment success (noindex)
@@ -138,6 +141,7 @@ src/
 |   |   |-- payments/
 |   |   |   |-- create-order/route.ts           POST
 |   |   |   |-- confirm/route.ts                POST (acknowledge only - no DB writes)
+|   |   |   |-- refund/route.ts                 POST (admin; records a refund already issued)
 |   |   |   `-- webhook/route.ts                POST (Razorpay -> source of truth)
 |   |   |-- wishlist/{route.ts, [productId]/route.ts}
 |   |   |-- reviews/[id]/route.ts               DELETE
@@ -150,7 +154,8 @@ src/
 |   `-- icon.svg
 |-- components/
 |   |-- admin/    AdminSidebar, AdminDesktopTopBar, AdminMobileTopBar, Notifications,
-|   |             ProductForm, ProductMediaManager, StatCard, SparkLine
+|   |             ProductForm, ProductMediaManager, StatCard, SparkLine,
+|   |             OrderTracker, ShipOrderDialog, RefundBanner
 |   |-- auth/     AuthCard
 |   |-- shop/     HeaderDesktop, HeaderMobile, Cart, CartMerge, ProductGrid, CategoryTile,
 |   |             home/{HomeHero,HomeMarquee,NewArrivalsRail,HomeCollections,
@@ -160,7 +165,8 @@ src/
 |   |                      ProductPurchase,AddToBag,QuantitySelector},
 |   |             search/{searchPanel,useSearch},
 |   |             orders/{OrderAddressSnapshot,OrderItemThumbnail,SuccessMark}
-|   `-- ui/       BrandToaster, Shimmer, Buttons, ArrowLink, Icon, OrderStatusBadge
+|   `-- ui/       BrandToaster, Shimmer, Buttons, ArrowLink, Icon, OrderStatusBadge,
+|                 PaginationButtons, ConfirmDialog
 |-- hooks/        useFileDragState, useZoneFileDrop
 |-- stores/       sidebar-store (zustand + persist)
 |-- types/
@@ -307,6 +313,20 @@ totalAmount     = itemsTotal + shippingCharges                 - charged to Razo
 `Number(discountedPrice) || Number(price)` - a zero or absent discount falls back to full price.
 `orderItems.priceAtPurchase` uses the same rule.
 
+### Refunds - recorded by hand
+
+`POST /api/payments/refund` is the only writer of `paymentStatus: "refunded"`. It is
+**bookkeeping, not money**: no Razorpay API call happens: the admin issues the refund in the
+Razorpay dashboard and then records it here. Admin-only (`adminCheck` -> `forbidden`), takes
+`{ orderId }` in the body (no dynamic segment), and inside a transaction with
+`SELECT ... FOR UPDATE` it refuses with `conflict("Refund not allowed")` unless the order has
+`refundRequired` **and** an `orderStatus` of `cancelled` or `returned`. On success it flips the
+`status = "success"` payment row to `refunded` and sets the order to
+`paymentStatus: "refunded", refundRequired: false`, returning the updated `Order`.
+
+`refundRequired` is set in two places: the status PATCH (cancel or return of a paid order) and
+the webhook (a capture landing on an already-paid order). Nothing clears it except this route.
+
 ### Payments - two-step, webhook-authoritative
 
 The `payments` row is inserted at Razorpay-order creation with `transactionId: null` and
@@ -361,7 +381,7 @@ export const MAX_NEW_ARRIVALS = 12;
 export const MAX_CATEGORIES = 7;
 export const HERO_SLIDE_INTERVAL_MS = 5500;
 
-export const VALID_ORDER_TRANSITIONS: Record<string, string[]> = {
+export const VALID_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   not_placed: ["placed"],
   placed: ["confirmed", "cancelled"],
   confirmed: ["shipped", "cancelled"],
@@ -377,10 +397,30 @@ That's why `not_placed` is excluded from `updateOrderSchema`. `GET /api/orders` 
 `?orderStatus=` query param with an `isOrderStatus` type guard over `orderStatusEnum.enumValues`
 rather than casting.
 
+`Record<OrderStatus, OrderStatus[]>` (imported from `@/types/models`) means every status must
+have an entry - adding one to the enum breaks the build until the table is updated.
+
 The status PATCH uses an optimistic guard - the `where` clause re-asserts the status the
 transition was validated against, and a `undefined` result returns 409 rather than silently
 applying a stale transition. Moving to `cancelled`/`returned` while `paymentStatus === "success"`
 sets `refundRequired = true`.
+
+### Shipping an order
+
+`PATCH /api/orders/[id]/status` also writes `trackingNumber` and `estimatedDelivery`. The
+validator is split in two: `updateOrderFields` (the plain `z4.object`) and `updateOrderSchema`
+(`updateOrderFields.refine(...)`, which requires `trackingNumber` when `orderStatus === "shipped"`).
+The split exists because a refined schema is a `ZodEffects` with no `.shape`, and
+`OrderFieldErrors` in `src/types/api/orders.ts` is keyed off
+`keyof typeof updateOrderFields.shape`. Import `updateOrderSchema` to parse and
+`updateOrderFields` only for that key type.
+
+`orders.trackingNumber` is `unique`, so a duplicate raises 23505. The route catches it with
+`isUniqueViolation(error)` **before** falling through to `internalServerError` and returns
+`conflict(message, { trackingNumber: [message] })` - `conflict()` takes an optional `errors`
+argument like `badRequest`. That makes 409 ambiguous on the client: a 409 with `errors` is a
+duplicate tracking number (show it under the field, keep the dialog open), a 409 without is the
+stale-status guard (`router.refresh()` to snap to reality).
 
 ---
 
@@ -539,6 +579,54 @@ settled (`orderStatus === "placed"` && `paymentStatus === "success"` && latest p
 
 Both order pages export `metadata = { robots: { index: false } }`. Anything reachable by guest
 token must stay out of search results.
+
+---
+
+## Admin orders
+
+**The admin pages do not reuse the customer order endpoints.** `assertOrderOwnership` has no
+admin bypass, so `GET /api/orders/[id]` and `getOwnedOrder` would 403 an admin looking at
+someone else's order. `(admin)/layout.tsx`'s session gate is the authorization boundary, and
+`admin/orders/[id]/page.tsx` queries `db` directly (after a `z4.uuid()` check) with `orderItems`
+and `payments`.
+
+- **List** (`admin/orders/page.tsx`) is a client page: fetches `/api/orders?page=N&limit=10` as
+  `ApiPaginatedResult<OrdersListItem>`, shows `<AdminOrdersShimmerGrid />` while loading, and
+  renders `<PaginationButtons totalPages currentPage onPageChange />` only when
+  `pagination.totalPages > 1` (a parent `gap-4` would otherwise leave a stray gap).
+- `GET /api/orders` supports `?search=` **for admins only** - it matches
+  `shippingFullName`, `shippingEmail`, or the 8-character order reference via
+  ``ilike(sql`upper(right(${orders.id}::text, 8))`, term.toUpperCase())``. The list page does not
+  have a search box wired up yet.
+- **Detail** renders `<RefundBanner />` (only when `refundRequired`), then `<OrderTracker />`,
+  then the items panel and the right-hand column (`shrink-0 md:w-120`; the row is
+  `items-start justify-between` - without an explicit width both columns content-size and
+  collapse).
+- **`OrderTracker`** (`components/admin/OrderTracker.tsx`) owns every status transition.
+  `STEPS` is the four-step happy path and `ACTIVE_INDEX: Record<OrderStatus, number>` maps each
+  status onto it (`not_placed` and `cancelled` are `-1`, `returned` sits at `3`). The current
+  status is checked, the next is rose-gold, and the rail segment leading to it is highlighted.
+  `move(next, extra?)` PATCHes the status route and returns `{ ok, error? }` so callers can keep
+  a dialog open on failure. Destructive moves (`cancelled`, `returned`) open a `ConfirmDialog`
+  from the `DIALOGS` record, with `PAID_WARNING` added only when `paymentStatus === "success"`;
+  `shipped` opens `ShipOrderDialog` instead; everything else calls `move` directly. Every button
+  is `disabled={pending !== null}` - disabling only the clicked one leaves the rest live during
+  the request.
+- **Dialogs.** `ConfirmDialog` (`components/ui/ConfirmDialog.tsx`) is the generic one:
+  `{ open, title, description, warning?, cancelLabel, confirmLabel, confirmVariant: "rust" | "ink",
+loading, onCancel, onConfirm }`. `ShipOrderDialog` (`components/admin/`) is the same portal +
+  focus-trap shell with a required tracking-number field, an optional delivery date, and inline
+  `errors: OrderFieldErrors`. Both portal to `document.body`, trap Tab, close on Escape and
+  outside click (both no-ops while `loading`), and set `body.style.overflow = "hidden"`.
+  `ShipOrderDialog` is rendered conditionally (`{shipDialogOpen && <ShipOrderDialog ... />}`) so
+  unmounting resets its fields - that replaces a reset effect, which
+  `react-hooks/set-state-in-effect` forbids.
+- After any mutation, `router.refresh()` re-renders the server component; the banner unmounts and
+  the badges flip in the same pass.
+- **Tracking display is shared.** `OrderAddressSnapshot` takes
+  `Pick<Order, ...shipping> & Partial<Pick<Order, "trackingNumber" | "estimatedDelivery">>`, so
+  the admin detail page and both customer order pages render the tracking block from one
+  component. It only appears once `trackingNumber` is set.
 
 ---
 
@@ -935,8 +1023,13 @@ there or every `<Image>` breaks.
 
 Derived from TODOs and unfinished wiring in the code - not a roadmap.
 
-1. **Order confirmation email** - `src/app/api/payments/webhook/route.ts:249`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
+1. **Order confirmation email** - `src/app/api/payments/webhook/route.ts:250`. The confirming and confirmation pages both promise the customer an email ("we'll email you once the payment is confirmed"), and nothing sends one. Resend is listed in the stack but is not installed or configured.
 2. **`(auth)` layout redirect never fires** - `src/app/(auth)/layout.tsx:10` reads an `x-session` header that nothing in the app sets (`proxy.ts` only sets `x-device-type`). A signed-in user can still open `/sign-in` and `/sign-up`. Contrast `(admin)/layout.tsx`, which now checks the real session.
 3. **`product_search_vector` is not in migrations** - product search depends on a DB function that no migration creates. A DB rebuilt from migrations alone will 500 on any `?search=` query.
 4. **Video optimization** - `src/lib/optimize.ts:8`. `optimizeVideo()` is a passthrough (`Buffer.from(await file.arrayBuffer())`); the hook exists but does nothing. Videos bypass compression and count against the 4.5MB Vercel body limit.
-5. **Admin sidebar role is hardcoded** - `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
+5. **No Razorpay refund webhook** - `POST /api/payments/webhook` handles only
+   `payment.captured` and `payment.failed`. A refund issued in the Razorpay dashboard does not
+   reach the app; an admin has to record it with `POST /api/payments/refund`, and a refund
+   nobody records leaves the order showing `paymentStatus: "success"`. Handling
+   `refund.processed` would close the loop.
+6. **Admin sidebar role is hardcoded** - `src/components/admin/AdminSidebar.tsx:250` should read the role from the session.
