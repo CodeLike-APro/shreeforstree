@@ -1,9 +1,16 @@
+import { ChevronRight } from "lucide-react";
 import { headers } from "next/headers";
+import Image from "next/image";
 import Link from "next/link";
 import OrderStatusBadge from "@/components/ui/OrderStatusBadge";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
-import { formatDate, orderReference } from "@/lib/orders";
+import {
+  formatAmount,
+  formatDate,
+  itemCount,
+  orderReference,
+} from "@/lib/orders";
 
 import type { OrdersListItem } from "@/types/api/orders";
 
@@ -24,6 +31,7 @@ export default async function Orders() {
       orderItems: {
         columns: {
           id: true,
+          productImageUrl: true,
         },
       },
     },
@@ -31,45 +39,54 @@ export default async function Orders() {
   });
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center gap-5 text-center">
-      <div>Total orders: {orders.length}</div>
-      {orders.map((order) => (
-        <Link
-          key={order.id}
-          href={`/orders/${order.id}`}
-          className="flex cursor-pointer rounded-xl"
-        >
-          <dl className="bg-opacity-30 border-ink/10 bg-paper grid max-w-md grid-cols-[auto_1fr] gap-x-4 gap-y-3 rounded-xl border p-6 text-sm shadow-sm sm:text-base">
-            <dt className="text-opacity-60 text-ink flex items-center font-medium">
-              Order ID:
-            </dt>
-            <dd className="text-ink-deep text-right font-mono font-semibold sm:text-left">
-              {orderReference(order.id)}
-            </dd>
-
-            <dt className="text-opacity-60 text-ink flex items-center font-medium">
-              Order Status:
-            </dt>
-            <dd className="flex items-center justify-start text-right sm:text-left">
-              <OrderStatusBadge kind={"order"} status={order.orderStatus} />
-            </dd>
-
-            <dt className="text-opacity-60 text-ink flex items-center font-medium">
-              Order Date:
-            </dt>
-            <dd className="text-ink text-right sm:text-left">
-              {formatDate(order.createdAt)}
-            </dd>
-
-            <dt className="text-opacity-60 text-ink flex items-center font-medium">
-              Number of Items:
-            </dt>
-            <dd className="text-ink text-right font-semibold sm:text-left">
-              {order.orderItems.length}
-            </dd>
-          </dl>
-        </Link>
-      ))}
+    <div className="p-6">
+      <div>
+        <h1 className="text-3xl">Orders</h1>
+        <p className="text-ink-55">Everything you have ordered from us</p>
+      </div>
+      <div className="mt-7 w-full">
+        {orders.map((order) => (
+          <Link
+            key={order.id}
+            href={`/orders/${order.id}`}
+            className="border-ink/10 hover:border-rose-gold group flex w-full items-center rounded-xl border p-4 transition-colors duration-150"
+          >
+            <div className="flex w-full items-center gap-4">
+              {order.orderItems[0].productImageUrl && (
+                <div className="relative aspect-square w-17 overflow-hidden rounded-md">
+                  <Image
+                    src={order.orderItems[0].productImageUrl}
+                    alt={order.orderItems[0].id}
+                    fill={true}
+                    className="aspect-square h-auto rounded-md object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <h4 className="font-label font-semibold">
+                    Order ID: {orderReference(order.id)}
+                  </h4>
+                  <OrderStatusBadge kind="order" status={order.orderStatus} />
+                </div>
+                <p className="text-ink-55 flex gap-2">
+                  <span>{formatDate(order.createdAt)},</span>
+                  <span>{itemCount(order.orderItems.length)}</span>
+                </p>
+              </div>
+            </div>
+            <div className="mr-2 flex h-full items-center gap-1">
+              <h4 className="font-label leading-none font-bold">
+                {formatAmount(order.totalAmount)}
+              </h4>
+              <ChevronRight
+                size={18}
+                className="text-ink-55 group-hover:text-rose-gold mb-0.75 transition-all duration-150 group-hover:translate-x-0.5 group-hover:scale-110"
+              />
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
