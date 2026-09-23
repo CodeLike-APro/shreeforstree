@@ -3,7 +3,8 @@ import type { updateOrderFields } from "@/lib/validators/order.validators";
 
 // GET /api/orders — list row; the query only pulls item ids for a count
 export type OrdersListItem = Order & {
-  orderItems: Pick<OrderItem, "id">[];
+  orderItems: (Pick<OrderItem, "id"> &
+    Partial<Pick<OrderItem, "productImageUrl">>)[];
 };
 
 // GET /api/orders/[id] — full detail
