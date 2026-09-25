@@ -1,3 +1,4 @@
+import "server-only";
 import { internalServerError } from "../api-response";
 import { optimizeImage, optimizeVideo } from "../optimize";
 

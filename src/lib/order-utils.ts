@@ -1,3 +1,4 @@
+import "server-only";
 import { cookies, headers } from "next/headers";
 import * as z4 from "zod/v4";
 import { assertOrderOwnership, getCurrentUser } from "./auth-utils";

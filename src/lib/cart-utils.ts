@@ -1,3 +1,4 @@
+import "server-only";
 import { sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { setCartCookie } from "@/app/actions";

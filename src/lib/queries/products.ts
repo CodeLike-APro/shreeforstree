@@ -1,3 +1,4 @@
+import "server-only";
 import { and, count, countDistinct, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../db";
 import { categories, productCategories, products } from "../db/schema";
