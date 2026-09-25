@@ -9,6 +9,7 @@ import {
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import CartMerge from "@/components/shop/CartMerge";
+import MotionProvider from "@/components/ui/MotionProvider";
 import { adminCheck } from "@/lib/auth-utils";
 
 import type { ReactNode } from "react";
@@ -45,15 +46,17 @@ export default async function ShopLayout({
   return (
     <section className="flex min-h-screen flex-1 flex-col">
       <CartMerge />
-      <header className="bg-paper/80 sticky top-0 z-50 backdrop-blur-md">
-        {deviceType === "mobile" ? (
-          <HeaderMobile adminPath={adminPath} />
-        ) : (
-          <HeaderDesktop adminPath={adminPath} />
-        )}
-      </header>
-      <main>{children}</main>
-      {deviceType === "mobile" && <NavMobile tabs={TABS} />}
+      <MotionProvider>
+        <header className="bg-paper/80 sticky top-0 z-50 backdrop-blur-md">
+          {deviceType === "mobile" ? (
+            <HeaderMobile adminPath={adminPath} />
+          ) : (
+            <HeaderDesktop adminPath={adminPath} />
+          )}
+        </header>
+        <main>{children}</main>
+        {deviceType === "mobile" && <NavMobile tabs={TABS} />}
+      </MotionProvider>
     </section>
   );
 }

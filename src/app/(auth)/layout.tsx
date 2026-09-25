@@ -1,3 +1,5 @@
+import MotionProvider from "@/components/ui/MotionProvider";
+
 export default async function AuthLayout({
   children,
 }: {
@@ -5,7 +7,9 @@ export default async function AuthLayout({
 }) {
   return (
     <section className="bg-paper flex min-h-screen items-center justify-center">
-      <main>{children}</main>
+      <MotionProvider>
+        <main>{children}</main>
+      </MotionProvider>
     </section>
   );
 }

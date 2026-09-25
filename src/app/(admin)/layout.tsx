@@ -9,6 +9,7 @@ import {
 import dynamic from "next/dynamic";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import MotionProvider from "@/components/ui/MotionProvider";
 import { auth } from "@/lib/db/auth";
 
 const AdminSidebar = dynamic(() => import("@/components/admin/AdminSidebar"));
@@ -47,20 +48,22 @@ export default async function AdminLayout({
         deviceType === "mobile" ? "flex-col" : "flex-row"
       }`}
     >
-      {deviceType !== "mobile" && (
-        <nav className="shrink-0">
-          <AdminSidebar />
-        </nav>
-      )}
-      <main className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {deviceType === "mobile" ? (
-          <AdminMobileTopBar />
-        ) : (
-          <AdminDesktopTopBar />
+      <MotionProvider>
+        {deviceType !== "mobile" && (
+          <nav className="shrink-0">
+            <AdminSidebar />
+          </nav>
         )}
-        {children}
-      </main>
-      {deviceType === "mobile" && <NavMobile tabs={TABS} />}
+        <main className="flex min-h-screen min-w-0 flex-1 flex-col">
+          {deviceType === "mobile" ? (
+            <AdminMobileTopBar />
+          ) : (
+            <AdminDesktopTopBar />
+          )}
+          {children}
+        </main>
+        {deviceType === "mobile" && <NavMobile tabs={TABS} />}
+      </MotionProvider>
     </section>
   );
 }
