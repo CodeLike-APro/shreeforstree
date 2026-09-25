@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import AllAddresses from "@/components/shop/Addresses/AllAddresses";
 import {
   EmailShimmer,

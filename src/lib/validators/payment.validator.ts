@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 
 export const createPaymentOrderSchema = z4.object({
   orderId: z4.uuid(),

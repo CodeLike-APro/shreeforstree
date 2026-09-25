@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import { PRODUCT_SIZES } from "../db/schema";
 
 export const createProductSchema = z4.object({

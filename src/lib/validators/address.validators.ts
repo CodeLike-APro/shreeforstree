@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 
 export const createAddressSchema = z4.object({
   label: z4.string("Label is required").min(1, "Label is required"),

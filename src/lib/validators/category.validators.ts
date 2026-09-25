@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 
 export const createCategorySchema = z4.object({
   title: z4.string().min(1, "Category title is required"),

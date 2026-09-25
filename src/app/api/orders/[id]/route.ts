@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import {
   badRequest,
   internalServerError,

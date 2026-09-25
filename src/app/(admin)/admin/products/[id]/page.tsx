@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import ProductForm from "@/components/admin/ProductForm";
 import { db } from "@/lib/db";
 

@@ -1,4 +1,4 @@
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import { MAX_CART_ITEMS } from "../constants";
 import { PRODUCT_SIZES } from "../db/schema";
 

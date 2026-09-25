@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm/sql/expressions/conditions";
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import {
   badRequest,
   internalServerError,

@@ -1,7 +1,7 @@
 import { Check, Mail, Phone, SquareArrowOutUpRight, X } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import z4 from "zod/v4";
+import * as z4 from "zod/v4";
 import OrderTracker from "@/components/admin/OrderTracker";
 import RefundBanner from "@/components/admin/RefundBanner";
 import OrderAddressSnapshot from "@/components/shop/orders/OrderAddressSnapshot";
