@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import AddToBag from "./AddToBag";
 import QuantitySelector from "./QuantitySelector";
 
-import type { PRODUCT_SIZES } from "@/lib/db/schema";
+import type { PRODUCT_SIZES } from "@/lib/constants";
 
 type ProductPurchaseProps = {
   sizes: (typeof PRODUCT_SIZES)[number][];

@@ -8,19 +8,9 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { PRODUCT_SIZES } from "@/lib/constants";
 import { productCategories } from "./productCategory.schema";
 import { productMedia } from "./productMedia.schema";
-
-export const PRODUCT_SIZES = [
-  "XS",
-  "S",
-  "M",
-  "L",
-  "XL",
-  "XXL",
-  "3XL",
-  "Free Size",
-] as const;
 
 export const productSizeEnum = pgEnum("product_size", PRODUCT_SIZES);
 

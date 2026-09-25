@@ -1,5 +1,5 @@
 import * as z4 from "zod/v4";
-import { PRODUCT_SIZES } from "../db/schema";
+import { PRODUCT_SIZES } from "../constants";
 
 export const createProductSchema = z4.object({
   title: z4.string().min(1, "Product title is required"),

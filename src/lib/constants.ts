@@ -6,6 +6,17 @@ export const FREE_SHIPPING_THRESHOLD = 999.99;
 
 export const MAX_CART_ITEMS = 10;
 
+export const PRODUCT_SIZES = [
+  "XS",
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+  "3XL",
+  "Free Size",
+] as const;
+
 export const VALID_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   not_placed: ["placed"],
   placed: ["confirmed", "cancelled"],
