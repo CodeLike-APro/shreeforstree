@@ -5,6 +5,7 @@ import type {
   ProductMedia,
 } from "../models";
 import type { UploadedMedia } from "./media";
+import type { updateProductFields } from "@/lib/validators/product.validators";
 
 type ProductCategoryLink<C> = ProductCategory & { category: C };
 
@@ -32,3 +33,7 @@ export type ProductDetailWithRating = ProductDetail & {
 // PATCH /api/products/[id] request body: already-uploaded media refs
 
 export type ProductMediaRef = UploadedMedia & Pick<ProductMedia, "sortOrder">;
+
+export type ProductFieldErrors = Partial<
+  Record<keyof typeof updateProductFields.shape, string[]>
+>;

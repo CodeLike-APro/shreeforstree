@@ -23,6 +23,11 @@ import {
   ProductGalleryManager,
 } from "./ProductMediaManager";
 
+import type { ApiResult } from "@/types/api";
+import type { HeroUploadData, UploadedMedia } from "@/types/api/media";
+import type { ProductDetail, ProductFieldErrors } from "@/types/api/products";
+import type { Category, Product } from "@/types/models";
+
 export interface ProductMediaInitial {
   url: string;
   path: string;
@@ -59,13 +64,6 @@ interface ProductFormProps {
   mode: "create" | "edit";
   initial?: ProductFormInitial;
   hasOrders?: boolean;
-}
-
-interface ApiEnvelope<T = unknown> {
-  success: boolean;
-  message: string;
-  data: T;
-  errors?: Record<string, string[]>;
 }
 
 interface CategoryOption {
@@ -317,8 +315,8 @@ export default function ProductForm({
     (async () => {
       try {
         const res = await fetch("/api/categories");
-        const payload = (await res.json().catch(() => null)) as ApiEnvelope<
-          CategoryOption[]
+        const payload = (await res.json().catch(() => null)) as ApiResult<
+          Category[]
         > | null;
         if (active && res.ok && payload?.data) setCategories(payload.data);
       } catch {
@@ -473,7 +471,7 @@ export default function ProductForm({
     router.push("/admin/products");
   };
 
-  const mapFieldErrors = (payloadErrors?: Record<string, string[]>) => {
+  const mapFieldErrors = (payloadErrors?: ProductFieldErrors | undefined) => {
     if (!payloadErrors) return;
     const mapped: Errors = {};
     for (const [key, msgs] of Object.entries(payloadErrors)) {
@@ -492,8 +490,8 @@ export default function ProductForm({
       method: "POST",
       body: fd,
     });
-    const payload = (await res.json().catch(() => null)) as ApiEnvelope<
-      ProductMediaInitial[]
+    const payload = (await res.json().catch(() => null)) as ApiResult<
+      UploadedMedia[]
     > | null;
     return { res, payload };
   };
@@ -573,11 +571,11 @@ export default function ProductForm({
       }
 
       const res = await fetch("/api/products", { method: "POST", body: fd });
-      const payload = (await res.json().catch(() => null)) as ApiEnvelope<{
-        id: string;
-      }> | null;
+      const payload = (await res
+        .json()
+        .catch(() => null)) as ApiResult<Product> | null;
 
-      if (!res.ok) {
+      if (!payload?.success) {
         if (res.status === 401 || res.status === 403)
           return handleUnauthorized(toastId);
         if (res.status === 409) {
@@ -589,7 +587,7 @@ export default function ProductForm({
           return;
         }
         if (res.status === 400 && payload?.errors) {
-          mapFieldErrors(payload.errors);
+          mapFieldErrors(payload.errors as ProductFieldErrors);
           toast.error(payload.message ?? "Please fix the fields.", {
             id: toastId,
           });
@@ -690,9 +688,9 @@ export default function ProductForm({
     setIsSaving(true);
     const toastId = toast.loading("Saving changes…");
     try {
-      let uploadedGallery: ProductMediaInitial[] = [];
-      const uploadedGalleryByKey = new Map<string, ProductMediaInitial>();
-      let mediaArray: ProductMediaInitial[] | null = null;
+      let uploadedGallery: UploadedMedia[] = [];
+      const uploadedGalleryByKey = new Map<string, UploadedMedia>();
+      let mediaArray: UploadedMedia[] | null = null;
 
       if (galleryDirty) {
         const newItems = items.filter((it) => !it.existing && it.file);
@@ -743,7 +741,7 @@ export default function ProductForm({
         patch.media = mediaArray;
       }
 
-      let heroResult: ProductMediaInitial | null = null;
+      let heroResult: HeroUploadData | null = null;
       if (heroFile) {
         const fd = new FormData();
         fd.append("type", "product-hero");
@@ -755,7 +753,7 @@ export default function ProductForm({
         });
         const payload = (await res
           .json()
-          .catch(() => null)) as ApiEnvelope<ProductMediaInitial> | null;
+          .catch(() => null)) as ApiResult<HeroUploadData> | null;
         if (!res.ok) {
           if (res.status === 401 || res.status === 403)
             return handleUnauthorized(toastId);
@@ -782,8 +780,8 @@ export default function ProductForm({
         });
         const payload = (await res
           .json()
-          .catch(() => null)) as ApiEnvelope | null;
-        if (!res.ok) {
+          .catch(() => null)) as ApiResult<ProductDetail> | null;
+        if (!payload?.success) {
           if (res.status === 401 || res.status === 403)
             return handleUnauthorized(toastId);
           if (res.status === 409) {
@@ -795,7 +793,7 @@ export default function ProductForm({
             return;
           }
           if (res.status === 400 && payload?.errors) {
-            mapFieldErrors(payload.errors);
+            mapFieldErrors(payload.errors as ProductFieldErrors);
             toast.error(payload.message ?? "Please fix the fields.", {
               id: toastId,
             });
@@ -895,7 +893,7 @@ export default function ProductForm({
       });
       const payload = (await res
         .json()
-        .catch(() => null)) as ApiEnvelope | null;
+        .catch(() => null)) as ApiResult<null> | null;
       if (!res.ok) {
         if (res.status === 401 || res.status === 403)
           return handleUnauthorized(toastId);
