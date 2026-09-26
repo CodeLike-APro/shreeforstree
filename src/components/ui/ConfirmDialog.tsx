@@ -1,11 +1,8 @@
 "use client";
 
 import { Loader, TriangleAlert, X } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-
-const focusableSelector: string =
-  "a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+import { useDialogShell } from "@/hooks/useDialogShell";
 
 export default function ConfirmDialog({
   open,
@@ -30,65 +27,16 @@ export default function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const cancelRef = useRef<HTMLButtonElement>(null);
+  const { panelRef, initialFocusRef } = useDialogShell({
+    open,
+    loading,
+    onClose: onCancel,
+  });
+
   const variant =
     confirmVariant === "rust"
       ? "bg-rust hover:bg-rust/90"
       : "bg-ink hover:bg-ink/90";
-
-  useEffect(() => {
-    if (!open) return;
-    cancelRef.current?.focus();
-    document.body.style.overflow = "hidden";
-    const handlePointer = (e: MouseEvent) => {
-      if (loading) return;
-      const target = e.target as Node;
-      if (panelRef.current?.contains(target)) return;
-      onCancel();
-    };
-
-    const getFocusable = Array.from(
-      panelRef.current?.querySelectorAll<HTMLElement>(focusableSelector) ?? [],
-    ).filter((el) => el.getClientRects().length > 0) as HTMLElement[];
-
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (loading) return;
-        onCancel();
-        return;
-      }
-
-      if (e.key !== "Tab") return;
-      if (getFocusable.length === 0) {
-        e.preventDefault();
-      }
-
-      const first = getFocusable[0];
-      const last = getFocusable[getFocusable.length - 1];
-      const active = document.activeElement as HTMLElement | null;
-
-      if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-        return;
-      }
-
-      if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-        return;
-      }
-    };
-
-    document.addEventListener("mousedown", handlePointer);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handlePointer);
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = "";
-    };
-  }, [onCancel, open, loading]);
 
   if (!open) return null;
 
@@ -125,7 +73,7 @@ export default function ConfirmDialog({
           <div className="mt-2 flex items-center justify-end gap-2">
             <button
               type="button"
-              ref={cancelRef}
+              ref={initialFocusRef}
               onClick={onCancel}
               disabled={loading}
               className="border-ink btn-focus font-label hover:bg-ink hover:text-paper cursor-pointer rounded-md border px-2 py-1.5 text-base transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
