@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { formatAmount } from "@/lib/orders";
 
 import type { ProductMedia } from "@/types/models";
@@ -126,7 +127,7 @@ export default function Card({
     return single ? [single] : [];
   }, [data]);
 
-  const displayImages = images.length ? images : ["/images/white.webp"];
+  const displayImages = images.length ? images : [PLACEHOLDER_IMAGE];
   // Three-zone hover / swipe gallery is customer-facing only.
   const hasGallery = variant === "customer-product" && displayImages.length > 1;
   const safeIndex = Math.min(activeIndex, displayImages.length - 1);

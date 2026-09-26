@@ -12,7 +12,7 @@ import {
 } from "react";
 import slugify from "slugify";
 import { toast } from "sonner";
-import { PRODUCT_SIZES } from "@/lib/constants";
+import { PLACEHOLDER_IMAGE, PRODUCT_SIZES } from "@/lib/constants";
 import {
   createProductSchema,
   updateProductSchema,
@@ -877,7 +877,7 @@ export default function ProductForm({
   };
 
   const deleteThumb =
-    items[0]?.previewUrl ?? heroExistingUrl ?? "/images/white.webp";
+    items[0]?.previewUrl ?? heroExistingUrl ?? PLACEHOLDER_IMAGE;
   const canDelete = isEdit && !hasOrders;
   const deleteReady =
     deleteInput.trim().toLowerCase() ===

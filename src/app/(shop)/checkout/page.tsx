@@ -14,6 +14,7 @@ import {
   PaymentSummaryShimmer,
 } from "@/components/ui/Shimmer";
 import { useSession } from "@/lib/auth-client";
+import { PLACEHOLDER_IMAGE } from "@/lib/constants";
 
 import type { ApiError, ApiResult, Jsonified } from "@/types/api";
 import type { CartSummary } from "@/types/api/cart";
@@ -309,7 +310,7 @@ export default function Checkout() {
                     >
                       <div className="relative flex aspect-3/4 w-18 overflow-hidden rounded-lg">
                         <Image
-                          src={item.product.imageUrl ?? "/images/white.webp"}
+                          src={item.product.imageUrl ?? PLACEHOLDER_IMAGE}
                           alt={item.product.title}
                           fill={true}
                           sizes="contain"

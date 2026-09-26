@@ -27,6 +27,8 @@ export const VALID_ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   returned: [],
 };
 
+export const PLACEHOLDER_IMAGE = "/images/placeholder.webp";
+
 export const MAX_HERO_PRODUCTS = 4;
 
 export const MAX_ATELIER_EDIT_PRODUCTS = 4;

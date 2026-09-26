@@ -13,7 +13,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { MAX_CART_ITEMS } from "@/lib/constants";
+import { MAX_CART_ITEMS, PLACEHOLDER_IMAGE } from "@/lib/constants";
 import { RazorpayIcon } from "../ui/Icon";
 import { CartItemShimmerGrid } from "../ui/Shimmer";
 import QuantitySelector from "./product/QuantitySelector";
@@ -307,7 +307,7 @@ export default function Cart({
                           <Image
                             className="aspect-3/4 h-auto w-full rounded-md object-cover"
                             fill={true}
-                            src={item.product.imageUrl ?? "/images/white.webp"}
+                            src={item.product.imageUrl ?? PLACEHOLDER_IMAGE}
                             alt={item.product.title}
                           />
                         </div>
