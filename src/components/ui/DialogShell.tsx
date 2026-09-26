@@ -9,12 +9,14 @@ export default function DialogShell<T extends HTMLElement = HTMLElement>({
   loading,
   onClose,
   labelledBy,
+  describedBy,
   children,
 }: {
   open: boolean;
   loading: boolean;
   onClose: () => void;
   labelledBy: string;
+  describedBy: string;
   children: (refs: {
     initialFocusRef: React.RefObject<T | null>;
   }) => React.ReactNode;
@@ -34,6 +36,7 @@ export default function DialogShell<T extends HTMLElement = HTMLElement>({
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
         className="bg-paper relative flex w-full max-w-md flex-col gap-4 rounded-2xl p-6"
       >
         <button

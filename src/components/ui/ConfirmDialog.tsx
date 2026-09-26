@@ -37,7 +37,7 @@ export default function ConfirmDialog({
       loading={loading}
       onClose={onCancel}
       labelledBy="confirm-title"
-      aria-describedby="confirm-description"
+      describedBy="confirm-description"
     >
       {({ initialFocusRef }) => (
         <>
