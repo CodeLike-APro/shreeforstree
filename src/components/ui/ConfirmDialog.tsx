@@ -1,8 +1,7 @@
 "use client";
 
-import { Loader, TriangleAlert, X } from "lucide-react";
-import { createPortal } from "react-dom";
-import { useDialogShell } from "@/hooks/useDialogShell";
+import { Loader, TriangleAlert } from "lucide-react";
+import DialogShell from "./DialogShell";
 
 export default function ConfirmDialog({
   open,
@@ -27,42 +26,28 @@ export default function ConfirmDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
-  const { panelRef, initialFocusRef } = useDialogShell({
-    open,
-    loading,
-    onClose: onCancel,
-  });
-
   const variant =
     confirmVariant === "rust"
       ? "bg-rust hover:bg-rust/90"
       : "bg-ink hover:bg-ink/90";
 
-  if (!open) return null;
-
-  return createPortal(
-    <>
-      <div className="bg-ink-40 fixed inset-0 z-100 flex items-center justify-center backdrop-blur-sm">
-        <div
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-title"
-          className="bg-paper relative flex w-full max-w-md flex-col gap-4 rounded-2xl p-6"
-        >
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={loading}
-            className="hover:bg-ink/10 btn-focus absolute top-3 right-3 rounded-full p-1.5 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <X size={16} />
-          </button>
+  return (
+    <DialogShell<HTMLButtonElement>
+      open={open}
+      loading={loading}
+      onClose={onCancel}
+      labelledBy="confirm-title"
+      aria-describedby="confirm-description"
+    >
+      {({ initialFocusRef }) => (
+        <>
           <div>
             <h2 id="confirm-title" className="text-lg tracking-wide">
               {title}
             </h2>
-            <p className="text-ink-55">{description}</p>
+            <p id="confirm-description" className="text-ink-55">
+              {description}
+            </p>
           </div>
           {warning && (
             <div className="bg-rust/10 border-rust/70 text-rust flex gap-3 rounded-xl border p-4">
@@ -91,9 +76,8 @@ export default function ConfirmDialog({
               {loading && <Loader size={15} className="animate-spin" />}
             </button>
           </div>
-        </div>
-      </div>
-    </>,
-    document.body,
+        </>
+      )}
+    </DialogShell>
   );
 }
